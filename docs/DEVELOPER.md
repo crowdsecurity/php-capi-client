@@ -6,7 +6,27 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
 
+- [Local development](#local-development)
+  - [DDEV-Local setup](#ddev-local-setup)
+    - [DDEV installation](#ddev-installation)
+    - [Prepare DDEV PHP environment](#prepare-ddev-php-environment)
+      - [Older PHP versions : `5.3`,`5.4` and `5.5`](#older-php-versions--5354-and-55)
+  - [DDEV Usage](#ddev-usage)
+    - [Use composer to update or install the lib](#use-composer-to-update-or-install-the-lib)
+    - [Unit test](#unit-test)
+    - [Integration test](#integration-test)
+    - [Coding standards](#coding-standards)
+      - [PHPCS Fixer](#phpcs-fixer)
+      - [PHPSTAN](#phpstan)
+      - [PHP Mess Detector](#php-mess-detector)
+      - [PHPCS and PHPCBF](#phpcs-and-phpcbf)
+      - [PSALM](#psalm)
+      - [PHP Unit Code coverage](#php-unit-code-coverage)
+- [Commit message](#commit-message)
+  - [Allowed message `type` values](#allowed-message-type-values)
+- [Release process](#release-process)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
