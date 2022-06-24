@@ -6,7 +6,8 @@
 
 ![Version](https://img.shields.io/github/v/release/crowdsecurity/php-capi-client?include_prereleases)
 [![Test suite](https://github.com/crowdsecurity/php-capi-client/actions/workflows/unit-and-integration-test.yml/badge.svg)](https://github.com/crowdsecurity/php-capi-client/actions/workflows/unit-and-integration-test.yml)
-[![Coding standards](https://github.com/crowdsecurity/php-capi-client/actions/workflows/coding-standards/badge.svg)](https://github.com/crowdsecurity/php-capi-client/actions/workflows/coding-standards.yml)
+[![Coding standards](https://github.com/crowdsecurity/php-capi-client/actions/workflows/coding-standards.yml/badge.svg)]
+(https://github.com/crowdsecurity/php-capi-client/actions/workflows/coding-standards.yml)
 ![Licence](https://img.shields.io/github/license/crowdsecurity/php-capi-client)
 
 
