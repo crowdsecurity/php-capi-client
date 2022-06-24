@@ -6,6 +6,27 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Description](#description)
+- [Features](#features)
+- [Quick start](#quick-start)
+  - [Installation](#installation)
+  - [Watcher instantiation](#watcher-instantiation)
+    - [CAPI calls](#capi-calls)
+      - [Register your watcher](#register-your-watcher)
+      - [Login](#login)
+      - [Push signals/alerts](#push-signalsalerts)
+      - [Get Decisions stream list](#get-decisions-stream-list)
+- [Override the curl request handler](#override-the-curl-request-handler)
+  - [Custom implementation](#custom-implementation)
+  - [Ready to use `file_get_contents` implementation](#ready-to-use-file_get_contents-implementation)
+- [Example scripts](#example-scripts)
+  - [Register a watcher](#register-a-watcher)
+  - [Login as watcher](#login-as-watcher)
+  - [Get decisions stream](#get-decisions-stream)
+  - [Push signals](#push-signals)
+
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
