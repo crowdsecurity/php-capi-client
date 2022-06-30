@@ -1,3 +1,3 @@
 parameters:
-	autoload_files:
-		- %rootDir%/../../../../../vendor/autoload.php
+	bootstrapFiles:
+		- ../../../vendor/autoload.php
