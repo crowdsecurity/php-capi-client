@@ -1,22 +1,25 @@
 {
   "require": {
-    "php":">=7.4",
+    "php": ">=7.4",
     "friendsofphp/php-cs-fixer": "@stable",
     "phpstan/phpstan": "@stable",
     "phpmd/phpmd": "@stable",
     "squizlabs/php_codesniffer": "@stable",
     "vimeo/psalm": "@stable",
-    "phpunit/phpunit": "@stable",
-    "phpunit/php-code-coverage" : "@stable"
+    "phpunit/phpunit": "^9.3",
+    "phpunit/php-code-coverage": "@stable",
+    "crowdsec/capi-client": "@dev"
   },
   "autoload": {
     "psr-4": {
-      "CrowdSec\\CapiClient\\": "../../src/"
+      "CrowdSec\\CapiClient\\Tests\\": "../../tests/"
     }
   },
-  "autoload-dev": {
-    "psr-4": {
-      "CrowdSec\\CapiClient\\Tests\\": "../../tests/"
+  "repositories": {
+    "crowdsec-capi-client": {
+      "type": "path",
+      "url": "../../",
+      "symlink": true
     }
   }
 }
