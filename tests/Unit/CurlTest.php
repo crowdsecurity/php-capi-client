@@ -16,6 +16,7 @@ namespace CrowdSec\CapiClient\Tests\Unit;
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\HttpMessage\Request;
+use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
@@ -49,7 +50,7 @@ final class CurlTest extends TestCase
 
         $client = new Watcher($configs);
         $curlRequester = $client->getRequestHandler();
-        $request = new Request($url, $method, [], $parameters);
+        $request = new Request($url, $method, ['User-Agent' => TestConstants::USER_AGENT], $parameters);
 
         $curlOptions = PHPUnitUtil::callMethod(
             $curlRequester,
@@ -59,11 +60,11 @@ final class CurlTest extends TestCase
         $expected = [
             \CURLOPT_HEADER => false,
             \CURLOPT_RETURNTRANSFER => true,
-            \CURLOPT_USERAGENT => Constants::USER_AGENT_PREFIX . Constants::VERSION,
+            \CURLOPT_USERAGENT => TestConstants::USER_AGENT,
             \CURLOPT_HTTPHEADER => [
                 'Accept:application/json',
                 'Content-Type:application/json',
-                'User-Agent:' . Constants::USER_AGENT_PREFIX . Constants::VERSION,
+                'User-Agent:' . TestConstants::USER_AGENT,
             ],
             \CURLOPT_POST => true,
             \CURLOPT_POSTFIELDS => '{"machine_id":"test","password":"test"}',
@@ -83,7 +84,7 @@ final class CurlTest extends TestCase
         $client = new Watcher($configs);
         $curlRequester = $client->getRequestHandler();
 
-        $request = new Request($url, $method, [], $parameters);
+        $request = new Request($url, $method, ['User-Agent' => TestConstants::USER_AGENT], $parameters);
 
         $curlOptions = PHPUnitUtil::callMethod(
             $curlRequester,
@@ -94,11 +95,11 @@ final class CurlTest extends TestCase
         $expected = [
             \CURLOPT_HEADER => false,
             \CURLOPT_RETURNTRANSFER => true,
-            \CURLOPT_USERAGENT => Constants::USER_AGENT_PREFIX . Constants::VERSION,
+            \CURLOPT_USERAGENT => TestConstants::USER_AGENT,
             \CURLOPT_HTTPHEADER => [
                 'Accept:application/json',
                 'Content-Type:application/json',
-                'User-Agent:' . Constants::USER_AGENT_PREFIX . Constants::VERSION,
+                'User-Agent:' . TestConstants::USER_AGENT,
             ],
             \CURLOPT_POST => false,
             \CURLOPT_HTTPGET => true,
@@ -321,7 +322,7 @@ final class CurlTest extends TestCase
             )
         );
 
-        $request = new Request('test-uri', 'POST');
+        $request = new Request('test-uri', 'POST', ['User-Agent' => TestConstants::USER_AGENT]);
 
         $error = false;
         try {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\HttpMessage;
 
 /**
@@ -15,7 +17,7 @@ namespace CrowdSec\CapiClient\HttpMessage;
 class Response extends AbstractMessage
 {
     /**
-     * @var string|null
+     * @var string
      */
     private $jsonBody;
 
@@ -24,29 +26,18 @@ class Response extends AbstractMessage
      */
     private $statusCode;
 
-    /**
-     * @param string|null $jsonBody
-     * @param int $statusCode
-     * @param array $headers
-     */
-    public function __construct(?string $jsonBody, int $statusCode, array $headers = [])
+    public function __construct(string $jsonBody, int $statusCode, array $headers = [])
     {
         $this->jsonBody = $jsonBody;
         $this->headers = $headers;
         $this->statusCode = $statusCode;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getJsonBody(): ?string
+    public function getJsonBody(): string
     {
         return $this->jsonBody;
     }
 
-    /**
-     * @return int
-     */
     public function getStatusCode(): int
     {
         return $this->statusCode;

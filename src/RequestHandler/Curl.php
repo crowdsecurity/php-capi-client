@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\RequestHandler;
 
 use CrowdSec\CapiClient\ClientException;
@@ -43,13 +45,13 @@ class Curl implements RequestHandlerInterface
 
         curl_close($handle);
 
-        return new Response($response, $statusCode);
+        return new Response((string)$response, $statusCode);
     }
 
     /**
      * @codeCoverageIgnore
      *
-     * @param $handle
+     * @param resource $handle
      *
      * @return bool|string
      */
@@ -61,7 +63,7 @@ class Curl implements RequestHandlerInterface
     /**
      * @codeCoverageIgnore
      *
-     * @param $handle
+     * @param resource $handle
      *
      * @return mixed
      */
@@ -72,9 +74,6 @@ class Curl implements RequestHandlerInterface
 
     /**
      * Retrieve Curl options.
-     *
-     * @param Request $request
-     * @return array
      *
      * @throws ClientException
      */

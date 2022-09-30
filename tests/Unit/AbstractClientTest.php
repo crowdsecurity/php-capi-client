@@ -21,9 +21,11 @@ use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use DateTime;
 use Exception;
+
+use const PHP_VERSION_ID;
+
 use PHPUnit\Framework\TestCase;
 use TypeError;
-use const PHP_VERSION_ID;
 
 /**
  * @covers \CrowdSec\CapiClient\AbstractClient::__construct
@@ -68,7 +70,7 @@ final class AbstractClientTest extends TestCase
             'Request handler must be curl by default'
         );
 
-        $client = new Watcher(array_merge($configs, ['prod' => true]));
+        $client = new Watcher(array_merge($configs, ['api_url' => Constants::PROD_URL]));
         $url = $client->getUrl();
         $this->assertEquals(
             Constants::PROD_URL,
@@ -191,10 +193,10 @@ final class AbstractClientTest extends TestCase
             'Should throw error on 403'
         );
 
-        $response = new Response(null, 200);
+        $response = new Response("", 200);
 
         $error = false;
-        $decoded=[];
+        $decoded = [];
         try {
             $decoded = PHPUnitUtil::callMethod(
                 $client,
@@ -217,7 +219,7 @@ final class AbstractClientTest extends TestCase
             'An empty response body should not return some array'
         );
 
-        $response = new Response(null, 500);
+        $response = new Response("", 500);
 
         $error = false;
         try {
@@ -237,18 +239,16 @@ final class AbstractClientTest extends TestCase
             'An empty response body should throw error for bad status'
         );
 
-
         $error = false;
         try {
             new Response(['test'], 200);
-
         } catch (TypeError $e) {
             $error = $e->getMessage();
         }
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/must be of type .*string/',
+            '/type .*string/',
             $error,
             'If response body is not a string it should throw error'
         );

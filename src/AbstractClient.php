@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient;
 
 use CrowdSec\CapiClient\HttpMessage\Request;
@@ -25,18 +27,9 @@ abstract class AbstractClient
     private $url;
 
     /**
-     * @var string
-     */
-    protected $token;
-
-    /**
      * @var array
      */
-    private $configs = [
-        'prod' => false,
-        'machine_id' => '',
-        'password' => '',
-    ];
+    protected $configs = [];
 
     /**
      * @var RequestHandlerInterface
@@ -50,15 +43,11 @@ abstract class AbstractClient
 
     public function __construct(array $configs, RequestHandlerInterface $requestHandler = null)
     {
-        $this->configs = array_merge($this->configs, $configs);
+        $this->configs = $configs;
         $this->requestHandler = ($requestHandler) ?: new Curl();
-        $this->token = '';
-        $this->url = $this->configs['prod'] ? Constants::PROD_URL : Constants::DEV_URL;
+        $this->url = $this->configs['api_url'];
     }
 
-    /**
-     * @return string
-     */
     public function getUrl(): string
     {
         return $this->url;
@@ -67,12 +56,12 @@ abstract class AbstractClient
     /**
      * Retrieve a config value by name.
      *
-     * @param $name
-     * @param $default
+     * @param string $name
+     * @param mixed|null $default
      *
      * @return mixed|null
      */
-    public function getConfig($name, $default = null)
+    public function getConfig(string $name, $default = null)
     {
         return (isset($this->configs[$name])) ? $this->configs[$name] : $default;
     }
@@ -87,12 +76,6 @@ abstract class AbstractClient
 
     /**
      * Performs an HTTP request (POST, GET, ...) and returns its response body as an array.
-     *
-     * @param string $method
-     * @param string $endpoint
-     * @param array $parameters
-     * @param array $headers
-     * @return array
      *
      * @throws ClientException
      */
@@ -112,9 +95,6 @@ abstract class AbstractClient
 
     /**
      * @codeCoverageIgnore
-     *
-     * @param Request $request
-     * @return Response
      */
     public function sendRequest(Request $request): Response
     {
@@ -123,9 +103,6 @@ abstract class AbstractClient
 
     /**
      * Verify the response and return an array.
-     *
-     * @param Response $response
-     * @return array
      *
      * @throws ClientException
      */
@@ -136,10 +113,6 @@ abstract class AbstractClient
         $body = $response->getJsonBody();
         $decoded = ['message' => ''];
         if (!empty($body)) {
-            if (!is_string($body)) {
-                throw new ClientException('Body response must be a string.');
-            }
-
             $decoded = json_decode($response->getJsonBody(), true);
 
             if (null === $decoded) {
@@ -155,11 +128,6 @@ abstract class AbstractClient
         return $decoded;
     }
 
-    /**
-     * @param string $endpoint
-     *
-     * @return string
-     */
     private function getFullUrl(string $endpoint): string
     {
         return $this->getUrl() . ltrim($endpoint, '/');

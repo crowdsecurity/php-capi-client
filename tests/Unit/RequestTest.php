@@ -13,15 +13,14 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  * @license   MIT License
  */
 
-use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\HttpMessage\Request;
+use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \CrowdSec\CapiClient\HttpMessage\Request::getParams
  * @covers \CrowdSec\CapiClient\HttpMessage\Request::getMethod
  * @covers \CrowdSec\CapiClient\HttpMessage\Request::getUri
- * @covers \CrowdSec\CapiClient\HttpMessage\Request::formatUserAgent
  * @covers \CrowdSec\CapiClient\HttpMessage\Request::__construct
  * @covers \CrowdSec\CapiClient\HttpMessage\AbstractMessage::getHeaders
  */
@@ -29,7 +28,12 @@ final class RequestTest extends TestCase
 {
     public function testConstructor()
     {
-        $request = new Request('test-uri', 'POST', ['test' => 'test'], ['foo' => 'bar']);
+        $request = new Request(
+            'test-uri',
+            'POST',
+            ['test' => 'test', 'User-Agent' => TestConstants::USER_AGENT],
+            ['foo' => 'bar']
+        );
 
         $headers = $request->getHeaders();
         $params = $request->getParams();
@@ -58,7 +62,7 @@ final class RequestTest extends TestCase
             [
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
-                'User-Agent' => Constants::USER_AGENT_PREFIX . Constants::VERSION,
+                'User-Agent' => TestConstants::USER_AGENT,
                 'test' => 'test',
             ],
             $headers,

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\RequestHandler;
 
 use CrowdSec\CapiClient\ClientException;
@@ -54,8 +56,8 @@ class FileGetContents implements RequestHandlerInterface
     /**
      * Retrieve configuration for the stream content.
      *
-     * @param Request $request
      * @return array|array[]
+     *
      * @throws ClientException
      */
     private function createContextConfig(Request $request): array
@@ -98,21 +100,19 @@ class FileGetContents implements RequestHandlerInterface
      * @codeCoverageIgnore
      *
      * @param $url
-     * @param $context
-     *
-     * @return array
+     * @param resource $context
      */
-    protected function exec($url, $context): array
+    protected function exec(string $url, $context): array
     {
         return ['response' => file_get_contents($url, false, $context), 'header' => $http_response_header];
     }
 
     /**
-     * @param $parts
+     * @param string[] $parts
      *
-     * @return int
+     * @psalm-param list<string> $parts
      */
-    protected function getResponseHttpCode($parts): int
+    protected function getResponseHttpCode(array $parts): int
     {
         $status = 0;
         if (\count($parts) > 1) {

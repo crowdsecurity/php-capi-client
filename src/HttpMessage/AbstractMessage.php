@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\HttpMessage;
 
 /**
@@ -20,9 +22,6 @@ abstract class AbstractMessage
      */
     protected $headers = [];
 
-    /**
-     * @return array
-     */
     public function getHeaders(): array
     {
         return $this->headers;

@@ -199,7 +199,6 @@ final class WatcherTest extends TestCase
     }
 
     /**
-     * @param AbstractClient $client
      * @param $requestHandler
      *
      * @return void

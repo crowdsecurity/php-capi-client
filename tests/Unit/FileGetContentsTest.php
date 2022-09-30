@@ -16,6 +16,7 @@ namespace CrowdSec\CapiClient\Tests\Unit;
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\HttpMessage\Request;
 use CrowdSec\CapiClient\RequestHandler\FileGetContents;
+use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
@@ -53,7 +54,7 @@ final class FileGetContentsTest extends TestCase
         $client = new Watcher($configs, $fgcRequestHandler);
         $fgcRequester = $client->getRequestHandler();
 
-        $request = new Request('test-url', $method, [], $parameters);
+        $request = new Request('test-url', $method, ['User-Agent' => TestConstants::USER_AGENT], $parameters);
 
         $contextConfig = PHPUnitUtil::callMethod(
             $fgcRequester,
@@ -68,7 +69,7 @@ final class FileGetContentsTest extends TestCase
                 'method' => $method,
                 'header' => 'Accept: application/json
 Content-Type: application/json
-User-Agent: PHP CrowdSec CAPI client/v0.0.1
+User-Agent: ' . TestConstants::USER_AGENT . '
 ',
                 'ignore_errors' => true,
                 'content' => '{"machine_id":"test","password":"test"}',
@@ -84,7 +85,7 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
         $method = 'GET';
         $parameters = ['foo' => 'bar', 'crowd' => 'sec'];
 
-        $request = new Request('test-url', $method, [], $parameters);
+        $request = new Request('test-url', $method, ['User-Agent' => TestConstants::USER_AGENT], $parameters);
 
         $contextConfig = PHPUnitUtil::callMethod(
             $fgcRequester,
@@ -99,7 +100,7 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
                 'method' => $method,
                 'header' => 'Accept: application/json
 Content-Type: application/json
-User-Agent: PHP CrowdSec CAPI client/v0.0.1
+User-Agent: ' . TestConstants::USER_AGENT . '
 ',
                 'ignore_errors' => true,
             ],
@@ -299,9 +300,7 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
     {
         $mockFGCRequest = $this->getFGCMock();
 
-        $request = new Request('test-uri', 'GET', [], ['foo' => 'bar']);
-
-
+        $request = new Request('test-uri', 'GET', ['User-Agent' => TestConstants::USER_AGENT], ['foo' => 'bar']);
 
         $error = false;
         try {
@@ -340,7 +339,7 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
     {
         $mockFGCRequest = $this->getFGCMock();
 
-        $request = new Request('test-uri', 'GET', [], ['foo' => 'bar']);
+        $request = new Request('test-uri', 'GET', ['User-Agent' => TestConstants::USER_AGENT], ['foo' => 'bar']);
 
         $mockFGCRequest->method('exec')
             ->will(

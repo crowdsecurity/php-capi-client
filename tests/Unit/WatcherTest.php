@@ -14,6 +14,7 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  */
 
 use CrowdSec\CapiClient\ClientException;
+use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\HttpMessage\Response;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
@@ -31,6 +32,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
  * @covers \CrowdSec\CapiClient\AbstractClient::request
  * @covers \CrowdSec\CapiClient\Watcher::handleTokenHeader
+ * @covers \CrowdSec\CapiClient\Watcher::formatUserAgent
  */
 class WatcherTest extends TestCase
 {
@@ -40,11 +42,16 @@ class WatcherTest extends TestCase
     {
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
             ->enableOriginalConstructor()
-            ->setConstructorArgs(['configs' => $this->configs])
+            ->setConstructorArgs(['configs' => array_merge($this->configs, ['user_agent_suffix' => 'test_suffix'])])
             ->setMethods(['request'])
             ->getMock();
         $mockClient->expects($this->exactly(1))->method('request')
-            ->with('POST', Watcher::REGISTER_ENDPOINT, $this->configs, []);
+            ->with(
+                'POST',
+                Watcher::REGISTER_ENDPOINT,
+                $this->configs,
+                ['User-Agent' => Constants::USER_AGENT_PREFIX . Constants::VERSION . '/test_suffix']
+            );
         $mockClient->register();
     }
 
@@ -56,7 +63,12 @@ class WatcherTest extends TestCase
             ->setMethods(['request'])
             ->getMock();
         $mockClient->expects($this->exactly(1))->method('request')
-            ->with('POST', Watcher::LOGIN_ENDPOINT, $this->configs, []);
+            ->with(
+                'POST',
+                Watcher::LOGIN_ENDPOINT,
+                $this->configs,
+                ['User-Agent' => Constants::USER_AGENT_PREFIX . Constants::VERSION]
+            );
         $mockClient->login();
     }
 
@@ -72,7 +84,15 @@ class WatcherTest extends TestCase
         $mockClient->method('login')->will($this->returnValue(['token' => 'test-token']));
         $mockClient->expects($this->exactly(1))->method('request')
             ->withConsecutive(
-                ['POST', Watcher::SIGNALS_ENDPOINT, $signals, ['Authorization' => 'Bearer test-token']]
+                [
+                    'POST',
+                    Watcher::SIGNALS_ENDPOINT,
+                    $signals,
+                    [
+                        'User-Agent' => Constants::USER_AGENT_PREFIX . Constants::VERSION,
+                        'Authorization' => 'Bearer test-token',
+                    ],
+                ]
             );
         $mockClient->pushSignals($signals);
     }
@@ -88,7 +108,15 @@ class WatcherTest extends TestCase
         $mockClient->method('login')->will($this->returnValue(['token' => 'test-token']));
         $mockClient->expects($this->exactly(1))->method('request')
             ->withConsecutive(
-                ['GET', Watcher::DECISIONS_STREAM_ENDPOINT, [], ['Authorization' => 'Bearer test-token']]
+                [
+                    'GET',
+                    Watcher::DECISIONS_STREAM_ENDPOINT,
+                    [],
+                    [
+                        'User-Agent' => Constants::USER_AGENT_PREFIX . Constants::VERSION,
+                        'Authorization' => 'Bearer test-token',
+                    ],
+                ]
             );
         $mockClient->getStreamDecisions();
     }
