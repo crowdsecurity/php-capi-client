@@ -34,17 +34,17 @@ use PHPUnit\Framework\TestCase;
  */
 class WatcherTest extends TestCase
 {
-    protected $configs = array('machine_id' => 'MACHINE_ID', 'password' => 'MACHINE_PASSWORD');
+    protected $configs = ['machine_id' => 'MACHINE_ID', 'password' => 'MACHINE_PASSWORD'];
 
     public function testRegisterParams()
     {
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
             ->enableOriginalConstructor()
-            ->setConstructorArgs(array('configs' => $this->configs))
-            ->setMethods(array('request'))
+            ->setConstructorArgs(['configs' => $this->configs])
+            ->setMethods(['request'])
             ->getMock();
         $mockClient->expects($this->exactly(1))->method('request')
-            ->with('POST', Watcher::REGISTER_ENDPOINT, $this->configs, array());
+            ->with('POST', Watcher::REGISTER_ENDPOINT, $this->configs, []);
         $mockClient->register();
     }
 
@@ -52,11 +52,11 @@ class WatcherTest extends TestCase
     {
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
             ->enableOriginalConstructor()
-            ->setConstructorArgs(array('configs' => $this->configs))
-            ->setMethods(array('request'))
+            ->setConstructorArgs(['configs' => $this->configs])
+            ->setMethods(['request'])
             ->getMock();
         $mockClient->expects($this->exactly(1))->method('request')
-            ->with('POST', Watcher::LOGIN_ENDPOINT, $this->configs, array());
+            ->with('POST', Watcher::LOGIN_ENDPOINT, $this->configs, []);
         $mockClient->login();
     }
 
@@ -64,15 +64,15 @@ class WatcherTest extends TestCase
     {
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
             ->enableOriginalConstructor()
-            ->setConstructorArgs(array('configs' => $this->configs))
-            ->setMethods(array('request', 'login'))
+            ->setConstructorArgs(['configs' => $this->configs])
+            ->setMethods(['request', 'login'])
             ->getMock();
 
-        $signals = array('test');
-        $mockClient->method('login')->will($this->returnValue(array('token' => 'test-token')));
+        $signals = ['test'];
+        $mockClient->method('login')->will($this->returnValue(['token' => 'test-token']));
         $mockClient->expects($this->exactly(1))->method('request')
             ->withConsecutive(
-                array('POST', Watcher::SIGNALS_ENDPOINT, $signals, array('Authorization' => 'Bearer test-token'))
+                ['POST', Watcher::SIGNALS_ENDPOINT, $signals, ['Authorization' => 'Bearer test-token']]
             );
         $mockClient->pushSignals($signals);
     }
@@ -81,14 +81,14 @@ class WatcherTest extends TestCase
     {
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
             ->enableOriginalConstructor()
-            ->setConstructorArgs(array('configs' => $this->configs))
-            ->setMethods(array('request', 'login'))
+            ->setConstructorArgs(['configs' => $this->configs])
+            ->setMethods(['request', 'login'])
             ->getMock();
 
-        $mockClient->method('login')->will($this->returnValue(array('token' => 'test-token')));
+        $mockClient->method('login')->will($this->returnValue(['token' => 'test-token']));
         $mockClient->expects($this->exactly(1))->method('request')
             ->withConsecutive(
-                array('GET', Watcher::DECISIONS_STREAM_ENDPOINT, array(), array('Authorization' => 'Bearer test-token'))
+                ['GET', Watcher::DECISIONS_STREAM_ENDPOINT, [], ['Authorization' => 'Bearer test-token']]
             );
         $mockClient->getStreamDecisions();
     }
@@ -97,8 +97,8 @@ class WatcherTest extends TestCase
     {
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
             ->enableOriginalConstructor()
-            ->setConstructorArgs(array('configs' => $this->configs))
-            ->setMethods(array('request'))
+            ->setConstructorArgs(['configs' => $this->configs])
+            ->setMethods(['request'])
             ->getMock();
 
         $mockClient->method('request')->will($this->throwException(new ClientException('test-error')));
@@ -115,15 +115,15 @@ class WatcherTest extends TestCase
     {
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
             ->enableOriginalConstructor()
-            ->setConstructorArgs(array('configs' => $this->configs))
-            ->setMethods(array('sendRequest'))
+            ->setConstructorArgs(['configs' => $this->configs])
+            ->setMethods(['sendRequest'])
             ->getMock();
 
         $mockClient->expects($this->exactly(1))->method('sendRequest')->will($this->returnValue(
-            new Response(MockedData::LOGIN_SUCCESS, MockedData::HTTP_200, array())
+            new Response(MockedData::LOGIN_SUCCESS, MockedData::HTTP_200, [])
         ));
 
-        $response = $mockClient->request('POST', Watcher::LOGIN_ENDPOINT, $this->configs, array());
+        $response = $mockClient->request('POST', Watcher::LOGIN_ENDPOINT, $this->configs, []);
 
         $this->assertEquals(
             json_decode(MockedData::LOGIN_SUCCESS, true),
@@ -133,7 +133,7 @@ class WatcherTest extends TestCase
 
         $error = false;
         try {
-            $mockClient->request('PUT', Watcher::LOGIN_ENDPOINT, $this->configs, array());
+            $mockClient->request('PUT', Watcher::LOGIN_ENDPOINT, $this->configs, []);
         } catch (ClientException $e) {
             $error = $e->getMessage();
         }

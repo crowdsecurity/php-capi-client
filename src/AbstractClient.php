@@ -32,11 +32,11 @@ abstract class AbstractClient
     /**
      * @var array
      */
-    private $configs = array(
+    private $configs = [
         'prod' => false,
         'machine_id' => '',
         'password' => '',
-    );
+    ];
 
     /**
      * @var RequestHandlerInterface
@@ -46,7 +46,7 @@ abstract class AbstractClient
     /**
      * @var string[]
      */
-    protected $allowedMethods = array('POST', 'GET');
+    protected $allowedMethods = ['POST', 'GET'];
 
     public function __construct(array $configs, RequestHandlerInterface $requestHandler = null)
     {
@@ -59,7 +59,7 @@ abstract class AbstractClient
     /**
      * @return string
      */
-    public function getUrl()
+    public function getUrl(): string
     {
         return $this->url;
     }
@@ -90,12 +90,13 @@ abstract class AbstractClient
      *
      * @param string $method
      * @param string $endpoint
-     *
+     * @param array $parameters
+     * @param array $headers
      * @return array
      *
      * @throws ClientException
      */
-    public function request($method, $endpoint, array $parameters = array(), array $headers = array())
+    public function request(string $method, string $endpoint, array $parameters = [], array $headers = []): array
     {
         $method = strtoupper($method);
         if (!in_array($method, $this->allowedMethods)) {
@@ -111,9 +112,11 @@ abstract class AbstractClient
 
     /**
      * @codeCoverageIgnore
-     * @return HttpMessage\Response
+     *
+     * @param Request $request
+     * @return Response
      */
-    public function sendRequest(Request $request)
+    public function sendRequest(Request $request): Response
     {
         return $this->requestHandler->handle($request);
     }
@@ -121,16 +124,17 @@ abstract class AbstractClient
     /**
      * Verify the response and return an array.
      *
+     * @param Response $response
      * @return array
      *
      * @throws ClientException
      */
-    private function formatResponseBody(Response $response)
+    private function formatResponseBody(Response $response): array
     {
         $statusCode = $response->getStatusCode();
 
         $body = $response->getJsonBody();
-        $decoded = array('message' => '');
+        $decoded = ['message' => ''];
         if (!empty($body)) {
             if (!is_string($body)) {
                 throw new ClientException('Body response must be a string.');
@@ -156,7 +160,7 @@ abstract class AbstractClient
      *
      * @return string
      */
-    private function getFullUrl($endpoint)
+    private function getFullUrl(string $endpoint): string
     {
         return $this->getUrl() . ltrim($endpoint, '/');
     }

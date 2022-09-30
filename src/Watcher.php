@@ -4,6 +4,8 @@
 
 namespace CrowdSec\CapiClient;
 
+use Exception;
+
 /**
  * The Watcher Client.
  *
@@ -16,13 +18,13 @@ namespace CrowdSec\CapiClient;
  */
 class Watcher extends AbstractClient
 {
-    const LOGIN_ENDPOINT = '/watchers/login';
+    public const LOGIN_ENDPOINT = '/watchers/login';
 
-    const REGISTER_ENDPOINT = '/watchers';
+    public const REGISTER_ENDPOINT = '/watchers';
 
-    const SIGNALS_ENDPOINT = '/signals';
+    public const SIGNALS_ENDPOINT = '/signals';
 
-    const DECISIONS_STREAM_ENDPOINT = '/decisions/stream';
+    public const DECISIONS_STREAM_ENDPOINT = '/decisions/stream';
 
     /**
      * Process a login call to CAPI.
@@ -31,18 +33,18 @@ class Watcher extends AbstractClient
      *
      * @return array
      */
-    public function login()
+    public function login(): array
     {
         try {
             $response = $this->request(
                 'POST',
                 self::LOGIN_ENDPOINT,
-                array(
+                [
                     'password' => $this->getConfig('password'),
-                    'machine_id' => $this->getConfig('machine_id'), )
+                    'machine_id' => $this->getConfig('machine_id'), ]
             );
-        } catch (\Exception $e) {
-            $response = array('error' => $e->getMessage());
+        } catch (Exception $e) {
+            $response = ['error' => $e->getMessage()];
         }
 
         return $response;
@@ -55,19 +57,19 @@ class Watcher extends AbstractClient
      *
      * @return array
      */
-    public function register()
+    public function register(): array
     {
         try {
             $response =
                 $this->request(
                     'POST',
                     self::REGISTER_ENDPOINT,
-                    array(
+                    [
                         'password' => $this->getConfig('password'),
-                        'machine_id' => $this->getConfig('machine_id'), )
+                        'machine_id' => $this->getConfig('machine_id'), ]
                 );
-        } catch (\Exception $e) {
-            $response = array('error' => $e->getMessage());
+        } catch (Exception $e) {
+            $response = ['error' => $e->getMessage()];
         }
 
         return $response;
@@ -78,14 +80,15 @@ class Watcher extends AbstractClient
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
      *
+     * @param array $signals
      * @return array
      */
-    public function pushSignals(array $signals)
+    public function pushSignals(array $signals): array
     {
         try {
             $response = $this->request('POST', self::SIGNALS_ENDPOINT, $signals, $this->handleTokenHeader());
-        } catch (\Exception $e) {
-            $response = array('error' => $e->getMessage());
+        } catch (Exception $e) {
+            $response = ['error' => $e->getMessage()];
         }
 
         return $response;
@@ -98,12 +101,12 @@ class Watcher extends AbstractClient
      *
      * @return array
      */
-    public function getStreamDecisions()
+    public function getStreamDecisions(): array
     {
         try {
-            $response = $this->request('GET', self::DECISIONS_STREAM_ENDPOINT, array(), $this->handleTokenHeader());
-        } catch (\Exception $e) {
-            $response = array('error' => $e->getMessage());
+            $response = $this->request('GET', self::DECISIONS_STREAM_ENDPOINT, [], $this->handleTokenHeader());
+        } catch (Exception $e) {
+            $response = ['error' => $e->getMessage()];
         }
 
         return $response;
@@ -116,12 +119,12 @@ class Watcher extends AbstractClient
      *
      * @throws ClientException
      */
-    private function handleTokenHeader()
+    private function handleTokenHeader(): array
     {
         if (!$this->token) {
             $loginResponse = $this->login();
 
-            $this->token = isset($loginResponse['token']) ? $loginResponse['token'] : null;
+            $this->token = $loginResponse['token'] ?? null;
             if (!$this->token) {
                 $message = 'Token is required. ';
                 if (isset($loginResponse['error'])) {
@@ -131,6 +134,6 @@ class Watcher extends AbstractClient
             }
         }
 
-        return array('Authorization' => sprintf('Bearer %s', $this->token));
+        return ['Authorization' => sprintf('Bearer %s', $this->token)];
     }
 }

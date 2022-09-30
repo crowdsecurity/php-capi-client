@@ -26,6 +26,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \CrowdSec\CapiClient\HttpMessage\Request
  * @uses \CrowdSec\CapiClient\HttpMessage\Response
  * @uses \CrowdSec\CapiClient\HttpMessage\AbstractMessage
+ *
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::handle
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::createContextConfig
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::convertHeadersToString
@@ -39,12 +40,12 @@ use PHPUnit\Framework\TestCase;
  */
 final class FileGetContentsTest extends TestCase
 {
-    protected $configs = array('machine_id' => 'MACHINE_ID', 'password' => 'MACHINE_PASSWORD');
+    protected $configs = ['machine_id' => 'MACHINE_ID', 'password' => 'MACHINE_PASSWORD'];
 
     public function testContextConfig()
     {
         $method = 'POST';
-        $parameters = array('machine_id' => 'test', 'password' => 'test');
+        $parameters = ['machine_id' => 'test', 'password' => 'test'];
         $configs = $parameters;
 
         $fgcRequestHandler = new FileGetContents();
@@ -52,18 +53,18 @@ final class FileGetContentsTest extends TestCase
         $client = new Watcher($configs, $fgcRequestHandler);
         $fgcRequester = $client->getRequestHandler();
 
-        $request = new Request('test-url', $method, array(), $parameters);
+        $request = new Request('test-url', $method, [], $parameters);
 
         $contextConfig = PHPUnitUtil::callMethod(
             $fgcRequester,
             'createContextConfig',
-            array($request)
+            [$request]
         );
 
         $contextConfig['http']['header'] = str_replace("\r", '', $contextConfig['http']['header']);
 
-        $expected = array(
-            'http' => array(
+        $expected = [
+            'http' => [
                 'method' => $method,
                 'header' => 'Accept: application/json
 Content-Type: application/json
@@ -71,8 +72,8 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
 ',
                 'ignore_errors' => true,
                 'content' => '{"machine_id":"test","password":"test"}',
-            ),
-        );
+            ],
+        ];
 
         $this->assertEquals(
             $expected,
@@ -81,28 +82,28 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
         );
 
         $method = 'GET';
-        $parameters = array('foo' => 'bar', 'crowd' => 'sec');
+        $parameters = ['foo' => 'bar', 'crowd' => 'sec'];
 
-        $request = new Request('test-url', $method, array(), $parameters);
+        $request = new Request('test-url', $method, [], $parameters);
 
         $contextConfig = PHPUnitUtil::callMethod(
             $fgcRequester,
             'createContextConfig',
-            array($request)
+            [$request]
         );
 
         $contextConfig['http']['header'] = str_replace("\r", '', $contextConfig['http']['header']);
 
-        $expected = array(
-            'http' => array(
+        $expected = [
+            'http' => [
                 'method' => $method,
                 'header' => 'Accept: application/json
 Content-Type: application/json
 User-Agent: PHP CrowdSec CAPI client/v0.0.1
 ',
                 'ignore_errors' => true,
-            ),
-        );
+            ],
+        ];
 
         $this->assertEquals(
             $expected,
@@ -116,9 +117,9 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
         $mockFGCRequest = $this->getFGCMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
-                array('response' => MockedData::REGISTER_ALREADY, 'header' => array('HTTP/1.1 ' . MockedData::HTTP_500)),
-                array('response' => MockedData::SUCCESS, 'header' => array('HTTP/1.1 ' . MockedData::HTTP_200 . ' OK')),
-                array('response' => MockedData::BAD_REQUEST, 'header' => array('HTTP/1.1 ' . MockedData::HTTP_400))
+                ['response' => MockedData::REGISTER_ALREADY, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_500]],
+                ['response' => MockedData::SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK']],
+                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
             )
         );
 
@@ -155,15 +156,15 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
         $mockFGCRequest = $this->getFGCMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
-                array('response' => MockedData::LOGIN_SUCCESS, 'header' => array('HTTP/1.1 ' . MockedData::HTTP_200)),
-                array(
+                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
+                [
                     'response' => MockedData::LOGIN_BAD_CREDENTIALS,
-                    'header' => array('HTTP/1.1 ' . MockedData::HTTP_403),
-                ),
-                array('response' => MockedData::BAD_REQUEST, 'header' => array('HTTP/1.1 ' . MockedData::HTTP_400))
+                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_403],
+                ],
+                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
             )
         );
-        $client = new Watcher(array(), $mockFGCRequest);
+        $client = new Watcher([], $mockFGCRequest);
 
         $loginResponse = $client->login();
         // 200
@@ -196,19 +197,19 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
         $mockFGCRequest = $this->getFGCMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
-                array('response' => MockedData::LOGIN_SUCCESS, 'header' => array('HTTP/1.1 ' . MockedData::HTTP_200)),
-                array(
+                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
+                [
                     'response' => MockedData::LOGIN_BAD_CREDENTIALS,
-                    'header' => array('HTTP/1.1 ' . MockedData::HTTP_400),
-                )
+                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_400],
+                ]
             )
         );
 
-        $client = new Watcher(array(), $mockFGCRequest);
+        $client = new Watcher([], $mockFGCRequest);
         $tokenHeader = PHPUnitUtil::callMethod(
             $client,
             'handleTokenHeader',
-            array()
+            []
         );
 
         $this->assertEquals(
@@ -217,14 +218,14 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
             'Header should be popuated with token'
         );
 
-        $client = new Watcher(array(), $mockFGCRequest);
+        $client = new Watcher([], $mockFGCRequest);
 
         $error = false;
         try {
             PHPUnitUtil::callMethod(
                 $client,
                 'handleTokenHeader',
-                array()
+                []
             );
         } catch (ClientException $e) {
             $error = $e->getMessage();
@@ -243,17 +244,17 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
         $mockFGCRequest = $this->getFGCMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
-                array('response' => MockedData::LOGIN_SUCCESS, 'header' => array('HTTP/1.1 ' . MockedData::HTTP_200)),
-                array(
+                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
+                [
                     'response' => MockedData::SUCCESS,
-                    'header' => array('HTTP/1.1 ' . MockedData::HTTP_200),
-                ),
-                array('response' => MockedData::SIGNALS_BAD_REQUEST, 'header' => array('HTTP/1.1 ' . MockedData::HTTP_400))
+                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_200],
+                ],
+                ['response' => MockedData::SIGNALS_BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
             )
         );
-        $client = new Watcher(array(), $mockFGCRequest);
+        $client = new Watcher([], $mockFGCRequest);
 
-        $signalsResponse = $client->pushSignals(array());
+        $signalsResponse = $client->pushSignals([]);
 
         $this->assertEquals(
             'OK',
@@ -261,7 +262,7 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
             'Success pushed signals'
         );
 
-        $signalsResponse = $client->pushSignals(array());
+        $signalsResponse = $client->pushSignals([]);
 
         PHPUnitUtil::assertRegExp(
             $this,
@@ -276,11 +277,11 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
         $mockFGCRequest = $this->getFGCMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
-                array('response' => MockedData::LOGIN_SUCCESS, 'header' => array('HTTP/1.1 ' . MockedData::HTTP_200)),
-                array(
+                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
+                [
                     'response' => MockedData::DECISIONS_STREAM_LIST,
-                    'header' => array('HTTP/1.1 ' . MockedData::HTTP_200 . ' OK'),
-                )
+                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK'],
+                ]
             )
         );
 
@@ -298,27 +299,29 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
     {
         $mockFGCRequest = $this->getFGCMock();
 
-        $request = new Request('test-uri', 'GET', array(), array('foo' => 'bar'));
+        $request = new Request('test-uri', 'GET', [], ['foo' => 'bar']);
 
-        $mockFGCRequest->method('exec')
-            ->will(
-                $this->returnValue(false)
-            );
+
 
         $error = false;
         try {
+            $mockFGCRequest->method('exec')
+                ->will(
+                    $this->returnValue(false)
+                );
             $mockFGCRequest->handle($request);
-        } catch (ClientException $e) {
+        } catch (\TypeError $e) {
             $error = $e->getMessage();
         }
 
-        $this->assertEquals(
-            'Unexpected HTTP call failure.',
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/type array./',
             $error,
             'Should failed and throw if no response'
         );
 
-        $request = new Request('test-uri', 'POST', array('User-Agent' => null));
+        $request = new Request('test-uri', 'POST', ['User-Agent' => null]);
         $error = false;
         try {
             $mockFGCRequest->handle($request);
@@ -337,16 +340,16 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
     {
         $mockFGCRequest = $this->getFGCMock();
 
-        $request = new Request('test-uri', 'GET', array(), array('foo' => 'bar'));
+        $request = new Request('test-uri', 'GET', [], ['foo' => 'bar']);
 
         $mockFGCRequest->method('exec')
             ->will(
-                $this->returnValue(array('response' => 'ok'))
+                $this->returnValue(['response' => 'ok'])
             );
 
         $mockFGCRequest->expects($this->exactly(1))->method('exec')
             ->withConsecutive(
-                array('test-uri?foo=bar')
+                ['test-uri?foo=bar']
             );
         $mockFGCRequest->handle($request);
     }
@@ -354,7 +357,7 @@ User-Agent: PHP CrowdSec CAPI client/v0.0.1
     protected function getFGCMock()
     {
         return $this->getMockBuilder('CrowdSec\CapiClient\RequestHandler\FileGetContents')
-            ->setMethods(array('exec'))
+            ->setMethods(['exec'])
             ->getMock();
     }
 }

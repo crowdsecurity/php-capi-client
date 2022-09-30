@@ -7,7 +7,7 @@ use CrowdSec\CapiClient\HttpMessage\Request;
 use CrowdSec\CapiClient\HttpMessage\Response;
 
 /**
- * file_get_contents request handler.
+ * File_get_contents request handler.
  *
  * @author    CrowdSec team
  *
@@ -23,7 +23,7 @@ class FileGetContents implements RequestHandlerInterface
      *
      * @throws ClientException
      */
-    public function handle(Request $request)
+    public function handle(Request $request): Response
     {
         $config = $this->createContextConfig($request);
         $context = stream_context_create($config);
@@ -44,8 +44,8 @@ class FileGetContents implements RequestHandlerInterface
         if (false === $responseBody) {
             throw new ClientException('Unexpected HTTP call failure.');
         }
-        $responseHeaders = (isset($fullResponse['header'])) ? $fullResponse['header'] : array();
-        $parts = !empty($responseHeaders) ? explode(' ', $responseHeaders[0]) : array();
+        $responseHeaders = (isset($fullResponse['header'])) ? $fullResponse['header'] : [];
+        $parts = !empty($responseHeaders) ? explode(' ', $responseHeaders[0]) : [];
         $status = $this->getResponseHttpCode($parts);
 
         return new Response($responseBody, $status);
@@ -54,9 +54,11 @@ class FileGetContents implements RequestHandlerInterface
     /**
      * Retrieve configuration for the stream content.
      *
+     * @param Request $request
      * @return array|array[]
+     * @throws ClientException
      */
-    private function createContextConfig(Request $request)
+    private function createContextConfig(Request $request): array
     {
         $headers = $request->getHeaders();
         if (!isset($headers['User-Agent'])) {
@@ -64,13 +66,13 @@ class FileGetContents implements RequestHandlerInterface
         }
         $header = $this->convertHeadersToString($headers);
         $method = $request->getMethod();
-        $config = array(
-            'http' => array(
+        $config = [
+            'http' => [
                 'method' => $method,
                 'header' => $header,
                 'ignore_errors' => true,
-            ),
-        );
+            ],
+        ];
 
         if ('POST' === strtoupper($method)) {
             $config['http']['content'] = json_encode($request->getParams());
@@ -82,7 +84,7 @@ class FileGetContents implements RequestHandlerInterface
     /**
      * Convert a key-value array of headers to the official HTTP header string.
      */
-    private function convertHeadersToString(array $headers)
+    private function convertHeadersToString(array $headers): string
     {
         $builtHeaderString = '';
         foreach ($headers as $key => $value) {
@@ -100,9 +102,9 @@ class FileGetContents implements RequestHandlerInterface
      *
      * @return array
      */
-    protected function exec($url, $context)
+    protected function exec($url, $context): array
     {
-        return array('response' => file_get_contents($url, false, $context), 'header' => $http_response_header);
+        return ['response' => file_get_contents($url, false, $context), 'header' => $http_response_header];
     }
 
     /**
@@ -110,11 +112,11 @@ class FileGetContents implements RequestHandlerInterface
      *
      * @return int
      */
-    protected function getResponseHttpCode($parts)
+    protected function getResponseHttpCode($parts): int
     {
         $status = 0;
         if (\count($parts) > 1) {
-            $status = (int) ($parts[1]);
+            $status = (int) $parts[1];
         }
 
         return $status;

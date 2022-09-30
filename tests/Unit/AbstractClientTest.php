@@ -19,7 +19,11 @@ use CrowdSec\CapiClient\HttpMessage\Response;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
+use DateTime;
+use Exception;
 use PHPUnit\Framework\TestCase;
+use TypeError;
+use const PHP_VERSION_ID;
 
 /**
  * @covers \CrowdSec\CapiClient\AbstractClient::__construct
@@ -35,7 +39,7 @@ final class AbstractClientTest extends TestCase
 {
     public function testClientInit()
     {
-        $configs = array('machine_id' => 'test', 'password' => 'test-password');
+        $configs = ['machine_id' => 'test', 'password' => 'test-password'];
         $client = new Watcher($configs);
 
         $url = $client->getUrl();
@@ -64,7 +68,7 @@ final class AbstractClientTest extends TestCase
             'Request handler must be curl by default'
         );
 
-        $client = new Watcher(array_merge($configs, array('prod' => true)));
+        $client = new Watcher(array_merge($configs, ['prod' => true]));
         $url = $client->getUrl();
         $this->assertEquals(
             Constants::PROD_URL,
@@ -78,16 +82,16 @@ final class AbstractClientTest extends TestCase
         );
 
         $error = false;
-        if (\PHP_VERSION_ID < 70000) {
+        if (PHP_VERSION_ID < 70000) {
             try {
-                new Watcher($configs, new \DateTime());
-            } catch (\Exception $e) {
+                new Watcher($configs, new DateTime());
+            } catch (Exception $e) {
                 $error = $e->getMessage();
             }
         } else {
             try {
-                new Watcher($configs, new \DateTime());
-            } catch (\TypeError $e) {
+                new Watcher($configs, new DateTime());
+            } catch (TypeError $e) {
                 $error = $e->getMessage();
             }
         }
@@ -102,13 +106,13 @@ final class AbstractClientTest extends TestCase
 
     public function testPrivateOrProtectedMethods()
     {
-        $configs = array('machine_id' => 'test', 'password' => 'test');
+        $configs = ['machine_id' => 'test', 'password' => 'test'];
         $client = new Watcher($configs);
 
         $fullUrl = PHPUnitUtil::callMethod(
             $client,
             'getFullUrl',
-            array('/test-endpoint')
+            ['/test-endpoint']
         );
         $this->assertEquals(
             Constants::DEV_URL . 'test-endpoint',
@@ -116,16 +120,16 @@ final class AbstractClientTest extends TestCase
             'Full Url should be ok'
         );
 
-        $jsonBody = json_encode(array('message' => 'ok'));
+        $jsonBody = json_encode(['message' => 'ok']);
 
         $response = new Response($jsonBody, 200);
 
-        $formattedResponse = array('message' => 'ok');
+        $formattedResponse = ['message' => 'ok'];
 
         $validateResponse = PHPUnitUtil::callMethod(
             $client,
             'formatResponseBody',
-            array($response)
+            [$response]
         );
         $this->assertEquals(
             $formattedResponse,
@@ -140,7 +144,7 @@ final class AbstractClientTest extends TestCase
             PHPUnitUtil::callMethod(
                 $client,
                 'formatResponseBody',
-                array($response)
+                [$response]
             );
         } catch (ClientException $e) {
             $error = $e->getMessage();
@@ -158,11 +162,11 @@ final class AbstractClientTest extends TestCase
         $decodedResponse = PHPUnitUtil::callMethod(
             $client,
             'formatResponseBody',
-            array($response)
+            [$response]
         );
 
         $this->assertEquals(
-            array('message' => 'User already registered.'),
+            ['message' => 'User already registered.'],
             $decodedResponse,
             'Decoded response should be correct'
         );
@@ -174,7 +178,7 @@ final class AbstractClientTest extends TestCase
             PHPUnitUtil::callMethod(
                 $client,
                 'formatResponseBody',
-                array($response)
+                [$response]
             );
         } catch (ClientException $e) {
             $error = $e->getMessage();
@@ -190,11 +194,12 @@ final class AbstractClientTest extends TestCase
         $response = new Response(null, 200);
 
         $error = false;
+        $decoded=[];
         try {
             $decoded = PHPUnitUtil::callMethod(
                 $client,
                 'formatResponseBody',
-                array($response)
+                [$response]
             );
         } catch (ClientException $e) {
             $error = true;
@@ -207,7 +212,7 @@ final class AbstractClientTest extends TestCase
         );
 
         $this->assertEquals(
-            array('message' => ''),
+            ['message' => ''],
             $decoded,
             'An empty response body should not return some array'
         );
@@ -219,7 +224,7 @@ final class AbstractClientTest extends TestCase
             PHPUnitUtil::callMethod(
                 $client,
                 'formatResponseBody',
-                array($response)
+                [$response]
             );
         } catch (ClientException $e) {
             $error = $e->getMessage();
@@ -232,22 +237,18 @@ final class AbstractClientTest extends TestCase
             'An empty response body should throw error for bad status'
         );
 
-        $response = new Response(array('test'), 200);
 
         $error = false;
         try {
-            PHPUnitUtil::callMethod(
-                $client,
-                'formatResponseBody',
-                array($response)
-            );
-        } catch (ClientException $e) {
+            new Response(['test'], 200);
+
+        } catch (TypeError $e) {
             $error = $e->getMessage();
         }
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/Body response must be a string./',
+            '/must be of type .*string/',
             $error,
             'If response body is not a string it should throw error'
         );

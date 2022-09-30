@@ -19,10 +19,10 @@ class Request extends AbstractMessage
     /**
      * @var array
      */
-    protected $headers = array(
+    protected $headers = [
         'Accept' => 'application/json',
         'Content-Type' => 'application/json',
-    );
+    ];
 
     /**
      * @var string
@@ -42,8 +42,10 @@ class Request extends AbstractMessage
     /**
      * @param string $uri
      * @param string $method
+     * @param array $headers
+     * @param array $parameters
      */
-    public function __construct($uri, $method, array $headers = array(), array $parameters = array())
+    public function __construct(string $uri, string $method, array $headers = [], array $parameters = [])
     {
         $this->uri = $uri;
         $this->method = $method;
@@ -55,7 +57,7 @@ class Request extends AbstractMessage
     /**
      * @return string
      */
-    public function getUri()
+    public function getUri(): string
     {
         return $this->uri;
     }
@@ -63,7 +65,7 @@ class Request extends AbstractMessage
     /**
      * @return array
      */
-    public function getParams()
+    public function getParams(): array
     {
         return $this->parameters;
     }
@@ -71,7 +73,7 @@ class Request extends AbstractMessage
     /**
      * @return string
      */
-    public function getMethod()
+    public function getMethod(): string
     {
         return $this->method;
     }
@@ -81,7 +83,7 @@ class Request extends AbstractMessage
      *
      * @return string
      */
-    protected function formatUserAgent()
+    protected function formatUserAgent(): string
     {
         return Constants::USER_AGENT_PREFIX . Constants::VERSION;
     }

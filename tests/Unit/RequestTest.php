@@ -29,7 +29,7 @@ final class RequestTest extends TestCase
 {
     public function testConstructor()
     {
-        $request = new Request('test-uri', 'POST', array('test' => 'test'), array('foo' => 'bar'));
+        $request = new Request('test-uri', 'POST', ['test' => 'test'], ['foo' => 'bar']);
 
         $headers = $request->getHeaders();
         $params = $request->getParams();
@@ -49,18 +49,18 @@ final class RequestTest extends TestCase
         );
 
         $this->assertEquals(
-            array('foo' => 'bar'),
+            ['foo' => 'bar'],
             $params,
             'Request params should be set'
         );
 
         $this->assertEquals(
-            array(
+            [
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'User-Agent' => Constants::USER_AGENT_PREFIX . Constants::VERSION,
                 'test' => 'test',
-            ),
+            ],
             $headers,
             'Request headers should be set'
         );

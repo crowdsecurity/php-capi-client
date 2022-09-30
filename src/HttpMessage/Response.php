@@ -26,9 +26,10 @@ class Response extends AbstractMessage
 
     /**
      * @param string|null $jsonBody
-     * @param int         $statusCode
+     * @param int $statusCode
+     * @param array $headers
      */
-    public function __construct($jsonBody, $statusCode, array $headers = array())
+    public function __construct(?string $jsonBody, int $statusCode, array $headers = [])
     {
         $this->jsonBody = $jsonBody;
         $this->headers = $headers;
@@ -38,7 +39,7 @@ class Response extends AbstractMessage
     /**
      * @return string|null
      */
-    public function getJsonBody()
+    public function getJsonBody(): ?string
     {
         return $this->jsonBody;
     }
@@ -46,7 +47,7 @@ class Response extends AbstractMessage
     /**
      * @return int
      */
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
         return $this->statusCode;
     }

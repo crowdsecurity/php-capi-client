@@ -26,7 +26,7 @@ final class ResponseTest extends TestCase
 {
     public function testConstructor()
     {
-        $response = new Response('{}', 200, array('test' => 'test'));
+        $response = new Response('{}', 200, ['test' => 'test']);
 
         $headers = $response->getHeaders();
         $jsonBody = $response->getJsonBody();
@@ -45,9 +45,9 @@ final class ResponseTest extends TestCase
         );
 
         $this->assertEquals(
-            array(
+            [
                 'test' => 'test',
-            ),
+            ],
             $headers,
             'Response headers should be set'
         );

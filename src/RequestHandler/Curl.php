@@ -23,7 +23,7 @@ class Curl implements RequestHandlerInterface
      *
      * @throws ClientException
      */
-    public function handle(Request $request)
+    public function handle(Request $request): Response
     {
         $handle = curl_init();
 
@@ -73,11 +73,12 @@ class Curl implements RequestHandlerInterface
     /**
      * Retrieve Curl options.
      *
+     * @param Request $request
      * @return array
      *
      * @throws ClientException
      */
-    private function createOptions(Request $request)
+    private function createOptions(Request $request): array
     {
         $headers = $request->getHeaders();
         $method = $request->getMethod();
@@ -86,15 +87,15 @@ class Curl implements RequestHandlerInterface
         if (!isset($headers['User-Agent'])) {
             throw new ClientException('User agent is required');
         }
-        $options = array(
+        $options = [
             \CURLOPT_HEADER => false,
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_USERAGENT => $headers['User-Agent'],
-        );
+        ];
 
-        $options[\CURLOPT_HTTPHEADER] = array();
+        $options[\CURLOPT_HTTPHEADER] = [];
         foreach ($headers as $key => $values) {
-            foreach (\is_array($values) ? $values : array($values) as $value) {
+            foreach (\is_array($values) ? $values : [$values] as $value) {
                 $options[\CURLOPT_HTTPHEADER][] = sprintf('%s:%s', $key, $value);
             }
         }

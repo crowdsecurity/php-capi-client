@@ -12,18 +12,20 @@
 
 namespace CrowdSec\CapiClient\Tests;
 
+use ReflectionClass;
+
 class PHPUnitUtil
 {
     public static function callMethod($obj, $name, array $args)
     {
-        $class = new \ReflectionClass($obj);
+        $class = new ReflectionClass($obj);
         $method = $class->getMethod($name);
         $method->setAccessible(true);
 
         return $method->invokeArgs($obj, $args);
     }
 
-    public static function getPHPUnitVersion()
+    public static function getPHPUnitVersion(): string
     {
         if (class_exists('\PHPUnit\Runner\Version')) {
             return \PHPUnit\Runner\Version::id();

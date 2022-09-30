@@ -26,6 +26,7 @@ use PHPUnit\Framework\TestCase;
  * @uses \CrowdSec\CapiClient\HttpMessage\Request
  * @uses \CrowdSec\CapiClient\HttpMessage\Response
  * @uses \CrowdSec\CapiClient\HttpMessage\AbstractMessage
+ *
  * @covers \CrowdSec\CapiClient\RequestHandler\Curl::createOptions
  * @covers \CrowdSec\CapiClient\RequestHandler\Curl::handle
  * @covers \CrowdSec\CapiClient\Watcher::login
@@ -37,38 +38,38 @@ use PHPUnit\Framework\TestCase;
  */
 final class CurlTest extends TestCase
 {
-    protected $configs = array('machine_id' => 'MACHINE_ID', 'password' => 'MACHINE_PASSWORD');
+    protected $configs = ['machine_id' => 'MACHINE_ID', 'password' => 'MACHINE_PASSWORD'];
 
     public function testOptions()
     {
         $url = Constants::DEV_URL . 'watchers';
         $method = 'POST';
-        $parameters = array('machine_id' => 'test', 'password' => 'test');
+        $parameters = ['machine_id' => 'test', 'password' => 'test'];
         $configs = $parameters;
 
         $client = new Watcher($configs);
         $curlRequester = $client->getRequestHandler();
-        $request = new Request($url, $method, array(), $parameters);
+        $request = new Request($url, $method, [], $parameters);
 
         $curlOptions = PHPUnitUtil::callMethod(
             $curlRequester,
             'createOptions',
-            array($request)
+            [$request]
         );
-        $expected = array(
+        $expected = [
             \CURLOPT_HEADER => false,
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_USERAGENT => Constants::USER_AGENT_PREFIX . Constants::VERSION,
-            \CURLOPT_HTTPHEADER => array(
+            \CURLOPT_HTTPHEADER => [
                 'Accept:application/json',
                 'Content-Type:application/json',
                 'User-Agent:' . Constants::USER_AGENT_PREFIX . Constants::VERSION,
-            ),
+            ],
             \CURLOPT_POST => true,
             \CURLOPT_POSTFIELDS => '{"machine_id":"test","password":"test"}',
             \CURLOPT_URL => $url,
             \CURLOPT_CUSTOMREQUEST => $method,
-        );
+        ];
 
         $this->assertEquals(
             $expected,
@@ -78,32 +79,32 @@ final class CurlTest extends TestCase
 
         $url = Constants::DEV_URL . 'decisions/stream';
         $method = 'GET';
-        $parameters = array('foo' => 'bar', 'crowd' => 'sec');
+        $parameters = ['foo' => 'bar', 'crowd' => 'sec'];
         $client = new Watcher($configs);
         $curlRequester = $client->getRequestHandler();
 
-        $request = new Request($url, $method, array(), $parameters);
+        $request = new Request($url, $method, [], $parameters);
 
         $curlOptions = PHPUnitUtil::callMethod(
             $curlRequester,
             'createOptions',
-            array($request)
+            [$request]
         );
 
-        $expected = array(
+        $expected = [
             \CURLOPT_HEADER => false,
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_USERAGENT => Constants::USER_AGENT_PREFIX . Constants::VERSION,
-            \CURLOPT_HTTPHEADER => array(
+            \CURLOPT_HTTPHEADER => [
                 'Accept:application/json',
                 'Content-Type:application/json',
                 'User-Agent:' . Constants::USER_AGENT_PREFIX . Constants::VERSION,
-            ),
+            ],
             \CURLOPT_POST => false,
             \CURLOPT_HTTPGET => true,
             \CURLOPT_URL => $url . '?foo=bar&crowd=sec',
             \CURLOPT_CUSTOMREQUEST => $method,
-        );
+        ];
 
         $this->assertEquals(
             $expected,
@@ -167,7 +168,7 @@ final class CurlTest extends TestCase
         $mockCurlRequest->method('getResponseHttpCode')->will(
             $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_403, MockedData::HTTP_400)
         );
-        $client = new Watcher(array(), $mockCurlRequest);
+        $client = new Watcher([], $mockCurlRequest);
 
         $loginResponse = $client->login();
         // 200
@@ -207,11 +208,11 @@ final class CurlTest extends TestCase
         $mockCurlRequest->method('getResponseHttpCode')->will(
             $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_400)
         );
-        $client = new Watcher(array(), $mockCurlRequest);
+        $client = new Watcher([], $mockCurlRequest);
         $tokenHeader = PHPUnitUtil::callMethod(
             $client,
             'handleTokenHeader',
-            array()
+            []
         );
 
         $this->assertEquals(
@@ -220,14 +221,14 @@ final class CurlTest extends TestCase
             'Header should be populated with token'
         );
 
-        $client = new Watcher(array(), $mockCurlRequest);
+        $client = new Watcher([], $mockCurlRequest);
 
         $error = false;
         try {
             PHPUnitUtil::callMethod(
                 $client,
                 'handleTokenHeader',
-                array()
+                []
             );
         } catch (ClientException $e) {
             $error = $e->getMessage();
@@ -254,9 +255,9 @@ final class CurlTest extends TestCase
         $mockCurlRequest->method('getResponseHttpCode')->will(
             $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_200, MockedData::HTTP_400)
         );
-        $client = new Watcher(array(), $mockCurlRequest);
+        $client = new Watcher([], $mockCurlRequest);
 
-        $signalsResponse = $client->pushSignals(array());
+        $signalsResponse = $client->pushSignals([]);
 
         $this->assertEquals(
             'OK',
@@ -264,7 +265,7 @@ final class CurlTest extends TestCase
             'Success pushed signals'
         );
 
-        $signalsResponse = $client->pushSignals(array());
+        $signalsResponse = $client->pushSignals([]);
 
         PHPUnitUtil::assertRegExp(
             $this,
@@ -300,7 +301,7 @@ final class CurlTest extends TestCase
     {
         $mockCurlRequest = $this->getCurlMock();
 
-        $request = new Request('test-uri', 'POST', array('User-Agent' => null));
+        $request = new Request('test-uri', 'POST', ['User-Agent' => null]);
         $error = false;
         try {
             $mockCurlRequest->handle($request);
@@ -358,7 +359,7 @@ final class CurlTest extends TestCase
     protected function getCurlMock()
     {
         return $this->getMockBuilder('CrowdSec\CapiClient\RequestHandler\Curl')
-            ->setMethods(array('exec', 'getResponseHttpCode'))
+            ->setMethods(['exec', 'getResponseHttpCode'])
             ->getMock();
     }
 }
