@@ -38,11 +38,11 @@ class Watcher extends AbstractClient
      */
     private $headers;
     /**
-     * @var string
+     * @var string|null
      */
     private $machineId;
     /**
-     * @var string
+     * @var string|null
      */
     private $password;
     /**
@@ -50,15 +50,15 @@ class Watcher extends AbstractClient
      */
     private $storage;
     /**
-     * @var string
+     * @var string|null
      */
-    private $token = '';
+    private $token;
 
     public function __construct(
-        array                   $configs,
-        StorageInterface        $storage,
-        RequestHandlerInterface $requestHandler = null)
-    {
+        array $configs,
+        StorageInterface $storage,
+        RequestHandlerInterface $requestHandler = null
+    ) {
         $this->configure($configs);
         $this->headers = ['User-Agent' => $this->formatUserAgent($this->configs)];
         $this->storage = $storage;
@@ -69,6 +69,7 @@ class Watcher extends AbstractClient
      * Process a decisions stream call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
+     *
      * @throws ClientException
      */
     public function getStreamDecisions(): array
@@ -83,14 +84,14 @@ class Watcher extends AbstractClient
                 $headers = array_merge($this->headers, $this->handleTokenHeader());
                 $response = $this->request('GET', self::DECISIONS_STREAM_ENDPOINT, [], $headers);
             } catch (ClientException $e) {
-                $loginRetry++;
+                ++$loginRetry;
                 $retry = true;
                 $lastMessage = $e->getMessage();
-                if ($e->getCode() === 401) {
+                if (401 === $e->getCode()) {
                     $this->refreshToken();
                 }
             }
-        } while (($retry) && ($loginRetry <= self::LOGIN_RETRY));
+        } while ($retry && ($loginRetry <= self::LOGIN_RETRY));
         if ($loginRetry > self::LOGIN_RETRY) {
             $message = "Could not login after $loginRetry attempts. Last error was: ";
             throw new ClientException($message . $lastMessage);
@@ -103,6 +104,7 @@ class Watcher extends AbstractClient
      * Process a signals call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
+     *
      * @throws ClientException
      */
     public function pushSignals(array $signals): array
@@ -112,19 +114,19 @@ class Watcher extends AbstractClient
         $lastMessage = '';
         $response = [];
         do {
-        try {
-            $retry = false;
-            $headers = array_merge($this->headers, $this->handleTokenHeader());
-            $response = $this->request('POST', self::SIGNALS_ENDPOINT, $signals, $headers);
-        } catch (Exception $e) {
-            $loginRetry++;
-            $retry = true;
-            $lastMessage = $e->getMessage();
-            if ($e->getCode() === 401) {
-                $this->refreshToken();
+            try {
+                $retry = false;
+                $headers = array_merge($this->headers, $this->handleTokenHeader());
+                $response = $this->request('POST', self::SIGNALS_ENDPOINT, $signals, $headers);
+            } catch (Exception $e) {
+                ++$loginRetry;
+                $retry = true;
+                $lastMessage = $e->getMessage();
+                if (401 === $e->getCode()) {
+                    $this->refreshToken();
+                }
             }
-        }
-        } while (($retry) && ($loginRetry <= self::LOGIN_RETRY));
+        } while ($retry && ($loginRetry <= self::LOGIN_RETRY));
         if ($loginRetry > self::LOGIN_RETRY) {
             $message = "Could not login after $loginRetry attempts. Last error was: ";
             throw new ClientException($message . $lastMessage);
@@ -137,7 +139,6 @@ class Watcher extends AbstractClient
      * Configure this instance.
      *
      * @param array $configs An array with all configuration parameters
-     *
      */
     private function configure(array $configs): void
     {
@@ -166,10 +167,6 @@ class Watcher extends AbstractClient
         }
     }
 
-    /**
-     * @param array $configs
-     * @return string
-     */
     private function formatUserAgent(array $configs = []): string
     {
         $userAgent = Constants::USER_AGENT_PREFIX . Constants::VERSION;
@@ -179,13 +176,11 @@ class Watcher extends AbstractClient
 
     private function generateMachineId(): string
     {
-        $prefix = !empty($this->configs['machine_id_prefix']) ? $this->configs['machine_id_prefix'] : "";
+        $prefix = !empty($this->configs['machine_id_prefix']) ? $this->configs['machine_id_prefix'] : '';
+
         return $prefix . $this->generateRandomString(self::MACHINE_ID_LENGTH - strlen($prefix));
     }
 
-    /**
-     * @return string
-     */
     private function generatePassword(): string
     {
         return $this->generateRandomString();
@@ -194,7 +189,7 @@ class Watcher extends AbstractClient
     /**
      * @throws Exception
      */
-    private function generateRandomString(int $length = 32):string
+    private function generateRandomString(int $length = 32): string
     {
         if ($length < 1) {
             throw new Exception('Length must be greater than zero.');
@@ -202,12 +197,11 @@ class Watcher extends AbstractClient
         $chars = self::CREDENTIAL_CHARS;
         $chLen = strlen($chars);
         $res = '';
-        for ($i = 0; $i < $length; $i++) {
+        for ($i = 0; $i < $length; ++$i) {
             $res .= $chars[random_int(0, $chLen - 1)];
         }
 
         return $res;
-
     }
 
     /**
@@ -217,15 +211,13 @@ class Watcher extends AbstractClient
      */
     private function handleTokenHeader(): array
     {
-        return ['Authorization' => sprintf('Bearer %s', $this->token)];
+        return $this->token ? ['Authorization' => sprintf('Bearer %s', $this->token)] : [];
     }
 
     /**
      * Process a login call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_login
-     *
-     * @return array
      */
     private function login(): array
     {
@@ -234,7 +226,7 @@ class Watcher extends AbstractClient
             self::LOGIN_ENDPOINT,
             [
                 'password' => $this->password,
-                'machine_id' => $this->machineId],
+                'machine_id' => $this->machineId, ],
             $this->headers
         );
     }
@@ -250,7 +242,7 @@ class Watcher extends AbstractClient
     /**
      * @throws ClientException
      */
-    private function refreshToken():void
+    private function refreshToken(): void
     {
         $loginResponse = $this->login();
 
@@ -269,9 +261,10 @@ class Watcher extends AbstractClient
      * Process a register call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers
+     *
      * @throws ClientException
      */
-    private function register()
+    private function register(): void
     {
         $registerRetry = 0;
         $lastMessage = '';
@@ -283,21 +276,21 @@ class Watcher extends AbstractClient
                     self::REGISTER_ENDPOINT,
                     [
                         'password' => $this->password,
-                        'machine_id' => $this->machineId],
+                        'machine_id' => $this->machineId, ],
                     $this->headers
                 );
             } catch (ClientException $e) {
-                $registerRetry++;
+                ++$registerRetry;
                 $retry = true;
                 $lastMessage = $e->getMessage();
-                if ($e->getCode() === 500) {
+                if (500 === $e->getCode()) {
                     $this->refreshCredentials();
                 }
             }
-        } while (($retry) && ($registerRetry <= self::REGISTER_RETRY));
+        } while ($retry && ($registerRetry <= self::REGISTER_RETRY));
         if ($registerRetry > self::REGISTER_RETRY) {
             $message = "Could not register after $registerRetry attempts. Last error was: ";
-            throw new ClientException($message. $lastMessage);
+            throw new ClientException($message . $lastMessage);
         }
     }
 
@@ -308,8 +301,8 @@ class Watcher extends AbstractClient
         }
         $prefix = !empty($this->configs['machine_id_prefix']) ? $this->configs['machine_id_prefix'] : null;
         // Verify that current machine_id starts with configured prefix
-        if($prefix){
-            return substr_compare($this->machineId , $prefix, 0, strlen($prefix)) !== 0;
+        if ($prefix) {
+            return 0 !== substr_compare($this->machineId, $prefix, 0, strlen($prefix));
         }
 
         return false;

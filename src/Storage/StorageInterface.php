@@ -18,15 +18,39 @@ namespace CrowdSec\CapiClient\Storage;
  */
 interface StorageInterface
 {
+    /**
+     * Retrieve stored machine_id
+     * Return null if not found.
+     */
     public function retrieveMachineId(): ?string;
 
+    /**
+     * Retrieve stored password
+     * Return null if not found.
+     */
     public function retrievePassword(): ?string;
 
+    /**
+     * Retrieve stored token
+     * Return null if not found.
+     */
     public function retrieveToken(): ?string;
 
+    /**
+     * Store a machine_id
+     * Return true when success and false otherwise.
+     */
     public function storeMachineId(string $machineId): bool;
 
+    /**
+     * Store a password
+     * Return true when success and false otherwise.
+     */
     public function storePassword(string $password): bool;
 
+    /**
+     * Store a token
+     * Return true when success and false otherwise.
+     */
     public function storeToken(string $token): bool;
 }

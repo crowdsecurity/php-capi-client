@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient;
 
-use InvalidArgumentException;
-use RuntimeException;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -22,9 +20,6 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  */
 class Configuration implements ConfigurationInterface
 {
-    /**
-     * @return TreeBuilder
-     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('config');
@@ -32,20 +27,21 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->getRootNode();
         $rootNode->children()
             ->enumNode('api_url')
-            ->values(
-                [
-                    Constants::URL_DEV,
-                    Constants::URL_PROD,
-                ]
-            )
-            ->defaultValue(Constants::URL_DEV)
+                ->values(
+                    [
+                        Constants::URL_DEV,
+                        Constants::URL_PROD,
+                    ]
+                )
+                ->defaultValue(Constants::URL_DEV)
             ->end()
             ->scalarNode('machine_id_prefix')
                 ->validate()
-                ->ifTrue(function ($value) {
-                    if(!empty($value)){
-                       return (strlen($value) > 16 || preg_match('#^[A-Za-z0-9]+$#', $value) !== 1);
+                ->ifTrue(function (string $value) {
+                    if (!empty($value)) {
+                        return strlen($value) > 16 || 1 !== preg_match('#^[A-Za-z0-9]+$#', $value);
                     }
+
                     return false;
                 })
                 ->thenInvalid('Invalid machine id prefix. Length must be <= 16. Allowed chars are A-Za-z0-9')
@@ -53,15 +49,17 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->scalarNode('user_agent_suffix')
                 ->validate()
-                ->ifTrue(function ($value) {
-                    if(!empty($value)){
-                        return (strlen($value) > 16 || preg_match('#^[A-Za-z0-9]+$#', $value) !== 1);
+                ->ifTrue(function (string $value) {
+                    if (!empty($value)) {
+                        return strlen($value) > 16 || 1 !== preg_match('#^[A-Za-z0-9]+$#', $value);
                     }
+
                     return false;
                 })
                 ->thenInvalid('Invalid user agent suffix. Length must be <= 16. Allowed chars are A-Za-z0-9')
                 ->end()
             ->end()
+        ->end()
         ;
 
         return $treeBuilder;

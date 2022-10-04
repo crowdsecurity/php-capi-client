@@ -38,10 +38,6 @@ abstract class AbstractClient
      */
     private $url;
 
-    /**
-     * @var string[]
-     */
-
     public function __construct(array $configs, RequestHandlerInterface $requestHandler = null)
     {
         $this->configs = $configs;
@@ -52,7 +48,6 @@ abstract class AbstractClient
     /**
      * Retrieve a config value by name.
      *
-     * @param string $name
      * @param mixed|null $default
      *
      * @return mixed|null

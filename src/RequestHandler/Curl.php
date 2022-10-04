@@ -45,7 +45,7 @@ class Curl implements RequestHandlerInterface
 
         curl_close($handle);
 
-        return new Response((string)$response, $statusCode);
+        return new Response((string) $response, $statusCode);
     }
 
     /**

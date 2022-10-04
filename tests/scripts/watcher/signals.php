@@ -2,8 +2,8 @@
 
 require_once __DIR__ . '/../../../vendor/autoload.php';
 
-use CrowdSec\CapiClient\Watcher;
 use CrowdSec\CapiClient\Storage\FileStorage;
+use CrowdSec\CapiClient\Watcher;
 
 // Parse argument
 $signals = isset($argv[1]) ? $argv[1] : null;
@@ -15,6 +15,6 @@ $configs = ['machine_id_prefix' => 'CapiClientTest', 'user_agent_suffix' => 'Cap
 $client = new Watcher($configs, new FileStorage());
 echo 'Watcher instantiated' . \PHP_EOL;
 
-echo 'Calling signals for '. $client->getConfig('api_url') .'' . \PHP_EOL;
+echo 'Calling signals for ' . $client->getConfig('api_url') . '' . \PHP_EOL;
 $response = $client->pushSignals(json_decode($signals));
 echo 'Push signals response is:' . json_encode($response) . \PHP_EOL;

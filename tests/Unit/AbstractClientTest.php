@@ -195,7 +195,7 @@ final class AbstractClientTest extends TestCase
             'Should throw error on 403'
         );
 
-        $response = new Response("", 200);
+        $response = new Response('', 200);
 
         $error = false;
         $decoded = [];
@@ -221,7 +221,7 @@ final class AbstractClientTest extends TestCase
             'An empty response body should not return some array'
         );
 
-        $response = new Response("", 500);
+        $response = new Response('', 500);
 
         $error = false;
         try {

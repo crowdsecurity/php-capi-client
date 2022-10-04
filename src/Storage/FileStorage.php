@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient\Storage;
 
 /**
- * File storage. Should be used only for test or/and as an example of StorageInterface implementation
+ * File storage. Should be used only for test or/and as an example of StorageInterface implementation.
  *
  * @author    CrowdSec team
  *
@@ -22,6 +22,9 @@ class FileStorage implements StorageInterface
 
     private const TOKEN_FILE = __DIR__ . '/token.json';
 
+    /**
+     * {@inheritdoc}
+     */
     public function retrieveMachineId(): ?string
     {
         $storageContent = $this->readFile(self::MACHINE_ID_FILE);
@@ -29,6 +32,9 @@ class FileStorage implements StorageInterface
         return !empty($storageContent['machine_id']) ? $storageContent['machine_id'] : null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function retrievePassword(): ?string
     {
         $storageContent = $this->readFile(self::PASSWORD_FILE);
@@ -36,6 +42,9 @@ class FileStorage implements StorageInterface
         return !empty($storageContent['password']) ? $storageContent['password'] : null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function retrieveToken(): ?string
     {
         $storageContent = $this->readFile(self::TOKEN_FILE);
@@ -43,6 +52,9 @@ class FileStorage implements StorageInterface
         return !empty($storageContent['token']) ? $storageContent['token'] : null;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function storeMachineId(string $machineId): bool
     {
         try {
@@ -55,6 +67,9 @@ class FileStorage implements StorageInterface
         return true;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function storePassword(string $password): bool
     {
         try {
@@ -67,6 +82,9 @@ class FileStorage implements StorageInterface
         return true;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function storeToken(string $token): bool
     {
         try {
@@ -79,6 +97,9 @@ class FileStorage implements StorageInterface
         return true;
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.ErrorControlOperator)
+     */
     private function readFile(string $file): array
     {
         $result = [];
