@@ -11,7 +11,7 @@ namespace CrowdSec\CapiClient\HttpMessage;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 class Request extends AbstractMessage
@@ -23,21 +23,18 @@ class Request extends AbstractMessage
         'Accept' => 'application/json',
         'Content-Type' => 'application/json',
     ];
-
-    /**
-     * @var string
-     */
-    private $uri;
-
     /**
      * @var string
      */
     private $method;
-
     /**
      * @var array
      */
     private $parameters;
+    /**
+     * @var string
+     */
+    private $uri;
 
     public function __construct(string $uri, string $method, array $headers = [], array $parameters = [])
     {
@@ -47,9 +44,9 @@ class Request extends AbstractMessage
         $this->parameters = $parameters;
     }
 
-    public function getUri(): string
+    public function getMethod(): string
     {
-        return $this->uri;
+        return $this->method;
     }
 
     public function getParams(): array
@@ -57,8 +54,8 @@ class Request extends AbstractMessage
         return $this->parameters;
     }
 
-    public function getMethod(): string
+    public function getUri(): string
     {
-        return $this->method;
+        return $this->uri;
     }
 }

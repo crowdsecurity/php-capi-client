@@ -11,7 +11,7 @@ namespace CrowdSec\CapiClient\Tests;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 class Constants

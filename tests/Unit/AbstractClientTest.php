@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\Tests\Unit;
 
 /**
@@ -9,7 +11,7 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 
@@ -46,7 +48,7 @@ final class AbstractClientTest extends TestCase
 
         $url = $client->getUrl();
         $this->assertEquals(
-            Constants::DEV_URL,
+            Constants::URL_DEV,
             $url,
             'Url should be dev by default'
         );
@@ -70,10 +72,10 @@ final class AbstractClientTest extends TestCase
             'Request handler must be curl by default'
         );
 
-        $client = new Watcher(array_merge($configs, ['api_url' => Constants::PROD_URL]));
+        $client = new Watcher(array_merge($configs, ['api_url' => Constants::URL_PROD]));
         $url = $client->getUrl();
         $this->assertEquals(
-            Constants::PROD_URL,
+            Constants::URL_PROD,
             $url,
             'Url should be prod if specified'
         );
@@ -117,7 +119,7 @@ final class AbstractClientTest extends TestCase
             ['/test-endpoint']
         );
         $this->assertEquals(
-            Constants::DEV_URL . 'test-endpoint',
+            Constants::URL_DEV . 'test-endpoint',
             $fullUrl,
             'Full Url should be ok'
         );

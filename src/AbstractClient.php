@@ -16,41 +16,37 @@ use CrowdSec\CapiClient\RequestHandler\RequestHandlerInterface;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 abstract class AbstractClient
 {
+    /**
+     * @var array
+     */
+    protected $configs = [];
+    /**
+     * @var string[]
+     */
+    private $allowedMethods = ['POST', 'GET'];
+    /**
+     * @var RequestHandlerInterface
+     */
+    private $requestHandler;
     /**
      * @var string
      */
     private $url;
 
     /**
-     * @var array
-     */
-    protected $configs = [];
-
-    /**
-     * @var RequestHandlerInterface
-     */
-    private $requestHandler;
-
-    /**
      * @var string[]
      */
-    protected $allowedMethods = ['POST', 'GET'];
 
     public function __construct(array $configs, RequestHandlerInterface $requestHandler = null)
     {
         $this->configs = $configs;
         $this->requestHandler = ($requestHandler) ?: new Curl();
         $this->url = $this->configs['api_url'];
-    }
-
-    public function getUrl(): string
-    {
-        return $this->url;
     }
 
     /**
@@ -72,6 +68,11 @@ abstract class AbstractClient
     public function getRequestHandler()
     {
         return $this->requestHandler;
+    }
+
+    public function getUrl(): string
+    {
+        return $this->url;
     }
 
     /**
@@ -122,7 +123,7 @@ abstract class AbstractClient
 
         if ($statusCode < 200 || $statusCode >= 300) {
             $message = "Unexpected response status code: $statusCode. Body was: " . str_replace("\n", '', $body);
-            throw new ClientException($message);
+            throw new ClientException($message, $statusCode);
         }
 
         return $decoded;

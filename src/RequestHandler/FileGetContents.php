@@ -15,7 +15,7 @@ use CrowdSec\CapiClient\HttpMessage\Response;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 class FileGetContents implements RequestHandlerInterface
@@ -54,6 +54,45 @@ class FileGetContents implements RequestHandlerInterface
     }
 
     /**
+     * @codeCoverageIgnore
+     *
+     * @param $url
+     * @param resource $context
+     */
+    protected function exec(string $url, $context): array
+    {
+        return ['response' => file_get_contents($url, false, $context), 'header' => $http_response_header];
+    }
+
+    /**
+     * @param string[] $parts
+     *
+     * @psalm-param list<string> $parts
+     */
+    protected function getResponseHttpCode(array $parts): int
+    {
+        $status = 0;
+        if (\count($parts) > 1) {
+            $status = (int) $parts[1];
+        }
+
+        return $status;
+    }
+
+    /**
+     * Convert a key-value array of headers to the official HTTP header string.
+     */
+    private function convertHeadersToString(array $headers): string
+    {
+        $builtHeaderString = '';
+        foreach ($headers as $key => $value) {
+            $builtHeaderString .= "$key: $value\r\n";
+        }
+
+        return $builtHeaderString;
+    }
+
+    /**
      * Retrieve configuration for the stream content.
      *
      * @return array|array[]
@@ -81,44 +120,5 @@ class FileGetContents implements RequestHandlerInterface
         }
 
         return $config;
-    }
-
-    /**
-     * Convert a key-value array of headers to the official HTTP header string.
-     */
-    private function convertHeadersToString(array $headers): string
-    {
-        $builtHeaderString = '';
-        foreach ($headers as $key => $value) {
-            $builtHeaderString .= "$key: $value\r\n";
-        }
-
-        return $builtHeaderString;
-    }
-
-    /**
-     * @codeCoverageIgnore
-     *
-     * @param $url
-     * @param resource $context
-     */
-    protected function exec(string $url, $context): array
-    {
-        return ['response' => file_get_contents($url, false, $context), 'header' => $http_response_header];
-    }
-
-    /**
-     * @param string[] $parts
-     *
-     * @psalm-param list<string> $parts
-     */
-    protected function getResponseHttpCode(array $parts): int
-    {
-        $status = 0;
-        if (\count($parts) > 1) {
-            $status = (int) $parts[1];
-        }
-
-        return $status;
     }
 }

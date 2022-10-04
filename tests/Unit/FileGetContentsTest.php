@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\Tests\Unit;
 
 /**
@@ -9,7 +11,7 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 
@@ -113,83 +115,26 @@ User-Agent: ' . TestConstants::USER_AGENT . '
         );
     }
 
-    public function testRegister()
-    {
-        $mockFGCRequest = $this->getFGCMock();
-        $mockFGCRequest->method('exec')->will(
-            $this->onConsecutiveCalls(
-                ['response' => MockedData::REGISTER_ALREADY, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_500]],
-                ['response' => MockedData::SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK']],
-                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
-            )
-        );
-
-        $client = new Watcher($this->configs, $mockFGCRequest);
-
-        $registerResponse = $client->register();
-        // 500
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_500 . '.*User already registered/',
-            $registerResponse['error'],
-            'Already registered case'
-        );
-
-        // 200
-        $registerResponse = $client->register();
-        $this->assertEquals(
-            'OK',
-            $registerResponse['message'],
-            'Success registered case'
-        );
-        // 400
-        $registerResponse = $client->register();
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_400 . '.*Invalid request body/',
-            $registerResponse['error'],
-            'Bad request registered case'
-        );
-    }
-
-    public function testLogin()
+    public function testDecisionsStream()
     {
         $mockFGCRequest = $this->getFGCMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
                 ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
                 [
-                    'response' => MockedData::LOGIN_BAD_CREDENTIALS,
-                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_403],
-                ],
-                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
+                    'response' => MockedData::DECISIONS_STREAM_LIST,
+                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK'],
+                ]
             )
         );
-        $client = new Watcher([], $mockFGCRequest);
 
-        $loginResponse = $client->login();
-        // 200
+        $client = new Watcher($this->configs, $mockFGCRequest);
+        $decisionsResponse = $client->getStreamDecisions();
+
         $this->assertEquals(
-            'this-is-a-token',
-            $loginResponse['token'],
-            'Success login case'
-        );
-        // 403
-        $loginResponse = $client->login();
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_403 . '.*The machine_id or password is incorrect/',
-            $loginResponse['error'],
-            'Bad credential login case'
-        );
-
-        // 400
-        $loginResponse = $client->login();
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_400 . '.*Invalid request body/',
-            $loginResponse['error'],
-            'Bad request login case'
+            json_decode(MockedData::DECISIONS_STREAM_LIST, true),
+            $decisionsResponse,
+            'Success get decisions stream'
         );
     }
 
@@ -237,62 +182,6 @@ User-Agent: ' . TestConstants::USER_AGENT . '
             '/Token is required.*' . MockedData::HTTP_400 . '/',
             $error,
             'No retrieved token should throw a ClientException error'
-        );
-    }
-
-    public function testSignals()
-    {
-        $mockFGCRequest = $this->getFGCMock();
-        $mockFGCRequest->method('exec')->will(
-            $this->onConsecutiveCalls(
-                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
-                [
-                    'response' => MockedData::SUCCESS,
-                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_200],
-                ],
-                ['response' => MockedData::SIGNALS_BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
-            )
-        );
-        $client = new Watcher([], $mockFGCRequest);
-
-        $signalsResponse = $client->pushSignals([]);
-
-        $this->assertEquals(
-            'OK',
-            $signalsResponse['message'],
-            'Success pushed signals'
-        );
-
-        $signalsResponse = $client->pushSignals([]);
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_400 . '.*Invalid request body.*scenario_hash/',
-            $signalsResponse['error'],
-            'Bad signals request'
-        );
-    }
-
-    public function testDecisionsStream()
-    {
-        $mockFGCRequest = $this->getFGCMock();
-        $mockFGCRequest->method('exec')->will(
-            $this->onConsecutiveCalls(
-                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
-                [
-                    'response' => MockedData::DECISIONS_STREAM_LIST,
-                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK'],
-                ]
-            )
-        );
-
-        $client = new Watcher($this->configs, $mockFGCRequest);
-        $decisionsResponse = $client->getStreamDecisions();
-
-        $this->assertEquals(
-            json_decode(MockedData::DECISIONS_STREAM_LIST, true),
-            $decisionsResponse,
-            'Success get decisions stream'
         );
     }
 
@@ -351,6 +240,119 @@ User-Agent: ' . TestConstants::USER_AGENT . '
                 ['test-uri?foo=bar']
             );
         $mockFGCRequest->handle($request);
+    }
+
+    public function testLogin()
+    {
+        $mockFGCRequest = $this->getFGCMock();
+        $mockFGCRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
+                [
+                    'response' => MockedData::LOGIN_BAD_CREDENTIALS,
+                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_403],
+                ],
+                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
+            )
+        );
+        $client = new Watcher([], $mockFGCRequest);
+
+        $loginResponse = $client->login();
+        // 200
+        $this->assertEquals(
+            'this-is-a-token',
+            $loginResponse['token'],
+            'Success login case'
+        );
+        // 403
+        $loginResponse = $client->login();
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/' . MockedData::HTTP_403 . '.*The machine_id or password is incorrect/',
+            $loginResponse['error'],
+            'Bad credential login case'
+        );
+
+        // 400
+        $loginResponse = $client->login();
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/' . MockedData::HTTP_400 . '.*Invalid request body/',
+            $loginResponse['error'],
+            'Bad request login case'
+        );
+    }
+
+    public function testRegister()
+    {
+        $mockFGCRequest = $this->getFGCMock();
+        $mockFGCRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                ['response' => MockedData::REGISTER_ALREADY, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_500]],
+                ['response' => MockedData::SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK']],
+                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
+            )
+        );
+
+        $client = new Watcher($this->configs, $mockFGCRequest);
+
+        $registerResponse = $client->register();
+        // 500
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/' . MockedData::HTTP_500 . '.*User already registered/',
+            $registerResponse['error'],
+            'Already registered case'
+        );
+
+        // 200
+        $registerResponse = $client->register();
+        $this->assertEquals(
+            'OK',
+            $registerResponse['message'],
+            'Success registered case'
+        );
+        // 400
+        $registerResponse = $client->register();
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/' . MockedData::HTTP_400 . '.*Invalid request body/',
+            $registerResponse['error'],
+            'Bad request registered case'
+        );
+    }
+
+    public function testSignals()
+    {
+        $mockFGCRequest = $this->getFGCMock();
+        $mockFGCRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
+                [
+                    'response' => MockedData::SUCCESS,
+                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_200],
+                ],
+                ['response' => MockedData::SIGNALS_BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
+            )
+        );
+        $client = new Watcher([], $mockFGCRequest);
+
+        $signalsResponse = $client->pushSignals([]);
+
+        $this->assertEquals(
+            'OK',
+            $signalsResponse['message'],
+            'Success pushed signals'
+        );
+
+        $signalsResponse = $client->pushSignals([]);
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/' . MockedData::HTTP_400 . '.*Invalid request body.*scenario_hash/',
+            $signalsResponse['error'],
+            'Bad signals request'
+        );
     }
 
     protected function getFGCMock()

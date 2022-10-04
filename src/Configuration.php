@@ -1,0 +1,69 @@
+<?php
+
+declare(strict_types=1);
+
+namespace CrowdSec\CapiClient;
+
+use InvalidArgumentException;
+use RuntimeException;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+
+/**
+ * The Watcher configuration.
+ *
+ * @author    CrowdSec team
+ *
+ * @see      https://crowdsec.net CrowdSec Official Website
+ *
+ * @copyright Copyright (c) 2022+ CrowdSec
+ * @license   MIT License
+ */
+class Configuration implements ConfigurationInterface
+{
+    /**
+     * @return TreeBuilder
+     */
+    public function getConfigTreeBuilder(): TreeBuilder
+    {
+        $treeBuilder = new TreeBuilder('config');
+        /** @var ArrayNodeDefinition $rootNode */
+        $rootNode = $treeBuilder->getRootNode();
+        $rootNode->children()
+            ->enumNode('api_url')
+            ->values(
+                [
+                    Constants::URL_DEV,
+                    Constants::URL_PROD,
+                ]
+            )
+            ->defaultValue(Constants::URL_DEV)
+            ->end()
+            ->scalarNode('machine_id_prefix')
+                ->validate()
+                ->ifTrue(function ($value) {
+                    if(!empty($value)){
+                       return (strlen($value) > 16 || preg_match('#^[A-Za-z0-9]+$#', $value) !== 1);
+                    }
+                    return false;
+                })
+                ->thenInvalid('Invalid machine id prefix. Length must be <= 16. Allowed chars are A-Za-z0-9')
+                ->end()
+            ->end()
+            ->scalarNode('user_agent_suffix')
+                ->validate()
+                ->ifTrue(function ($value) {
+                    if(!empty($value)){
+                        return (strlen($value) > 16 || preg_match('#^[A-Za-z0-9]+$#', $value) !== 1);
+                    }
+                    return false;
+                })
+                ->thenInvalid('Invalid user agent suffix. Length must be <= 16. Allowed chars are A-Za-z0-9')
+                ->end()
+            ->end()
+        ;
+
+        return $treeBuilder;
+    }
+}

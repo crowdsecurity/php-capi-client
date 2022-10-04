@@ -8,13 +8,13 @@ use CrowdSec\CapiClient\HttpMessage\Request;
 use CrowdSec\CapiClient\HttpMessage\Response;
 
 /**
- * Abstract request handler.
+ * Request handler interface.
  *
  * @author    CrowdSec team
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 interface RequestHandlerInterface

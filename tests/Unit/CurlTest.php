@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\Tests\Unit;
 
 /**
@@ -9,7 +11,7 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 
@@ -41,9 +43,177 @@ final class CurlTest extends TestCase
 {
     protected $configs = ['machine_id' => 'MACHINE_ID', 'password' => 'MACHINE_PASSWORD'];
 
+    public function testDecisionsStream()
+    {
+        $mockCurlRequest = $this->getCurlMock();
+        $mockCurlRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                MockedData::LOGIN_SUCCESS,
+                MockedData::DECISIONS_STREAM_LIST
+            )
+        );
+        $mockCurlRequest->method('getResponseHttpCode')->will(
+            $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_200)
+        );
+        $client = new Watcher($this->configs, $mockCurlRequest);
+        $decisionsResponse = $client->getStreamDecisions();
+
+        $this->assertEquals(
+            json_decode(MockedData::DECISIONS_STREAM_LIST, true),
+            $decisionsResponse,
+            'Success get decisions stream'
+        );
+    }
+
+    public function testEnsureLogin()
+    {
+        $mockCurlRequest = $this->getCurlMock();
+        $mockCurlRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                MockedData::LOGIN_SUCCESS,
+                MockedData::LOGIN_BAD_CREDENTIALS
+            )
+        );
+        $mockCurlRequest->method('getResponseHttpCode')->will(
+            $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_400)
+        );
+        $client = new Watcher([], $mockCurlRequest);
+        $tokenHeader = PHPUnitUtil::callMethod(
+            $client,
+            'handleTokenHeader',
+            []
+        );
+
+        $this->assertEquals(
+            'Bearer this-is-a-token',
+            $tokenHeader['Authorization'],
+            'Header should be populated with token'
+        );
+
+        $client = new Watcher([], $mockCurlRequest);
+
+        $error = false;
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'handleTokenHeader',
+                []
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Token is required.*' . MockedData::HTTP_400 . '/',
+            $error,
+            'No retrieved token should throw a ClientException error'
+        );
+    }
+
+    public function testHandleError()
+    {
+        $mockCurlRequest = $this->getCurlMock();
+
+        $request = new Request('test-uri', 'POST', ['User-Agent' => null]);
+        $error = false;
+        try {
+            $mockCurlRequest->handle($request);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        $this->assertEquals(
+            'User agent is required',
+            $error,
+            'Should failed and throw if no user agent'
+        );
+
+        $mockCurlRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                false
+            )
+        );
+
+        $request = new Request('test-uri', 'POST', ['User-Agent' => TestConstants::USER_AGENT]);
+
+        $error = false;
+        try {
+            $mockCurlRequest->handle($request);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        $this->assertEquals(
+            'Unexpected CURL call failure: ',
+            $error,
+            'Should failed and throw if no response'
+        );
+
+        $mockCurlRequest->method('getResponseHttpCode')->will(
+            $this->onConsecutiveCalls(
+                0
+            )
+        );
+
+        $error = false;
+        try {
+            $mockCurlRequest->handle($request);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        $this->assertEquals(
+            'Unexpected empty response http code',
+            $error,
+            'Should failed and throw if no response status'
+        );
+    }
+
+    public function testLogin()
+    {
+        $mockCurlRequest = $this->getCurlMock();
+        $mockCurlRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                MockedData::LOGIN_SUCCESS,
+                MockedData::LOGIN_BAD_CREDENTIALS,
+                MockedData::BAD_REQUEST
+            )
+        );
+        $mockCurlRequest->method('getResponseHttpCode')->will(
+            $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_403, MockedData::HTTP_400)
+        );
+        $client = new Watcher([], $mockCurlRequest);
+
+        $loginResponse = $client->login();
+        // 200
+        $this->assertEquals(
+            'this-is-a-token',
+            $loginResponse['token'],
+            'Success login case'
+        );
+        // 403
+        $loginResponse = $client->login();
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/' . MockedData::HTTP_403 . '.*The machine_id or password is incorrect/',
+            $loginResponse['error'],
+            'Bad credential login case'
+        );
+
+        // 400
+        $loginResponse = $client->login();
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/' . MockedData::HTTP_400 . '.*Invalid request body/',
+            $loginResponse['error'],
+            'Bad request login case'
+        );
+    }
+
     public function testOptions()
     {
-        $url = Constants::DEV_URL . 'watchers';
+        $url = Constants::URL_DEV . 'watchers';
         $method = 'POST';
         $parameters = ['machine_id' => 'test', 'password' => 'test'];
         $configs = $parameters;
@@ -78,7 +248,7 @@ final class CurlTest extends TestCase
             'Curl options must be as expected for POST'
         );
 
-        $url = Constants::DEV_URL . 'decisions/stream';
+        $url = Constants::URL_DEV . 'decisions/stream';
         $method = 'GET';
         $parameters = ['foo' => 'bar', 'crowd' => 'sec'];
         $client = new Watcher($configs);
@@ -156,93 +326,6 @@ final class CurlTest extends TestCase
         );
     }
 
-    public function testLogin()
-    {
-        $mockCurlRequest = $this->getCurlMock();
-        $mockCurlRequest->method('exec')->will(
-            $this->onConsecutiveCalls(
-                MockedData::LOGIN_SUCCESS,
-                MockedData::LOGIN_BAD_CREDENTIALS,
-                MockedData::BAD_REQUEST
-            )
-        );
-        $mockCurlRequest->method('getResponseHttpCode')->will(
-            $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_403, MockedData::HTTP_400)
-        );
-        $client = new Watcher([], $mockCurlRequest);
-
-        $loginResponse = $client->login();
-        // 200
-        $this->assertEquals(
-            'this-is-a-token',
-            $loginResponse['token'],
-            'Success login case'
-        );
-        // 403
-        $loginResponse = $client->login();
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_403 . '.*The machine_id or password is incorrect/',
-            $loginResponse['error'],
-            'Bad credential login case'
-        );
-
-        // 400
-        $loginResponse = $client->login();
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_400 . '.*Invalid request body/',
-            $loginResponse['error'],
-            'Bad request login case'
-        );
-    }
-
-    public function testEnsureLogin()
-    {
-        $mockCurlRequest = $this->getCurlMock();
-        $mockCurlRequest->method('exec')->will(
-            $this->onConsecutiveCalls(
-                MockedData::LOGIN_SUCCESS,
-                MockedData::LOGIN_BAD_CREDENTIALS
-            )
-        );
-        $mockCurlRequest->method('getResponseHttpCode')->will(
-            $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_400)
-        );
-        $client = new Watcher([], $mockCurlRequest);
-        $tokenHeader = PHPUnitUtil::callMethod(
-            $client,
-            'handleTokenHeader',
-            []
-        );
-
-        $this->assertEquals(
-            'Bearer this-is-a-token',
-            $tokenHeader['Authorization'],
-            'Header should be populated with token'
-        );
-
-        $client = new Watcher([], $mockCurlRequest);
-
-        $error = false;
-        try {
-            PHPUnitUtil::callMethod(
-                $client,
-                'handleTokenHeader',
-                []
-            );
-        } catch (ClientException $e) {
-            $error = $e->getMessage();
-        }
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/Token is required.*' . MockedData::HTTP_400 . '/',
-            $error,
-            'No retrieved token should throw a ClientException error'
-        );
-    }
-
     public function testSignals()
     {
         $mockCurlRequest = $this->getCurlMock();
@@ -273,87 +356,6 @@ final class CurlTest extends TestCase
             '/' . MockedData::HTTP_400 . '.*Invalid request body.*scenario_hash/',
             $signalsResponse['error'],
             'Bad signals request'
-        );
-    }
-
-    public function testDecisionsStream()
-    {
-        $mockCurlRequest = $this->getCurlMock();
-        $mockCurlRequest->method('exec')->will(
-            $this->onConsecutiveCalls(
-                MockedData::LOGIN_SUCCESS,
-                MockedData::DECISIONS_STREAM_LIST
-            )
-        );
-        $mockCurlRequest->method('getResponseHttpCode')->will(
-            $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_200)
-        );
-        $client = new Watcher($this->configs, $mockCurlRequest);
-        $decisionsResponse = $client->getStreamDecisions();
-
-        $this->assertEquals(
-            json_decode(MockedData::DECISIONS_STREAM_LIST, true),
-            $decisionsResponse,
-            'Success get decisions stream'
-        );
-    }
-
-    public function testHandleError()
-    {
-        $mockCurlRequest = $this->getCurlMock();
-
-        $request = new Request('test-uri', 'POST', ['User-Agent' => null]);
-        $error = false;
-        try {
-            $mockCurlRequest->handle($request);
-        } catch (ClientException $e) {
-            $error = $e->getMessage();
-        }
-
-        $this->assertEquals(
-            'User agent is required',
-            $error,
-            'Should failed and throw if no user agent'
-        );
-
-        $mockCurlRequest->method('exec')->will(
-            $this->onConsecutiveCalls(
-                false
-            )
-        );
-
-        $request = new Request('test-uri', 'POST', ['User-Agent' => TestConstants::USER_AGENT]);
-
-        $error = false;
-        try {
-            $mockCurlRequest->handle($request);
-        } catch (ClientException $e) {
-            $error = $e->getMessage();
-        }
-
-        $this->assertEquals(
-            'Unexpected CURL call failure: ',
-            $error,
-            'Should failed and throw if no response'
-        );
-
-        $mockCurlRequest->method('getResponseHttpCode')->will(
-            $this->onConsecutiveCalls(
-                0
-            )
-        );
-
-        $error = false;
-        try {
-            $mockCurlRequest->handle($request);
-        } catch (ClientException $e) {
-            $error = $e->getMessage();
-        }
-
-        $this->assertEquals(
-            'Unexpected empty response http code',
-            $error,
-            'Should failed and throw if no response status'
         );
     }
 
