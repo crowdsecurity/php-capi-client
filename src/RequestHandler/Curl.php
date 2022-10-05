@@ -35,7 +35,7 @@ class Curl implements RequestHandlerInterface
         $response = $this->exec($handle);
 
         if (false === $response) {
-            throw new ClientException('Unexpected CURL call failure: ' . curl_error($handle));
+            throw new ClientException('Unexpected CURL call failure: ' . curl_error($handle), 500);
         }
 
         $statusCode = $this->getResponseHttpCode($handle);
@@ -84,7 +84,7 @@ class Curl implements RequestHandlerInterface
         $url = $request->getUri();
         $parameters = $request->getParams();
         if (!isset($headers['User-Agent'])) {
-            throw new ClientException('User agent is required');
+            throw new ClientException('User agent is required', 400);
         }
         $options = [
             \CURLOPT_HEADER => false,

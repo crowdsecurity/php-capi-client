@@ -17,7 +17,12 @@ namespace CrowdSec\CapiClient\Tests;
 class Constants
 {
     /**
-     * @var string The user agent used to send request to CAPI
+     * @var string The user agent suffix used to send request to CAPI
      */
-    public const USER_AGENT = 'PHP CrowdSec CAPI client TEST';
+    public const USER_AGENT_SUFFIX = 'PHPCAPITEST';
+
+    /**
+     * @var string The machine id prefix used to send request to CAPI
+     */
+    public const MACHINE_ID_PREFIX = "CapiClientTest";
 }

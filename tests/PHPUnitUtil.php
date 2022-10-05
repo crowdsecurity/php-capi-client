@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient\Tests;
 
+use PHPUnit\Runner\Version;
 use ReflectionClass;
 
 class PHPUnitUtil
@@ -29,11 +30,7 @@ class PHPUnitUtil
 
     public static function getPHPUnitVersion(): string
     {
-        if (class_exists('\PHPUnit\Runner\Version')) {
-            return \PHPUnit\Runner\Version::id();
-        } else {
-            return \PHPUnit_Runner_Version::id();
-        }
+        return Version::id();
     }
 
     public static function assertRegExp($testCase, $pattern, $string, $message = '')

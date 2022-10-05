@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
 
@@ -22,6 +22,7 @@ use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
+use CrowdSec\CapiClient\Storage\FileStorage;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -29,6 +30,19 @@ use PHPUnit\Framework\TestCase;
  * @uses \CrowdSec\CapiClient\HttpMessage\Request
  * @uses \CrowdSec\CapiClient\HttpMessage\Response
  * @uses \CrowdSec\CapiClient\HttpMessage\AbstractMessage
+ * @uses \CrowdSec\CapiClient\Configuration::getConfigTreeBuilder
+ * @uses \CrowdSec\CapiClient\Watcher::__construct
+ * @uses \CrowdSec\CapiClient\Watcher::configure
+ * @uses \CrowdSec\CapiClient\Watcher::formatUserAgent
+ * @uses \CrowdSec\CapiClient\Watcher::ensureAuth
+ * @uses \CrowdSec\CapiClient\Watcher::ensureRegister
+ * @uses \CrowdSec\CapiClient\Watcher::manageRequest
+ * @uses \CrowdSec\CapiClient\Watcher::shouldRefreshCredentials
+ * @uses \CrowdSec\CapiClient\Watcher::generateMachineId
+ * @uses \CrowdSec\CapiClient\Watcher::generatePassword
+ * @uses \CrowdSec\CapiClient\Watcher::generateRandomString
+ * @uses \CrowdSec\CapiClient\Watcher::refreshCredentials
+ *
  *
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::handle
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::createContextConfig
@@ -36,6 +50,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::getResponseHttpCode
  * @covers \CrowdSec\CapiClient\Watcher::login
  * @covers \CrowdSec\CapiClient\Watcher::handleTokenHeader
+ * @covers \CrowdSec\CapiClient\Watcher::refreshToken
  * @covers \CrowdSec\CapiClient\Watcher::register
  * @covers \CrowdSec\CapiClient\Watcher::login
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
@@ -43,20 +58,22 @@ use PHPUnit\Framework\TestCase;
  */
 final class FileGetContentsTest extends TestCase
 {
-    protected $configs = ['machine_id' => 'MACHINE_ID', 'password' => 'MACHINE_PASSWORD'];
+    protected $configs = [
+        'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
+        'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX
+    ];
 
     public function testContextConfig()
     {
         $method = 'POST';
         $parameters = ['machine_id' => 'test', 'password' => 'test'];
-        $configs = $parameters;
 
         $fgcRequestHandler = new FileGetContents();
 
-        $client = new Watcher($configs, $fgcRequestHandler);
+        $client = new Watcher($this->configs, new FileStorage(), $fgcRequestHandler);
         $fgcRequester = $client->getRequestHandler();
 
-        $request = new Request('test-url', $method, ['User-Agent' => TestConstants::USER_AGENT], $parameters);
+        $request = new Request('test-url', $method, ['User-Agent' => TestConstants::USER_AGENT_SUFFIX], $parameters);
 
         $contextConfig = PHPUnitUtil::callMethod(
             $fgcRequester,
@@ -71,7 +88,7 @@ final class FileGetContentsTest extends TestCase
                 'method' => $method,
                 'header' => 'Accept: application/json
 Content-Type: application/json
-User-Agent: ' . TestConstants::USER_AGENT . '
+User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
 ',
                 'ignore_errors' => true,
                 'content' => '{"machine_id":"test","password":"test"}',
@@ -87,7 +104,7 @@ User-Agent: ' . TestConstants::USER_AGENT . '
         $method = 'GET';
         $parameters = ['foo' => 'bar', 'crowd' => 'sec'];
 
-        $request = new Request('test-url', $method, ['User-Agent' => TestConstants::USER_AGENT], $parameters);
+        $request = new Request('test-url', $method, ['User-Agent' => TestConstants::USER_AGENT_SUFFIX], $parameters);
 
         $contextConfig = PHPUnitUtil::callMethod(
             $fgcRequester,
@@ -102,7 +119,7 @@ User-Agent: ' . TestConstants::USER_AGENT . '
                 'method' => $method,
                 'header' => 'Accept: application/json
 Content-Type: application/json
-User-Agent: ' . TestConstants::USER_AGENT . '
+User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
 ',
                 'ignore_errors' => true,
             ],
@@ -115,12 +132,14 @@ User-Agent: ' . TestConstants::USER_AGENT . '
         );
     }
 
+
     public function testDecisionsStream()
     {
+        // Success test
         $mockFGCRequest = $this->getFGCMock();
+        $mockFileStorage = $this->getFileStorageMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
-                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
                 [
                     'response' => MockedData::DECISIONS_STREAM_LIST,
                     'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK'],
@@ -128,7 +147,16 @@ User-Agent: ' . TestConstants::USER_AGENT . '
             )
         );
 
-        $client = new Watcher($this->configs, $mockFGCRequest);
+        $mockFileStorage->method('retrievePassword')->willReturn(
+            'test-password'
+        );
+        $mockFileStorage->method('retrieveMachineId')->willReturn(
+            TestConstants::MACHINE_ID_PREFIX.'test-machine-id'
+        );
+        $mockFileStorage->method('retrieveToken')->willReturn(
+            'test-token'
+        );
+        $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
         $decisionsResponse = $client->getStreamDecisions();
 
         $this->assertEquals(
@@ -138,20 +166,28 @@ User-Agent: ' . TestConstants::USER_AGENT . '
         );
     }
 
-    public function testEnsureLogin()
+    public function testRefreshToken()
     {
+        // Test refresh with good credential
         $mockFGCRequest = $this->getFGCMock();
+        $mockFileStorage = $this->getFileStorageMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
-                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
-                [
-                    'response' => MockedData::LOGIN_BAD_CREDENTIALS,
-                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_400],
-                ]
+                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]]
             )
         );
+        $mockFileStorage->method('retrievePassword')->willReturn(
+            'test-password'
+        );
+        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX.'test-machine-id');
+        $mockFileStorage->method('retrieveToken')->willReturn(null);
 
-        $client = new Watcher([], $mockFGCRequest);
+        $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
+        PHPUnitUtil::callMethod(
+            $client,
+            'ensureAuth',
+            []
+        );
         $tokenHeader = PHPUnitUtil::callMethod(
             $client,
             'handleTokenHeader',
@@ -161,12 +197,24 @@ User-Agent: ' . TestConstants::USER_AGENT . '
         $this->assertEquals(
             'Bearer this-is-a-token',
             $tokenHeader['Authorization'],
-            'Header should be popuated with token'
+            'Header should be populated with token'
         );
+        // Test refresh with bad credential
+        $mockFGCRequest = $this->getFGCMock();
+        $mockFileStorage = $this->getFileStorageMock();
+        $mockFGCRequest->method('exec')->willReturn(
+                [
+                    'response' => MockedData::LOGIN_BAD_CREDENTIALS,
+                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_400],
+                ]
+        );
+        $mockFileStorage->method('retrievePassword')->willReturn('test-password');
+        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX.'test-machine-id');
+        $mockFileStorage->method('retrieveToken')->willReturn(null);
+        $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
 
-        $client = new Watcher([], $mockFGCRequest);
-
-        $error = false;
+        $error = '';
+        $code = 0;
         try {
             PHPUnitUtil::callMethod(
                 $client,
@@ -175,21 +223,25 @@ User-Agent: ' . TestConstants::USER_AGENT . '
             );
         } catch (ClientException $e) {
             $error = $e->getMessage();
+            $code = $e->getCode();
         }
+
+        $this->assertEquals(401,$code);
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/Token is required.*' . MockedData::HTTP_400 . '/',
+            '/Token is required/',
             $error,
             'No retrieved token should throw a ClientException error'
         );
     }
 
+
     public function testHandleError()
     {
         $mockFGCRequest = $this->getFGCMock();
 
-        $request = new Request('test-uri', 'GET', ['User-Agent' => TestConstants::USER_AGENT], ['foo' => 'bar']);
+        $request = new Request('test-uri', 'GET', ['User-Agent' => TestConstants::USER_AGENT_SUFFIX], ['foo' => 'bar']);
 
         $error = false;
         try {
@@ -228,7 +280,7 @@ User-Agent: ' . TestConstants::USER_AGENT . '
     {
         $mockFGCRequest = $this->getFGCMock();
 
-        $request = new Request('test-uri', 'GET', ['User-Agent' => TestConstants::USER_AGENT], ['foo' => 'bar']);
+        $request = new Request('test-uri', 'GET', ['User-Agent' => TestConstants::USER_AGENT_SUFFIX], ['foo' => 'bar']);
 
         $mockFGCRequest->method('exec')
             ->will(
@@ -245,6 +297,7 @@ User-Agent: ' . TestConstants::USER_AGENT . '
     public function testLogin()
     {
         $mockFGCRequest = $this->getFGCMock();
+        $mockFileStorage = $this->getFileStorageMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
                 ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
@@ -255,9 +308,13 @@ User-Agent: ' . TestConstants::USER_AGENT . '
                 ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
             )
         );
-        $client = new Watcher([], $mockFGCRequest);
+        $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
 
-        $loginResponse = $client->login();
+        $loginResponse = PHPUnitUtil::callMethod(
+            $client,
+            'login',
+            []
+        );
         // 200
         $this->assertEquals(
             'this-is-a-token',
@@ -265,77 +322,168 @@ User-Agent: ' . TestConstants::USER_AGENT . '
             'Success login case'
         );
         // 403
-        $loginResponse = $client->login();
+        $error = '';
+        $code = 0;
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'login',
+                []
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+            $code = $e->getCode();
+        }
+        $this->assertEquals(403, $code);
+
         PHPUnitUtil::assertRegExp(
             $this,
             '/' . MockedData::HTTP_403 . '.*The machine_id or password is incorrect/',
-            $loginResponse['error'],
+            $error,
             'Bad credential login case'
         );
 
         // 400
-        $loginResponse = $client->login();
+        $error = '';
+        $code = 0;
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'login',
+                []
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+            $code = $e->getCode();
+        }
+        $this->assertEquals(400, $code);
         PHPUnitUtil::assertRegExp(
             $this,
             '/' . MockedData::HTTP_400 . '.*Invalid request body/',
-            $loginResponse['error'],
+           $error,
             'Bad request login case'
         );
     }
 
     public function testRegister()
     {
+        // All tests are based on register retry attempts value
+        $this->assertEquals(Watcher::REGISTER_RETRY, 1);
+        $mockFileStorage = $this->getFileStorageMock();
         $mockFGCRequest = $this->getFGCMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
                 ['response' => MockedData::REGISTER_ALREADY, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_500]],
+                ['response' => MockedData::REGISTER_ALREADY, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_500]],
                 ['response' => MockedData::SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK']],
-                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
+                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]],
+                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]],
+                ['response' => MockedData::REGISTER_ALREADY, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_500]],
+                ['response' => MockedData::SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK']]
             )
         );
 
-        $client = new Watcher($this->configs, $mockFGCRequest);
+        $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
 
-        $registerResponse = $client->register();
-        // 500
+        // 500 (successive attempts)
+        $error = '';
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'register',
+                []
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
         PHPUnitUtil::assertRegExp(
             $this,
             '/' . MockedData::HTTP_500 . '.*User already registered/',
-            $registerResponse['error'],
+            $error,
             'Already registered case'
         );
-
-        // 200
-        $registerResponse = $client->register();
-        $this->assertEquals(
-            'OK',
-            $registerResponse['message'],
-            'Success registered case'
+        // 200 (first attempt)
+        $error = 'none';
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'register',
+                []
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/none/',
+            $error,
+            'Success case'
         );
-        // 400
-        $registerResponse = $client->register();
+        // 400 (successive attempts)
+        $error = '';
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'register',
+                []
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
         PHPUnitUtil::assertRegExp(
             $this,
             '/' . MockedData::HTTP_400 . '.*Invalid request body/',
-            $registerResponse['error'],
+            $error,
             'Bad request registered case'
+        );
+        // 200 (after 1 failed attempt)
+        $error = 'none';
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'register',
+                []
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/none/',
+            $error,
+            'Success case'
         );
     }
 
     public function testSignals()
     {
+        // Success test
         $mockFGCRequest = $this->getFGCMock();
+        $mockFileStorage = $this->getFileStorageMock();
         $mockFGCRequest->method('exec')->will(
             $this->onConsecutiveCalls(
-                ['response' => MockedData::LOGIN_SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200]],
                 [
                     'response' => MockedData::SUCCESS,
                     'header' => ['HTTP/1.1 ' . MockedData::HTTP_200],
-                ],
-                ['response' => MockedData::SIGNALS_BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]]
+                ]
             )
         );
-        $client = new Watcher([], $mockFGCRequest);
+        $mockFileStorage->method('retrievePassword')->will(
+            $this->onConsecutiveCalls(
+                'test-password'
+            )
+        );
+        $mockFileStorage->method('retrieveMachineId')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::MACHINE_ID_PREFIX.'test-machine-id'
+            )
+        );
+        $mockFileStorage->method('retrieveToken')->will(
+            $this->onConsecutiveCalls(
+                'test-token'
+            )
+        );
+        $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
 
         $signalsResponse = $client->pushSignals([]);
 
@@ -345,20 +493,75 @@ User-Agent: ' . TestConstants::USER_AGENT . '
             'Success pushed signals'
         );
 
-        $signalsResponse = $client->pushSignals([]);
+        // Failed test
+        $mockFGCRequest = $this->getFGCMock();
+        $mockFileStorage = $this->getFileStorageMock();
+        $mockFGCRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                [
+                    'response' => MockedData::SIGNALS_BAD_REQUEST,
+                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_400],
+                ]
+            )
+        );
+        $mockFileStorage->method('retrievePassword')->will(
+            $this->onConsecutiveCalls(
+                'test-password'
+            )
+        );
+        $mockFileStorage->method('retrieveMachineId')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::MACHINE_ID_PREFIX.'test-machine-id'
+            )
+        );
+        $mockFileStorage->method('retrieveToken')->will(
+            $this->onConsecutiveCalls(
+                'test-token'
+            )
+        );
+
+        $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
+
+        $error = '';
+        $code = 0;
+        try {
+            $client->pushSignals([]);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+            $code = $e->getCode();
+        }
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/' . MockedData::HTTP_400 . '.*Invalid request body.*scenario_hash/',
-            $signalsResponse['error'],
+            '/.*Invalid request body.*scenario_hash/',
+            $error ,
             'Bad signals request'
         );
+        $this->assertEquals(MockedData::HTTP_400, $code);
+
+
     }
 
     protected function getFGCMock()
     {
         return $this->getMockBuilder('CrowdSec\CapiClient\RequestHandler\FileGetContents')
-            ->setMethods(['exec'])
+            ->onlyMethods(['exec'])
+            ->getMock();
+    }
+
+    protected function getFileStorageMock()
+    {
+        return $this->getMockBuilder('CrowdSec\CapiClient\Storage\FileStorage')
+            ->onlyMethods(
+                [
+                    'retrieveToken',
+                    'retrievePassword',
+                    'retrieveMachineId',
+                    'storePassword',
+                    'storeMachineId',
+                    'storeToken'
+                ]
+            )
             ->getMock();
     }
 }

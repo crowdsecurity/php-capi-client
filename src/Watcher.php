@@ -26,6 +26,7 @@ class Watcher extends AbstractClient
     public const LOGIN_ENDPOINT = '/watchers/login';
     public const LOGIN_RETRY = 1;
     public const MACHINE_ID_LENGTH = 48;
+    public const PASSWORD_LENGTH = 32;
     public const REGISTER_ENDPOINT = '/watchers';
     public const REGISTER_RETRY = 1;
     public const SIGNALS_ENDPOINT = '/signals';
@@ -152,7 +153,7 @@ class Watcher extends AbstractClient
      */
     private function generatePassword(): string
     {
-        return $this->generateRandomString();
+        return $this->generateRandomString(self::PASSWORD_LENGTH);
     }
 
     /**
@@ -160,7 +161,7 @@ class Watcher extends AbstractClient
      *
      * @throws Exception
      */
-    private function generateRandomString(int $length = 32): string
+    private function generateRandomString(int $length): string
     {
         if ($length < 1) {
             throw new Exception('Length must be greater than zero.');
@@ -201,12 +202,13 @@ class Watcher extends AbstractClient
                 $headers = array_merge($this->headers, $this->handleTokenHeader());
                 $response = $this->request($method, $endpoint, $parameters, $headers);
             } catch (ClientException $e) {
+                if(401 !== $e->getCode()){
+                    throw new ClientException($e->getMessage(), $e->getCode());
+                }
                 ++$loginRetry;
                 $retry = true;
                 $lastMessage = $e->getMessage();
-                if (401 === $e->getCode()) {
-                    $this->refreshToken($scenarios);
-                }
+                $this->refreshToken($scenarios);
             }
         } while ($retry && ($loginRetry <= self::LOGIN_RETRY));
         if ($loginRetry > self::LOGIN_RETRY) {
@@ -224,7 +226,10 @@ class Watcher extends AbstractClient
      */
     private function handleTokenHeader(): array
     {
-        return $this->token ? ['Authorization' => sprintf('Bearer %s', $this->token)] : [];
+        if(!$this->token){
+            throw new ClientException('Token is required.', 401);
+        }
+        return ['Authorization' => sprintf('Bearer %s', $this->token)];
     }
 
     /**
@@ -267,11 +272,7 @@ class Watcher extends AbstractClient
 
         $this->token = $loginResponse['token'] ?? null;
         if (!$this->token) {
-            $message = 'Token is required. ';
-            if (isset($loginResponse['error'])) {
-                $message .= 'An error was detected during login: ' . $loginResponse['error'];
-            }
-            throw new ClientException($message);
+            throw new ClientException('Token is required.', 401);
         }
         $this->storage->storeToken($this->token);
     }

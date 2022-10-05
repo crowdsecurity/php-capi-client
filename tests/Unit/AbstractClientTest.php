@@ -17,34 +17,41 @@ namespace CrowdSec\CapiClient\Tests\Unit;
 
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\Constants;
+use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\HttpMessage\Response;
+use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use DateTime;
-use Exception;
-
-use const PHP_VERSION_ID;
 
 use PHPUnit\Framework\TestCase;
 use TypeError;
 
 /**
+ * @uses \CrowdSec\CapiClient\HttpMessage\Response
+ * @uses \CrowdSec\CapiClient\Configuration::getConfigTreeBuilder
+ * @uses \CrowdSec\CapiClient\Watcher::formatUserAgent
+ *
  * @covers \CrowdSec\CapiClient\AbstractClient::__construct
  * @covers \CrowdSec\CapiClient\AbstractClient::getUrl
- * @covers \CrowdSec\CapiClient\AbstractClient::getConfig
  * @covers \CrowdSec\CapiClient\AbstractClient::getRequestHandler
  * @covers \CrowdSec\CapiClient\AbstractClient::formatResponseBody
  * @covers \CrowdSec\CapiClient\AbstractClient::getFullUrl
+ * @covers \CrowdSec\CapiClient\Watcher::__construct
+ * @covers \CrowdSec\CapiClient\Watcher::configure
  *
- * @uses \CrowdSec\CapiClient\HttpMessage\Response
  */
 final class AbstractClientTest extends TestCase
 {
+    protected $configs = [
+        'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
+        'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX
+    ];
+
     public function testClientInit()
     {
-        $configs = ['machine_id' => 'test', 'password' => 'test-password'];
-        $client = new Watcher($configs);
+        $client = new Watcher($this->configs, new FileStorage());
 
         $url = $client->getUrl();
         $this->assertEquals(
@@ -58,13 +65,6 @@ final class AbstractClientTest extends TestCase
             'Url should end with /'
         );
 
-        $config = $client->getConfig('password');
-        $this->assertEquals(
-            'test-password',
-            $config,
-            'Config should be set'
-        );
-
         $requestHandler = $client->getRequestHandler();
         $this->assertEquals(
             'CrowdSec\CapiClient\RequestHandler\Curl',
@@ -72,7 +72,7 @@ final class AbstractClientTest extends TestCase
             'Request handler must be curl by default'
         );
 
-        $client = new Watcher(array_merge($configs, ['api_url' => Constants::URL_PROD]));
+        $client = new Watcher(array_merge($this->configs, ['api_url' => Constants::URL_PROD]), new FileStorage());
         $url = $client->getUrl();
         $this->assertEquals(
             Constants::URL_PROD,
@@ -86,18 +86,10 @@ final class AbstractClientTest extends TestCase
         );
 
         $error = false;
-        if (PHP_VERSION_ID < 70000) {
-            try {
-                new Watcher($configs, new DateTime());
-            } catch (Exception $e) {
-                $error = $e->getMessage();
-            }
-        } else {
-            try {
-                new Watcher($configs, new DateTime());
-            } catch (TypeError $e) {
-                $error = $e->getMessage();
-            }
+        try {
+            new Watcher($this->configs, new FileStorage(), new DateTime());
+        } catch (TypeError $e) {
+            $error = $e->getMessage();
         }
 
         PHPUnitUtil::assertRegExp(
@@ -110,8 +102,7 @@ final class AbstractClientTest extends TestCase
 
     public function testPrivateOrProtectedMethods()
     {
-        $configs = ['machine_id' => 'test', 'password' => 'test'];
-        $client = new Watcher($configs);
+        $client = new Watcher($this->configs, new FileStorage());
 
         $fullUrl = PHPUnitUtil::callMethod(
             $client,

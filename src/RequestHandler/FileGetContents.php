@@ -44,7 +44,7 @@ class FileGetContents implements RequestHandlerInterface
         $fullResponse = $this->exec($url, $context);
         $responseBody = (isset($fullResponse['response'])) ? $fullResponse['response'] : false;
         if (false === $responseBody) {
-            throw new ClientException('Unexpected HTTP call failure.');
+            throw new ClientException('Unexpected HTTP call failure.', 500);
         }
         $responseHeaders = (isset($fullResponse['header'])) ? $fullResponse['header'] : [];
         $parts = !empty($responseHeaders) ? explode(' ', $responseHeaders[0]) : [];
@@ -103,7 +103,7 @@ class FileGetContents implements RequestHandlerInterface
     {
         $headers = $request->getHeaders();
         if (!isset($headers['User-Agent'])) {
-            throw new ClientException('User agent is required');
+            throw new ClientException('User agent is required', 400);
         }
         $header = $this->convertHeadersToString($headers);
         $method = $request->getMethod();

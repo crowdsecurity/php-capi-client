@@ -33,7 +33,7 @@ final class RequestTest extends TestCase
         $request = new Request(
             'test-uri',
             'POST',
-            ['test' => 'test', 'User-Agent' => TestConstants::USER_AGENT],
+            ['test' => 'test', 'User-Agent' => TestConstants::USER_AGENT_SUFFIX],
             ['foo' => 'bar']
         );
 
@@ -64,7 +64,7 @@ final class RequestTest extends TestCase
             [
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
-                'User-Agent' => TestConstants::USER_AGENT,
+                'User-Agent' => TestConstants::USER_AGENT_SUFFIX,
                 'test' => 'test',
             ],
             $headers,
