@@ -116,26 +116,6 @@ cd .ddev && ddev start
 This should take some times on the first launch as this will download all necessary docker images.
 
 
-##### Older PHP versions : `5.3`,`5.4` and `5.5`
-The oldest version of PHP that DDEV maintains is `5.6`. For older versions, we use additional docker-compose files 
-that wil add a [Devilbox ready-to-use container](https://github.com/devilbox/docker-php-fpm).
-
-Before launching DDEV, you have to copy one of the 3 additional docker-compose files. For example, if you want to 
-test the lib in a PHP `5.3` container:
-```bash
-cd crowdsec-capi-client-dev-project
-cp .ddev/additional_docker_compose/docker-compose.php53.yaml .ddev/docker-compose.php53.yaml
-```
-
-Then, for each DDEV line command that you will see below, you will have to replace `ddev` by `ddev exec -s php53` 
-and replace relative path by absolute paths.
-
-For example, to run the `composer update` command, run:
-
-```bash
-ddev exec -s php53 composer update --working-dir /var/www/html/my-own-modules/capi-client
-```
-
 ### DDEV Usage
 
 
@@ -158,8 +138,7 @@ ddev php ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-
 In order to launch integration tests, we have to set some environment variables:
 
 ```bash
-ddev exec "export MACHINE_ID=<YOUR_TEST_MACHINE_ID>; export PASSWORD=<YOUR_TEST_MACHINE_PASSWORD>; php  .
-/my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-client/tests/Integration --testdox"     
+ddev php ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-client/tests/Integration --testdox     
 ```
 
 
