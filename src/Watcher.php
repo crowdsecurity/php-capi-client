@@ -23,6 +23,7 @@ class Watcher extends AbstractClient
 {
     public const CREDENTIAL_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     public const DECISIONS_STREAM_ENDPOINT = '/decisions/stream';
+    public const ENROLL_ENDPOINT = '/watchers/enroll';
     public const LOGIN_ENDPOINT = '/watchers/login';
     public const LOGIN_RETRY = 1;
     public const MACHINE_ID_LENGTH = 48;
@@ -71,7 +72,8 @@ class Watcher extends AbstractClient
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
      *
-     * @throws ClientException
+     * @param array $scenarios
+     * @return array
      */
     public function getStreamDecisions(array $scenarios = []): array
     {
@@ -83,12 +85,39 @@ class Watcher extends AbstractClient
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
      *
-     * @throws ClientException
+     * @param array $signals
+     * @param array $scenarios
+     * @return array
      */
     public function pushSignals(array $signals, array $scenarios = []): array
     {
         return $this->manageRequest('POST', self::SIGNALS_ENDPOINT, $signals, $scenarios);
     }
+
+    /**
+     * Process an enroll call to CAPI.
+     *
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
+     *
+     * @param string $name
+     * @param bool $overwrite
+     * @param string $enrollKey
+     * @param array $tags
+     * @param array $scenarios
+     * @return array
+     */
+    public function enroll(string $name, bool $overwrite,  string $enrollKey, array $tags = [], array $scenarios = [])
+    :array
+    {
+        $params = [
+            'name' => $name,
+            'overwrite' => $overwrite,
+            'attachment_key' => $enrollKey,
+            'tags' => $tags
+        ];
+        return $this->manageRequest('POST', self::ENROLL_ENDPOINT, $params, $scenarios);
+    }
+
 
     /**
      * Configure this instance.
@@ -177,6 +206,37 @@ class Watcher extends AbstractClient
     }
 
     /**
+     * Handle required token (JWT) in header for next CAPI calls.
+     *
+     * @throws ClientException
+     */
+    private function handleTokenHeader(): array
+    {
+        if(!$this->token){
+            throw new ClientException('Token is required.', 401);
+        }
+        return ['Authorization' => sprintf('Bearer %s', $this->token)];
+    }
+
+    /**
+     * Process a login call to CAPI.
+     *
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_login
+     */
+    private function login(array $scenarios = []): array
+    {
+        return $this->request(
+            'POST',
+            self::LOGIN_ENDPOINT,
+            [
+                'password' => $this->password,
+                'machine_id' => $this->machineId,
+                'scenarios' => $scenarios, ],
+            $this->headers
+        );
+    }
+
+    /**
      * Make a request and manage retry attempts (login and register errors).
      *
      * @param string $method
@@ -217,37 +277,6 @@ class Watcher extends AbstractClient
         }
 
         return $response;
-    }
-
-    /**
-     * Handle required token (JWT) in header for next CAPI calls.
-     *
-     * @throws ClientException
-     */
-    private function handleTokenHeader(): array
-    {
-        if(!$this->token){
-            throw new ClientException('Token is required.', 401);
-        }
-        return ['Authorization' => sprintf('Bearer %s', $this->token)];
-    }
-
-    /**
-     * Process a login call to CAPI.
-     *
-     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_login
-     */
-    private function login(array $scenarios = []): array
-    {
-        return $this->request(
-            'POST',
-            self::LOGIN_ENDPOINT,
-            [
-                'password' => $this->password,
-                'machine_id' => $this->machineId,
-                'scenarios' => $scenarios, ],
-            $this->headers
-        );
     }
 
     /**

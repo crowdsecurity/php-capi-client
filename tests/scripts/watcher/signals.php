@@ -8,7 +8,7 @@ use CrowdSec\CapiClient\Watcher;
 // Parse argument
 $signals = $argv[1] ?? null;
 if (!$signals) {
-    exit('Usage: php watcher-signals.php <SIGNALS_JSON>' . \PHP_EOL);
+    exit('Usage: php signals.php <SIGNALS_JSON>' . \PHP_EOL);
 }
 echo \PHP_EOL . 'Instantiate watcher ...' . \PHP_EOL;
 $configs = ['machine_id_prefix' => 'CapiClientTest', 'user_agent_suffix' => 'CapiClientTest'];
