@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient\Storage;
 
+use Exception;
+
 /**
  * File storage. Should be used only for test or/and as an example of StorageInterface implementation.
  *
@@ -16,18 +18,31 @@ namespace CrowdSec\CapiClient\Storage;
  */
 class FileStorage implements StorageInterface
 {
-    private const MACHINE_ID_FILE = __DIR__ . '/machine_id.json';
+    public const MACHINE_ID_FILE = 'machine_id.json';
 
-    private const PASSWORD_FILE = __DIR__ . '/password.json';
+    public const PASSWORD_FILE = 'password.json';
 
-    private const TOKEN_FILE = __DIR__ . '/token.json';
+    public const TOKEN_FILE = 'token.json';
+
+    /**
+     * @var string $rootDir
+     */
+    private $rootDir;
+
+    /**
+     * @param string $rootDir
+     */
+    public function __construct(string $rootDir = __DIR__)
+    {
+        $this->rootDir = $rootDir;
+    }
 
     /**
      * {@inheritdoc}
      */
     public function retrieveMachineId(): ?string
     {
-        $storageContent = $this->readFile(self::MACHINE_ID_FILE);
+        $storageContent = $this->readFile($this->rootDir . '/' . self::MACHINE_ID_FILE);
 
         return !empty($storageContent['machine_id']) ? $storageContent['machine_id'] : null;
     }
@@ -37,7 +52,7 @@ class FileStorage implements StorageInterface
      */
     public function retrievePassword(): ?string
     {
-        $storageContent = $this->readFile(self::PASSWORD_FILE);
+        $storageContent = $this->readFile($this->rootDir . '/' . self::PASSWORD_FILE);
 
         return !empty($storageContent['password']) ? $storageContent['password'] : null;
     }
@@ -47,7 +62,7 @@ class FileStorage implements StorageInterface
      */
     public function retrieveToken(): ?string
     {
-        $storageContent = $this->readFile(self::TOKEN_FILE);
+        $storageContent = $this->readFile($this->rootDir . '/' . self::TOKEN_FILE);
 
         return !empty($storageContent['token']) ? $storageContent['token'] : null;
     }
@@ -59,8 +74,8 @@ class FileStorage implements StorageInterface
     {
         try {
             $json = '{"machine_id":"' . $machineId . '"}';
-            $this->writeFile(self::MACHINE_ID_FILE, $json);
-        } catch (\Exception $e) {
+            $this->writeFile($this->rootDir . '/' . self::MACHINE_ID_FILE, $json);
+        } catch (Exception $e) {
             return false;
         }
 
@@ -74,8 +89,8 @@ class FileStorage implements StorageInterface
     {
         try {
             $json = '{"password":"' . $password . '"}';
-            $this->writeFile(self::PASSWORD_FILE, $json);
-        } catch (\Exception $e) {
+            $this->writeFile($this->rootDir . '/' . self::PASSWORD_FILE, $json);
+        } catch (Exception $e) {
             return false;
         }
 
@@ -89,8 +104,8 @@ class FileStorage implements StorageInterface
     {
         try {
             $json = '{"token":"' . $token . '"}';
-            $this->writeFile(self::TOKEN_FILE, $json);
-        } catch (\Exception $e) {
+            $this->writeFile($this->rootDir . '/' . self::TOKEN_FILE, $json);
+        } catch (Exception $e) {
             return false;
         }
 
@@ -98,7 +113,10 @@ class FileStorage implements StorageInterface
     }
 
     /**
-     * @SuppressWarnings(PHPMD.ErrorControlOperator)
+     * Read the content of some file
+     *
+     * @param string $file
+     * @return array
      */
     private function readFile(string $file): array
     {
@@ -115,6 +133,13 @@ class FileStorage implements StorageInterface
         return $json;
     }
 
+    /**
+     * Write some content in a file
+     *
+     * @param string $filepath
+     * @param string $content
+     * @return void
+     */
     private function writeFile(string $filepath, string $content): void
     {
         $file = fopen($filepath, 'w');

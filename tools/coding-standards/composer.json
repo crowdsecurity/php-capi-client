@@ -8,6 +8,7 @@
     "vimeo/psalm": "^4.24.0",
     "phpunit/phpunit": "^9.3",
     "phpunit/php-code-coverage": "^9.2.15",
+    "mikey179/vfsstream": "^1.6.11",
     "crowdsec/capi-client": "@dev"
   },
   "autoload": {

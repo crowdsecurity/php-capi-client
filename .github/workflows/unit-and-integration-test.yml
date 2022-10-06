@@ -85,7 +85,7 @@ jobs:
         if: |
           github.event.inputs.unit_tests == 'true' ||
           github.event_name == 'push'
-        run:  ddev php ./${{env.EXTENSION_PATH}}/vendor/bin/phpunit --debug ./${{env.EXTENSION_PATH}}/tests/Unit
+        run:  ddev php ./${{env.EXTENSION_PATH}}/vendor/bin/phpunit --debug ./${{env.EXTENSION_PATH}}/tests/Unit --testdox
 
       - name: Run Integration tests
         if: |
