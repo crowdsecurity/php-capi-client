@@ -41,15 +41,18 @@ use CrowdSec\CapiClient\Watcher;
  * @uses \CrowdSec\CapiClient\Watcher::generatePassword
  * @uses \CrowdSec\CapiClient\Watcher::generateRandomString
  * @uses \CrowdSec\CapiClient\Watcher::refreshCredentials
+ * @uses \CrowdSec\CapiClient\Watcher::areEquals
+ * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
  *
  * @covers \CrowdSec\CapiClient\RequestHandler\Curl::createOptions
  * @covers \CrowdSec\CapiClient\RequestHandler\Curl::handle
  * @covers \CrowdSec\CapiClient\Watcher::login
  * @covers \CrowdSec\CapiClient\Watcher::handleTokenHeader
- * @covers \CrowdSec\CapiClient\Watcher::refreshToken
  * @covers \CrowdSec\CapiClient\Watcher::getStreamDecisions
  * @covers \CrowdSec\CapiClient\Watcher::register
  * @covers \CrowdSec\CapiClient\Watcher::login
+ * @covers \CrowdSec\CapiClient\Watcher::shouldLogin
+ * @covers \CrowdSec\CapiClient\Watcher::handleLogin
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
  */
 final class CurlTest extends AbstractClient

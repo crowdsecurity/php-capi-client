@@ -29,8 +29,10 @@ use TypeError;
  * @uses \CrowdSec\CapiClient\HttpMessage\Response
  * @uses \CrowdSec\CapiClient\Configuration::getConfigTreeBuilder
  * @uses \CrowdSec\CapiClient\Watcher::formatUserAgent
+ * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
  *
  * @covers \CrowdSec\CapiClient\AbstractClient::__construct
+ * @covers \CrowdSec\CapiClient\AbstractClient::getConfig
  * @covers \CrowdSec\CapiClient\AbstractClient::getUrl
  * @covers \CrowdSec\CapiClient\AbstractClient::getRequestHandler
  * @covers \CrowdSec\CapiClient\AbstractClient::formatResponseBody

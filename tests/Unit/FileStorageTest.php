@@ -17,10 +17,25 @@ namespace CrowdSec\CapiClient\Tests\Unit;
 
 use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\Storage\FileStorage;
+use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::__construct
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::getBasePath
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::storePassword
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::writeFile
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::readFile
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::retrievePassword
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::retrieveToken
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::retrieveScenarios
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::retrieveMachineId
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::storeToken
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::storeMachineId
+ * @covers \CrowdSec\CapiClient\Storage\FileStorage::storeScenarios
+ */
 final class FileStorageTest extends TestCase
 {
     public const TMP_DIR = '/tmp';
@@ -212,6 +227,23 @@ final class FileStorageTest extends TestCase
             file_get_contents($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE),
             'Should have right content'
         );
+
+        // Test with not writable file
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE, 0444)
+            ->at($this->root);
+
+        $this->assertEquals(
+            true,
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE),
+            'Should create file'
+        );
+
+        $result = $storage->storeMachineId('test-machine-id');
+        $this->assertEquals(
+            false,
+            $result,
+            'Should return false on error'
+        );
     }
 
     public function testStorePassword()
@@ -236,6 +268,23 @@ final class FileStorageTest extends TestCase
             '{"password":"test-pwd"}',
             file_get_contents($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE),
             'Should have right content'
+        );
+
+        // Test with not writable file
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE, 0444)
+            ->at($this->root);
+
+        $this->assertEquals(
+            true,
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE),
+            'Should create file'
+        );
+
+        $result = $storage->storePassword('test-password');
+        $this->assertEquals(
+            false,
+            $result,
+            'Should return false on error'
         );
     }
 
@@ -262,6 +311,23 @@ final class FileStorageTest extends TestCase
             file_get_contents($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE),
             'Should have right content'
         );
+
+        // Test with not writable file
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE, 0444)
+            ->at($this->root);
+
+        $this->assertEquals(
+            true,
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE),
+            'Should create file'
+        );
+
+        $result = $storage->storeToken('test-token');
+        $this->assertEquals(
+            false,
+            $result,
+            'Should return false on error'
+        );
     }
 
     public function testStoreScenarios()
@@ -286,6 +352,44 @@ final class FileStorageTest extends TestCase
             '{"scenarios":["test-scenarios"]}',
             file_get_contents($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::SCENARIOS_FILE),
             'Should have right content'
+        );
+
+        // Test with not writable file
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::SCENARIOS_FILE, 0444)
+            ->at($this->root);
+
+        $this->assertEquals(
+            true,
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::SCENARIOS_FILE),
+            'Should create file'
+        );
+
+        $result = $storage->storeScenarios(['test-scenario']);
+        $this->assertEquals(
+            false,
+            $result,
+            'Should return false on error'
+        );
+    }
+
+    public function testPrivateOrProtectedMethods()
+    {
+        $storage = new FileStorage($this->root->url());
+
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE, 0777)
+            ->at($this->root)
+            ->setContent('["json" => "bad-json"}');
+
+        $result = PHPUnitUtil::callMethod(
+            $storage,
+            'readFile',
+            [$this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE]
+        );
+
+        $this->assertEquals(
+            [],
+            $result,
+            'Should return empty array if bad json'
         );
     }
 }

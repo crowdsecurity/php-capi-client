@@ -72,7 +72,7 @@ class Watcher extends AbstractClient
     /**
      * Process an enroll call to CAPI.
      *
-     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
      */
     public function enroll(string $name, bool $overwrite, string $enrollKey, array $tags = []): array
     {
@@ -89,7 +89,7 @@ class Watcher extends AbstractClient
     /**
      * Process a decisions stream call to CAPI.
      *
-     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
      */
     public function getStreamDecisions(): array
     {
@@ -99,11 +99,21 @@ class Watcher extends AbstractClient
     /**
      * Process a signals call to CAPI.
      *
-     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
      */
     public function pushSignals(array $signals): array
     {
         return $this->manageRequest('POST', self::SIGNALS_ENDPOINT, $signals);
+    }
+
+    /**
+     * Check if two indexed arrays are equals.
+     */
+    private function areEquals(array $arrayOne, array $arrayTwo): bool
+    {
+        $countOne = count($arrayOne);
+
+        return $countOne === count($arrayTwo) && $countOne === count(array_intersect($arrayOne, $arrayTwo));
     }
 
     /**
@@ -135,7 +145,7 @@ class Watcher extends AbstractClient
     {
         $this->machineId = $this->storage->retrieveMachineId();
         $this->password = $this->storage->retrievePassword();
-        if ($this->shouldRefreshCredentials()) {
+        if ($this->shouldRefreshCredentials($this->machineId, $this->password, $this->configs)) {
             $this->refreshCredentials();
             $this->register();
         }
@@ -154,9 +164,9 @@ class Watcher extends AbstractClient
     /**
      * Generate a random machine_id.
      */
-    private function generateMachineId(): string
+    private function generateMachineId(array $configs = []): string
     {
-        $prefix = !empty($this->configs['machine_id_prefix']) ? $this->configs['machine_id_prefix'] : '';
+        $prefix = !empty($configs['machine_id_prefix']) ? $configs['machine_id_prefix'] : '';
 
         return $prefix . $this->generateRandomString(self::MACHINE_ID_LENGTH - strlen($prefix));
     }
@@ -227,7 +237,7 @@ class Watcher extends AbstractClient
     /**
      * Process a login call to CAPI.
      *
-     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_login
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_login
      */
     private function login(): array
     {
@@ -284,7 +294,7 @@ class Watcher extends AbstractClient
      */
     private function refreshCredentials(): void
     {
-        $this->machineId = $this->generateMachineId();
+        $this->machineId = $this->generateMachineId($this->configs);
         $this->password = $this->generatePassword();
         $this->storage->storeMachineId($this->machineId);
         $this->storage->storePassword($this->password);
@@ -293,7 +303,7 @@ class Watcher extends AbstractClient
     /**
      * Process a register call to CAPI.
      *
-     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers
      *
      * @throws ClientException
      */
@@ -338,23 +348,26 @@ class Watcher extends AbstractClient
 
         // Verify that we have stored scenarios and that the match with current scenarios
         $storedScenarios = $this->storage->retrieveScenarios();
+        if (!$storedScenarios) {
+            return true;
+        }
         $configScenarios = $this->getConfig('scenarios');
 
-        return !$storedScenarios || !empty(array_diff($storedScenarios, $configScenarios ?: []));
+        return !$this->areEquals($storedScenarios, $configScenarios ?: []);
     }
 
     /**
      * Check if we should refresh machine_id/password pair.
      */
-    private function shouldRefreshCredentials(): bool
+    private function shouldRefreshCredentials(?string $machineId, ?string $password, array $configs): bool
     {
-        if (!$this->machineId || !$this->password) {
+        if (!$machineId || !$password) {
             return true;
         }
-        $prefix = !empty($this->configs['machine_id_prefix']) ? $this->configs['machine_id_prefix'] : null;
+        $prefix = !empty($configs['machine_id_prefix']) ? $configs['machine_id_prefix'] : null;
         // Verify that current machine_id starts with configured prefix
         if ($prefix) {
-            return 0 !== substr_compare($this->machineId, $prefix, 0, strlen($prefix));
+            return 0 !== substr_compare($machineId, $prefix, 0, strlen($prefix));
         }
 
         return false;

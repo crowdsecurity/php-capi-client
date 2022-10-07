@@ -43,6 +43,8 @@ use CrowdSec\CapiClient\Watcher;
  * @uses \CrowdSec\CapiClient\Watcher::generatePassword
  * @uses \CrowdSec\CapiClient\Watcher::generateRandomString
  * @uses \CrowdSec\CapiClient\Watcher::refreshCredentials
+ * @uses \CrowdSec\CapiClient\Watcher::areEquals
+ * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
  *
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::handle
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::createContextConfig
@@ -50,9 +52,10 @@ use CrowdSec\CapiClient\Watcher;
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::getResponseHttpCode
  * @covers \CrowdSec\CapiClient\Watcher::login
  * @covers \CrowdSec\CapiClient\Watcher::handleTokenHeader
- * @covers \CrowdSec\CapiClient\Watcher::refreshToken
  * @covers \CrowdSec\CapiClient\Watcher::register
  * @covers \CrowdSec\CapiClient\Watcher::login
+ * @covers \CrowdSec\CapiClient\Watcher::shouldLogin
+ * @covers \CrowdSec\CapiClient\Watcher::handleLogin
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
  * @covers \CrowdSec\CapiClient\Watcher::getStreamDecisions
  */

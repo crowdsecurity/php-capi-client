@@ -6,8 +6,8 @@ use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Watcher;
 
 // Parse arguments
-$scenarios = isset($argv[1]) ? json_decode($argv[1]) : null;
-$signals = isset($argv[2]) ? json_decode($argv[2]) :  null;
+$scenarios = isset($argv[1]) ? json_decode($argv[1], true) : null;
+$signals = isset($argv[2]) ? json_decode($argv[2], true) : null;
 if (is_null($signals) || is_null($scenarios)) {
     exit(
         'Usage: php signals.php <SCENARIOS_JSON> <SIGNALS_JSON>' . \PHP_EOL .
@@ -18,13 +18,13 @@ echo \PHP_EOL . 'Instantiate watcher ...' . \PHP_EOL;
 $configs = [
     'machine_id_prefix' => 'CapiClientTest',
     'user_agent_suffix' => 'CapiClientTest',
-    'scenarios' => $scenarios
+    'scenarios' => $scenarios,
     ];
 $client = new Watcher($configs, new FileStorage());
 echo 'Watcher instantiated' . \PHP_EOL;
 
 echo 'Calling signals for ' . $client->getConfig('api_url') . \PHP_EOL;
-echo 'Scenarios list is: ' . PHP_EOL;
-print_r($scenarios);
+echo 'Scenarios list: ' . \PHP_EOL;
+print_r($client->getConfig('scenarios'));
 $response = $client->pushSignals($signals);
 echo 'Push signals response is:' . json_encode($response) . \PHP_EOL;

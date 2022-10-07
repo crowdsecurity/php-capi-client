@@ -60,6 +60,12 @@ class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
             ->arrayNode('scenarios')->cannotBeEmpty()
+                ->validate()
+                ->ifArray()
+                ->then(function (array $value) {
+                    return array_unique(array_values($value));
+                })
+            ->end()
                 ->scalarPrototype()->cannotBeEmpty()
                 ->end()
             ->end()
