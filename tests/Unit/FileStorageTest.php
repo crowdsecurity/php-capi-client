@@ -15,21 +15,22 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  * @license   MIT License
  */
 
+use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\Storage\FileStorage;
-use PHPUnit\Framework\TestCase;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
+use PHPUnit\Framework\TestCase;
 
 final class FileStorageTest extends TestCase
 {
     public const TMP_DIR = '/tmp';
     /**
-     * @var  vfsStreamDirectory
+     * @var vfsStreamDirectory
      */
     private $root;
 
     /**
-     * set up test environment
+     * set up test environment.
      */
     public function setUp(): void
     {
@@ -46,7 +47,7 @@ final class FileStorageTest extends TestCase
             'Should be null if no file on file system'
         );
         // test file ok
-        vfsStream::newFile(FileStorage::MACHINE_ID_FILE, 0444)
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE, 0444)
             ->at($this->root)
             ->setContent('{"machine_id":"test-machine-id"}');
         $this->assertEquals(
@@ -55,7 +56,7 @@ final class FileStorageTest extends TestCase
             'Should be ok if file is present with right content and permission'
         );
         // Test file not readable
-        vfsStream::newFile(FileStorage::MACHINE_ID_FILE, 0000)
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE, 0000)
             ->at($this->root)
             ->setContent('{"machine_id":"test-machine-id"}');
         $this->assertEquals(
@@ -64,12 +65,50 @@ final class FileStorageTest extends TestCase
             'Should be null if not readable'
         );
         // Test file bad content
-        vfsStream::newFile(FileStorage::MACHINE_ID_FILE, 0000)
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE, 0000)
             ->at($this->root)
             ->setContent('{"foo":"test-machine-id"}');
         $this->assertEquals(
             null,
             $storage->retrieveMachineId(),
+            'Should be null if bad content'
+        );
+    }
+
+    public function testRetrieveScenarios()
+    {
+        $storage = new FileStorage($this->root->url());
+        // Test no file
+        $this->assertEquals(
+            null,
+            $storage->retrieveScenarios(),
+            'Should be null if no file on file system'
+        );
+        // test file ok
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::SCENARIOS_FILE, 0444)
+            ->at($this->root)
+            ->setContent('{"scenarios":["crowdsecurity\/http-backdoors-attempts"]}');
+        $this->assertEquals(
+            ['crowdsecurity/http-backdoors-attempts'],
+            $storage->retrieveScenarios(),
+            'Should be ok if file is present with right content and permission'
+        );
+        // Test file not readable
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::SCENARIOS_FILE, 0000)
+            ->at($this->root)
+            ->setContent('{"scenarios":["crowdsecurity\/http-backdoors-attempts"]}');
+        $this->assertEquals(
+            null,
+            $storage->retrieveScenarios(),
+            'Should be null if not readable'
+        );
+        // Test file bad content
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::SCENARIOS_FILE, 0000)
+            ->at($this->root)
+            ->setContent('{"foo":["crowdsecurity\/http-backdoors-attempts"]}');
+        $this->assertEquals(
+            null,
+            $storage->retrieveScenarios(),
             'Should be null if bad content'
         );
     }
@@ -84,7 +123,7 @@ final class FileStorageTest extends TestCase
             'Should be null if no file on file system'
         );
         // test file ok
-        vfsStream::newFile(FileStorage::PASSWORD_FILE, 0444)
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE, 0444)
             ->at($this->root)
             ->setContent('{"password":"test-password"}');
         $this->assertEquals(
@@ -93,7 +132,7 @@ final class FileStorageTest extends TestCase
             'Should be ok if file is present with right content and permission'
         );
         // Test file not readable
-        vfsStream::newFile(FileStorage::PASSWORD_FILE, 0000)
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE, 0000)
             ->at($this->root)
             ->setContent('{"password":"test-password"}');
         $this->assertEquals(
@@ -102,7 +141,7 @@ final class FileStorageTest extends TestCase
             'Should be null if not readable'
         );
         // Test file bad content
-        vfsStream::newFile(FileStorage::PASSWORD_FILE, 0000)
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE, 0000)
             ->at($this->root)
             ->setContent('{"foo":"test-password"}');
         $this->assertEquals(
@@ -122,7 +161,7 @@ final class FileStorageTest extends TestCase
             'Should be null if no file on file system'
         );
         // test file ok
-        vfsStream::newFile(FileStorage::TOKEN_FILE, 0444)
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE, 0444)
             ->at($this->root)
             ->setContent('{"token":"test-token"}');
         $this->assertEquals(
@@ -131,7 +170,7 @@ final class FileStorageTest extends TestCase
             'Should be ok if file is present with right content and permission'
         );
         // Test file not readable
-        vfsStream::newFile(FileStorage::TOKEN_FILE, 0000)
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE, 0000)
             ->at($this->root)
             ->setContent('{"token":"test-token"}');
         $this->assertEquals(
@@ -140,7 +179,7 @@ final class FileStorageTest extends TestCase
             'Should be null if not readable'
         );
         // Test file bad content
-        vfsStream::newFile(FileStorage::TOKEN_FILE, 0000)
+        vfsStream::newFile(Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE, 0000)
             ->at($this->root)
             ->setContent('{"foo":"test-token"}');
         $this->assertEquals(
@@ -156,7 +195,7 @@ final class FileStorageTest extends TestCase
 
         $this->assertEquals(
             false,
-            file_exists($this->root->url() . '/' . FileStorage::MACHINE_ID_FILE),
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE),
             'File should not exist'
         );
 
@@ -164,13 +203,13 @@ final class FileStorageTest extends TestCase
 
         $this->assertEquals(
             true,
-            file_exists($this->root->url() . '/' . FileStorage::MACHINE_ID_FILE),
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE),
             'Should create file'
         );
 
         $this->assertEquals(
             '{"machine_id":"test-machine-id"}',
-            file_get_contents($this->root->url() . '/' . FileStorage::MACHINE_ID_FILE),
+            file_get_contents($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE),
             'Should have right content'
         );
     }
@@ -181,7 +220,7 @@ final class FileStorageTest extends TestCase
 
         $this->assertEquals(
             false,
-            file_exists($this->root->url() . '/' . FileStorage::PASSWORD_FILE),
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE),
             'File should not exist'
         );
 
@@ -189,13 +228,13 @@ final class FileStorageTest extends TestCase
 
         $this->assertEquals(
             true,
-            file_exists($this->root->url() . '/' . FileStorage::PASSWORD_FILE),
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE),
             'Should create file'
         );
 
         $this->assertEquals(
             '{"password":"test-pwd"}',
-            file_get_contents($this->root->url() . '/' . FileStorage::PASSWORD_FILE),
+            file_get_contents($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE),
             'Should have right content'
         );
     }
@@ -206,7 +245,7 @@ final class FileStorageTest extends TestCase
 
         $this->assertEquals(
             false,
-            file_exists($this->root->url() . '/' . FileStorage::TOKEN_FILE),
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE),
             'File should not exist'
         );
 
@@ -214,13 +253,38 @@ final class FileStorageTest extends TestCase
 
         $this->assertEquals(
             true,
-            file_exists($this->root->url() . '/' . FileStorage::TOKEN_FILE),
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE),
             'Should create file'
         );
 
         $this->assertEquals(
             '{"token":"test-token"}',
-            file_get_contents($this->root->url() . '/' . FileStorage::TOKEN_FILE),
+            file_get_contents($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::TOKEN_FILE),
+            'Should have right content'
+        );
+    }
+
+    public function testStoreScenarios()
+    {
+        $storage = new FileStorage($this->root->url());
+
+        $this->assertEquals(
+            false,
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::SCENARIOS_FILE),
+            'File should not exist'
+        );
+
+        $storage->storeScenarios(['test-scenarios']);
+
+        $this->assertEquals(
+            true,
+            file_exists($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::SCENARIOS_FILE),
+            'Should create file'
+        );
+
+        $this->assertEquals(
+            '{"scenarios":["test-scenarios"]}',
+            file_get_contents($this->root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::SCENARIOS_FILE),
             'Should have right content'
         );
     }

@@ -1,4 +1,6 @@
-<?php /** @noinspection DuplicatedCode */
+<?php
+
+/** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
 
@@ -18,12 +20,11 @@ namespace CrowdSec\CapiClient\Tests\Unit;
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\HttpMessage\Request;
 use CrowdSec\CapiClient\RequestHandler\FileGetContents;
+use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
-use CrowdSec\CapiClient\Storage\FileStorage;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @uses \CrowdSec\CapiClient\AbstractClient
@@ -43,7 +44,6 @@ use PHPUnit\Framework\TestCase;
  * @uses \CrowdSec\CapiClient\Watcher::generateRandomString
  * @uses \CrowdSec\CapiClient\Watcher::refreshCredentials
  *
- *
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::handle
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::createContextConfig
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::convertHeadersToString
@@ -56,13 +56,8 @@ use PHPUnit\Framework\TestCase;
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
  * @covers \CrowdSec\CapiClient\Watcher::getStreamDecisions
  */
-final class FileGetContentsTest extends TestCase
+final class FileGetContentsTest extends AbstractClient
 {
-    protected $configs = [
-        'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
-        'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX
-    ];
-
     public function testContextConfig()
     {
         $method = 'POST';
@@ -132,7 +127,6 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
         );
     }
 
-
     public function testDecisionsStream()
     {
         // Success test
@@ -148,15 +142,18 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
         );
 
         $mockFileStorage->method('retrievePassword')->willReturn(
-            'test-password'
+            TestConstants::PASSWORD
         );
         $mockFileStorage->method('retrieveMachineId')->willReturn(
-            TestConstants::MACHINE_ID_PREFIX.'test-machine-id'
+            TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
         );
         $mockFileStorage->method('retrieveToken')->willReturn(
-            'test-token'
+            TestConstants::TOKEN
         );
         $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
+        $mockFileStorage->method('retrieveScenarios')->willReturn(
+            TestConstants::SCENARIOS
+        );
         $decisionsResponse = $client->getStreamDecisions();
 
         $this->assertEquals(
@@ -177,9 +174,9 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
             )
         );
         $mockFileStorage->method('retrievePassword')->willReturn(
-            'test-password'
+            TestConstants::PASSWORD
         );
-        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX.'test-machine-id');
+        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID);
         $mockFileStorage->method('retrieveToken')->willReturn(null);
 
         $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
@@ -203,13 +200,13 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
         $mockFGCRequest = $this->getFGCMock();
         $mockFileStorage = $this->getFileStorageMock();
         $mockFGCRequest->method('exec')->willReturn(
-                [
-                    'response' => MockedData::LOGIN_BAD_CREDENTIALS,
-                    'header' => ['HTTP/1.1 ' . MockedData::HTTP_400],
-                ]
+            [
+                'response' => MockedData::LOGIN_BAD_CREDENTIALS,
+                'header' => ['HTTP/1.1 ' . MockedData::HTTP_400],
+            ]
         );
-        $mockFileStorage->method('retrievePassword')->willReturn('test-password');
-        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX.'test-machine-id');
+        $mockFileStorage->method('retrievePassword')->willReturn(TestConstants::PASSWORD);
+        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID);
         $mockFileStorage->method('retrieveToken')->willReturn(null);
         $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
 
@@ -226,7 +223,7 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
             $code = $e->getCode();
         }
 
-        $this->assertEquals(401,$code);
+        $this->assertEquals(401, $code);
 
         PHPUnitUtil::assertRegExp(
             $this,
@@ -235,7 +232,6 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
             'No retrieved token should throw a ClientException error'
         );
     }
-
 
     public function testHandleError()
     {
@@ -360,7 +356,7 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
         PHPUnitUtil::assertRegExp(
             $this,
             '/' . MockedData::HTTP_400 . '.*Invalid request body/',
-           $error,
+            $error,
             'Bad request login case'
         );
     }
@@ -470,18 +466,21 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
         );
         $mockFileStorage->method('retrievePassword')->will(
             $this->onConsecutiveCalls(
-                'test-password'
+                TestConstants::PASSWORD
             )
         );
         $mockFileStorage->method('retrieveMachineId')->will(
             $this->onConsecutiveCalls(
-                TestConstants::MACHINE_ID_PREFIX.'test-machine-id'
+                TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
             )
         );
         $mockFileStorage->method('retrieveToken')->will(
             $this->onConsecutiveCalls(
-                'test-token'
+                TestConstants::TOKEN
             )
+        );
+        $mockFileStorage->method('retrieveScenarios')->willReturn(
+            TestConstants::SCENARIOS
         );
         $client = new Watcher($this->configs, $mockFileStorage, $mockFGCRequest);
 
@@ -506,17 +505,17 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
         );
         $mockFileStorage->method('retrievePassword')->will(
             $this->onConsecutiveCalls(
-                'test-password'
+                TestConstants::PASSWORD
             )
         );
         $mockFileStorage->method('retrieveMachineId')->will(
             $this->onConsecutiveCalls(
-                TestConstants::MACHINE_ID_PREFIX.'test-machine-id'
+                TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
             )
         );
         $mockFileStorage->method('retrieveToken')->will(
             $this->onConsecutiveCalls(
-                'test-token'
+                TestConstants::TOKEN
             )
         );
 
@@ -534,34 +533,9 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
         PHPUnitUtil::assertRegExp(
             $this,
             '/.*Invalid request body.*scenario_hash/',
-            $error ,
+            $error,
             'Bad signals request'
         );
         $this->assertEquals(MockedData::HTTP_400, $code);
-
-
-    }
-
-    protected function getFGCMock()
-    {
-        return $this->getMockBuilder('CrowdSec\CapiClient\RequestHandler\FileGetContents')
-            ->onlyMethods(['exec'])
-            ->getMock();
-    }
-
-    protected function getFileStorageMock()
-    {
-        return $this->getMockBuilder('CrowdSec\CapiClient\Storage\FileStorage')
-            ->onlyMethods(
-                [
-                    'retrieveToken',
-                    'retrievePassword',
-                    'retrieveMachineId',
-                    'storePassword',
-                    'storeMachineId',
-                    'storeToken'
-                ]
-            )
-            ->getMock();
     }
 }

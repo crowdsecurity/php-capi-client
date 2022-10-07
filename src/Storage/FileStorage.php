@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient\Storage;
 
+use CrowdSec\CapiClient\Constants;
 use Exception;
 
 /**
@@ -18,23 +19,24 @@ use Exception;
  */
 class FileStorage implements StorageInterface
 {
-    public const MACHINE_ID_FILE = 'machine_id.json';
+    public const MACHINE_ID_FILE = 'machine-id.json';
 
     public const PASSWORD_FILE = 'password.json';
-
+    public const SCENARIOS_FILE = 'scenarios.json';
     public const TOKEN_FILE = 'token.json';
-
     /**
-     * @var string $rootDir
+     * @var string
+     */
+    private $env;
+    /**
+     * @var string
      */
     private $rootDir;
 
-    /**
-     * @param string $rootDir
-     */
-    public function __construct(string $rootDir = __DIR__)
+    public function __construct(string $rootDir = __DIR__, string $env = Constants::ENV_DEV)
     {
         $this->rootDir = $rootDir;
+        $this->env = $env;
     }
 
     /**
@@ -42,7 +44,7 @@ class FileStorage implements StorageInterface
      */
     public function retrieveMachineId(): ?string
     {
-        $storageContent = $this->readFile($this->rootDir . '/' . self::MACHINE_ID_FILE);
+        $storageContent = $this->readFile($this->getBasePath() . self::MACHINE_ID_FILE);
 
         return !empty($storageContent['machine_id']) ? $storageContent['machine_id'] : null;
     }
@@ -52,7 +54,7 @@ class FileStorage implements StorageInterface
      */
     public function retrievePassword(): ?string
     {
-        $storageContent = $this->readFile($this->rootDir . '/' . self::PASSWORD_FILE);
+        $storageContent = $this->readFile($this->getBasePath() . self::PASSWORD_FILE);
 
         return !empty($storageContent['password']) ? $storageContent['password'] : null;
     }
@@ -60,9 +62,19 @@ class FileStorage implements StorageInterface
     /**
      * {@inheritdoc}
      */
+    public function retrieveScenarios(): ?array
+    {
+        $storageContent = $this->readFile($this->getBasePath() . self::SCENARIOS_FILE);
+
+        return !empty($storageContent['scenarios']) ? $storageContent['scenarios'] : null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function retrieveToken(): ?string
     {
-        $storageContent = $this->readFile($this->rootDir . '/' . self::TOKEN_FILE);
+        $storageContent = $this->readFile($this->getBasePath() . self::TOKEN_FILE);
 
         return !empty($storageContent['token']) ? $storageContent['token'] : null;
     }
@@ -73,8 +85,8 @@ class FileStorage implements StorageInterface
     public function storeMachineId(string $machineId): bool
     {
         try {
-            $json = '{"machine_id":"' . $machineId . '"}';
-            $this->writeFile($this->rootDir . '/' . self::MACHINE_ID_FILE, $json);
+            $json = json_encode(['machine_id' => $machineId]);
+            $this->writeFile($this->getBasePath() . self::MACHINE_ID_FILE, $json);
         } catch (Exception $e) {
             return false;
         }
@@ -88,8 +100,23 @@ class FileStorage implements StorageInterface
     public function storePassword(string $password): bool
     {
         try {
-            $json = '{"password":"' . $password . '"}';
-            $this->writeFile($this->rootDir . '/' . self::PASSWORD_FILE, $json);
+            $json = json_encode(['password' => $password]);
+            $this->writeFile($this->getBasePath() . self::PASSWORD_FILE, $json);
+        } catch (Exception $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function storeScenarios(array $scenarios): bool
+    {
+        try {
+            $json = json_encode(['scenarios' => $scenarios]);
+            $this->writeFile($this->getBasePath() . self::SCENARIOS_FILE, $json);
         } catch (Exception $e) {
             return false;
         }
@@ -103,8 +130,8 @@ class FileStorage implements StorageInterface
     public function storeToken(string $token): bool
     {
         try {
-            $json = '{"token":"' . $token . '"}';
-            $this->writeFile($this->rootDir . '/' . self::TOKEN_FILE, $json);
+            $json = json_encode(['token' => $token]);
+            $this->writeFile($this->getBasePath() . self::TOKEN_FILE, $json);
         } catch (Exception $e) {
             return false;
         }
@@ -112,11 +139,15 @@ class FileStorage implements StorageInterface
         return true;
     }
 
+    private function getBasePath(): string
+    {
+        return $this->rootDir . '/' . $this->env . '-';
+    }
+
     /**
-     * Read the content of some file
+     * Read the content of some file.
      *
-     * @param string $file
-     * @return array
+     * @SuppressWarnings(PHPMD.ErrorControlOperator)
      */
     private function readFile(string $file): array
     {
@@ -134,11 +165,7 @@ class FileStorage implements StorageInterface
     }
 
     /**
-     * Write some content in a file
-     *
-     * @param string $filepath
-     * @param string $content
-     * @return void
+     * Write some content in a file.
      */
     private function writeFile(string $filepath, string $content): void
     {

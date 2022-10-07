@@ -17,13 +17,12 @@ namespace CrowdSec\CapiClient\Tests\Unit;
 
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\Constants;
-use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\HttpMessage\Request;
+use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @uses \CrowdSec\CapiClient\AbstractClient
@@ -53,32 +52,30 @@ use PHPUnit\Framework\TestCase;
  * @covers \CrowdSec\CapiClient\Watcher::login
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
  */
-final class CurlTest extends TestCase
+final class CurlTest extends AbstractClient
 {
-    protected $configs = [
-        'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
-        'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX
-    ];
-
     public function testDecisionsStream()
     {
         // Success test
         $mockCurlRequest = $this->getCurlMock();
         $mockFileStorage = $this->getFileStorageMock();
         $mockCurlRequest->method('exec')->willReturn(
-                MockedData::DECISIONS_STREAM_LIST
+            MockedData::DECISIONS_STREAM_LIST
         );
         $mockCurlRequest->method('getResponseHttpCode')->willReturn(
             MockedData::HTTP_200
         );
         $mockFileStorage->method('retrievePassword')->willReturn(
-                'test-password'
+            TestConstants::PASSWORD
         );
         $mockFileStorage->method('retrieveMachineId')->willReturn(
-                TestConstants::MACHINE_ID_PREFIX.'test-machine-id'
+            TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
         );
         $mockFileStorage->method('retrieveToken')->willReturn(
-                'test-token'
+            TestConstants::TOKEN
+        );
+        $mockFileStorage->method('retrieveScenarios')->willReturn(
+            TestConstants::SCENARIOS
         );
         $client = new Watcher($this->configs, $mockFileStorage, $mockCurlRequest);
         $decisionsResponse = $client->getStreamDecisions();
@@ -296,13 +293,13 @@ final class CurlTest extends TestCase
         $mockCurlRequest = $this->getCurlMock();
         $mockFileStorage = $this->getFileStorageMock();
         $mockCurlRequest->method('exec')->willReturn(
-                MockedData::LOGIN_SUCCESS
+            MockedData::LOGIN_SUCCESS
         );
         $mockCurlRequest->method('getResponseHttpCode')->willReturn(MockedData::HTTP_200);
         $mockFileStorage->method('retrievePassword')->willReturn(
-                'test-password'
+            TestConstants::PASSWORD
         );
-        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX.'test-machine-id');
+        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID);
         $mockFileStorage->method('retrieveToken')->willReturn(null);
         $client = new Watcher($this->configs, $mockFileStorage, $mockCurlRequest);
         PHPUnitUtil::callMethod(
@@ -330,8 +327,8 @@ final class CurlTest extends TestCase
             )
         );
         $mockCurlRequest->method('getResponseHttpCode')->willReturn(MockedData::HTTP_400);
-        $mockFileStorage->method('retrievePassword')->willReturn('test-password');
-        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX.'test-machine-id');
+        $mockFileStorage->method('retrievePassword')->willReturn(TestConstants::PASSWORD);
+        $mockFileStorage->method('retrieveMachineId')->willReturn(TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID);
         $mockFileStorage->method('retrieveToken')->willReturn(null);
         $client = new Watcher($this->configs, new FileStorage(), $mockCurlRequest);
 
@@ -348,7 +345,7 @@ final class CurlTest extends TestCase
             $code = $e->getCode();
         }
 
-        $this->assertEquals(401,$code);
+        $this->assertEquals(401, $code);
 
         PHPUnitUtil::assertRegExp(
             $this,
@@ -509,18 +506,21 @@ final class CurlTest extends TestCase
         );
         $mockFileStorage->method('retrievePassword')->will(
             $this->onConsecutiveCalls(
-                'test-password'
+                TestConstants::PASSWORD
             )
         );
         $mockFileStorage->method('retrieveMachineId')->will(
             $this->onConsecutiveCalls(
-                TestConstants::MACHINE_ID_PREFIX.'test-machine-id'
+                TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
             )
         );
         $mockFileStorage->method('retrieveToken')->will(
             $this->onConsecutiveCalls(
-                'test-token'
+                TestConstants::TOKEN
             )
+        );
+        $mockFileStorage->method('retrieveScenarios')->willReturn(
+            TestConstants::SCENARIOS
         );
         $client = new Watcher($this->configs, $mockFileStorage, $mockCurlRequest);
 
@@ -544,17 +544,17 @@ final class CurlTest extends TestCase
         );
         $mockFileStorage->method('retrievePassword')->will(
             $this->onConsecutiveCalls(
-                'test-password'
+                TestConstants::PASSWORD
             )
         );
         $mockFileStorage->method('retrieveMachineId')->will(
             $this->onConsecutiveCalls(
-                TestConstants::MACHINE_ID_PREFIX.'test-machine-id'
+                TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
             )
         );
         $mockFileStorage->method('retrieveToken')->will(
             $this->onConsecutiveCalls(
-                'test-token'
+                TestConstants::TOKEN
             )
         );
         $client = new Watcher($this->configs, $mockFileStorage, $mockCurlRequest);
@@ -570,32 +570,9 @@ final class CurlTest extends TestCase
         PHPUnitUtil::assertRegExp(
             $this,
             '/.*Invalid request body.*scenario_hash/',
-            $error ,
+            $error,
             'Bad signals request'
         );
         $this->assertEquals(MockedData::HTTP_400, $code);
-    }
-
-    protected function getCurlMock()
-    {
-        return $this->getMockBuilder('CrowdSec\CapiClient\RequestHandler\Curl')
-            ->onlyMethods(['exec', 'getResponseHttpCode'])
-            ->getMock();
-    }
-
-    protected function getFileStorageMock()
-    {
-        return $this->getMockBuilder('CrowdSec\CapiClient\Storage\FileStorage')
-            ->onlyMethods(
-                [
-                    'retrieveToken',
-                    'retrievePassword',
-                    'retrieveMachineId',
-                    'storePassword',
-                    'storeMachineId',
-                    'storeToken'
-                ]
-            )
-            ->getMock();
     }
 }

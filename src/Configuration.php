@@ -26,14 +26,14 @@ class Configuration implements ConfigurationInterface
         /** @var ArrayNodeDefinition $rootNode */
         $rootNode = $treeBuilder->getRootNode();
         $rootNode->children()
-            ->enumNode('api_url')
+            ->enumNode('env')
                 ->values(
                     [
-                        Constants::URL_DEV,
-                        Constants::URL_PROD,
+                        Constants::ENV_DEV,
+                        Constants::ENV_PROD,
                     ]
                 )
-                ->defaultValue(Constants::URL_DEV)
+                ->defaultValue(Constants::ENV_DEV)
             ->end()
             ->scalarNode('machine_id_prefix')
                 ->validate()
@@ -57,6 +57,10 @@ class Configuration implements ConfigurationInterface
                     return false;
                 })
                 ->thenInvalid('Invalid user agent suffix. Length must be <= 16. Allowed chars are A-Za-z0-9')
+                ->end()
+            ->end()
+            ->arrayNode('scenarios')->cannotBeEmpty()
+                ->scalarPrototype()->cannotBeEmpty()
                 ->end()
             ->end()
         ->end()

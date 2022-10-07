@@ -7,7 +7,7 @@ namespace CrowdSec\CapiClient\Storage;
 /**
  * Storage interface.
  *
- * Must be used to store machine_id, password and token
+ * Must be used to store machine_id, password, token and scenarios
  *
  * @author    CrowdSec team
  *
@@ -31,6 +31,12 @@ interface StorageInterface
     public function retrievePassword(): ?string;
 
     /**
+     * Retrieve stored scenarios
+     * Return null if not found.
+     */
+    public function retrieveScenarios(): ?array;
+
+    /**
      * Retrieve stored token
      * Return null if not found.
      */
@@ -47,6 +53,12 @@ interface StorageInterface
      * Return true when success and false otherwise.
      */
     public function storePassword(string $password): bool;
+
+    /**
+     * Store a list of scenarios
+     * Return true when success and false otherwise.
+     */
+    public function storeScenarios(array $scenarios): bool;
 
     /**
      * Store a token

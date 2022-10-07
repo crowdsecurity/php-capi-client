@@ -15,9 +15,8 @@ namespace CrowdSec\CapiClient\Tests\Integration;
 
 use CrowdSec\CapiClient\AbstractClient;
 use CrowdSec\CapiClient\RequestHandler\FileGetContents;
-use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Storage\FileStorage;
-use CrowdSec\CapiClient\Tests\MockedData;
+use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use PHPUnit\Framework\TestCase;
@@ -27,10 +26,9 @@ use PHPUnit\Framework\TestCase;
  */
 final class WatcherTest extends TestCase
 {
-
     protected $configs = [
         'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
-        'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX
+        'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX,
     ];
 
     public function requestHandlerProvider(): array
@@ -95,7 +93,6 @@ final class WatcherTest extends TestCase
     }
 
     /**
-     *
      * @return array[]
      */
     private function getSignals(): array

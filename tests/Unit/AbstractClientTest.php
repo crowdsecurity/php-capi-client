@@ -17,15 +17,12 @@ namespace CrowdSec\CapiClient\Tests\Unit;
 
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\Constants;
-use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\HttpMessage\Response;
-use CrowdSec\CapiClient\Tests\Constants as TestConstants;
+use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use DateTime;
-
-use PHPUnit\Framework\TestCase;
 use TypeError;
 
 /**
@@ -40,15 +37,9 @@ use TypeError;
  * @covers \CrowdSec\CapiClient\AbstractClient::getFullUrl
  * @covers \CrowdSec\CapiClient\Watcher::__construct
  * @covers \CrowdSec\CapiClient\Watcher::configure
- *
  */
-final class AbstractClientTest extends TestCase
+final class AbstractClientTest extends AbstractClient
 {
-    protected $configs = [
-        'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
-        'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX
-    ];
-
     public function testClientInit()
     {
         $client = new Watcher($this->configs, new FileStorage());
@@ -72,7 +63,7 @@ final class AbstractClientTest extends TestCase
             'Request handler must be curl by default'
         );
 
-        $client = new Watcher(array_merge($this->configs, ['api_url' => Constants::URL_PROD]), new FileStorage());
+        $client = new Watcher(array_merge($this->configs, ['env' => Constants::ENV_PROD]), new FileStorage());
         $url = $client->getUrl();
         $this->assertEquals(
             Constants::URL_PROD,

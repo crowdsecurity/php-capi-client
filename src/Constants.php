@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient;
 
 /**
- * Every constant of the library are set here.
+ * Main constants of the library.
  *
  * @author    CrowdSec team
  *
@@ -17,10 +17,17 @@ namespace CrowdSec\CapiClient;
 class Constants
 {
     /**
+     * @var string The development environment flag
+     */
+    public const ENV_DEV = 'dev';
+    /**
+     * @var string The production environment flag
+     */
+    public const ENV_PROD = 'prod';
+    /**
      * @var string The Development URL of the CrowdSec CAPI
      */
     public const URL_DEV = 'https://api.dev.crowdsec.net/v2/';
-
     /**
      * @var string The Production URL of the CrowdSec CAPI
      */

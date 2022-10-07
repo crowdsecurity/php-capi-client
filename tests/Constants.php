@@ -24,5 +24,25 @@ class Constants
     /**
      * @var string The machine id prefix used to send request to CAPI
      */
-    public const MACHINE_ID_PREFIX = "CapiClientTest";
+    public const MACHINE_ID_PREFIX = 'CapiClientTest';
+
+    /**
+     * @var array The scenario used to send request to CAPI
+     */
+    public const SCENARIOS = ['test-scenario'];
+
+    /**
+     * @var string The password used to send request to CAPI
+     */
+    public const PASSWORD = 'test-password';
+
+    /**
+     * @var string The token used to send request to CAPI
+     */
+    public const TOKEN = 'test-token';
+
+    /**
+     * @var string The machine_id used to send request to CAPI
+     */
+    public const MACHINE_ID = 'test-machine-id';
 }

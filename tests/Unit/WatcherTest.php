@@ -22,7 +22,6 @@ use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @uses \CrowdSec\CapiClient\AbstractClient
@@ -49,13 +48,8 @@ use PHPUnit\Framework\TestCase;
  * @covers \CrowdSec\CapiClient\Watcher::handleTokenHeader
  * @covers \CrowdSec\CapiClient\Watcher::formatUserAgent
  */
-class WatcherTest extends TestCase
+class WatcherTest extends AbstractClient
 {
-    protected $configs = [
-        'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
-        'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX
-    ];
-
     public function testRegisterParams()
     {
         $mockFileStorage = $this->getFileStorageMock();
@@ -74,20 +68,19 @@ class WatcherTest extends TestCase
                 'POST',
                 Watcher::REGISTER_ENDPOINT,
                 self::callback(function ($params): bool {
-                    return count($params) === 2 &&
+                    return 2 === count($params) &&
                            !empty($params['password']) &&
-                           strlen($params['password']) === Watcher::PASSWORD_LENGTH &&
+                           Watcher::PASSWORD_LENGTH === strlen($params['password']) &&
                            !empty($params['machine_id']) &&
-                           strlen($params['machine_id']) === Watcher::MACHINE_ID_LENGTH &&
+                           Watcher::MACHINE_ID_LENGTH === strlen($params['machine_id']) &&
                            0 === substr_compare(
                                $params['machine_id'],
                                TestConstants::MACHINE_ID_PREFIX,
                                0,
                                strlen(TestConstants::MACHINE_ID_PREFIX)
                            )
-                        ;
-                })
-                ,['User-Agent' => Constants::USER_AGENT_PREFIX . Constants::VERSION . '/' . TestConstants::USER_AGENT_SUFFIX]
+                    ;
+                }), ['User-Agent' => Constants::USER_AGENT_PREFIX . Constants::VERSION . '/' . TestConstants::USER_AGENT_SUFFIX]
             );
 
         PHPUnitUtil::callMethod(
@@ -102,10 +95,10 @@ class WatcherTest extends TestCase
         $mockFileStorage = $this->getFileStorageMock();
 
         $mockFileStorage->method('retrievePassword')->willReturn(
-            'test-password'
+            TestConstants::PASSWORD
         );
         $mockFileStorage->method('retrieveMachineId')->willReturn(
-            TestConstants::MACHINE_ID_PREFIX . 'test-machine-id'
+            TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
         );
         // Set null token to force login
         $mockFileStorage->method('retrieveToken')->willReturn(
@@ -121,13 +114,13 @@ class WatcherTest extends TestCase
                 'POST',
                 Watcher::LOGIN_ENDPOINT,
                 [
-                    'password' => 'test-password',
-                    'machine_id' => TestConstants::MACHINE_ID_PREFIX . 'test-machine-id',
-                    'scenarios' => []
+                    'password' => TestConstants::PASSWORD,
+                    'machine_id' => TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID,
+                    'scenarios' => TestConstants::SCENARIOS,
                 ],
                 [
                     'User-Agent' => Constants::USER_AGENT_PREFIX .
-                                    Constants::VERSION .  '/' . TestConstants::USER_AGENT_SUFFIX
+                                    Constants::VERSION . '/' . TestConstants::USER_AGENT_SUFFIX,
                 ]
             );
         $code = 0;
@@ -143,22 +136,23 @@ class WatcherTest extends TestCase
             $code = $e->getCode();
         }
         $this->assertEquals(401, $code);
-        $this->assertEquals('Token is required.', $message);
-
+        $this->assertEquals('Login response does not contain required token.', $message);
     }
-
 
     public function testSignalsParams()
     {
         $mockFileStorage = $this->getFileStorageMock();
         $mockFileStorage->method('retrievePassword')->willReturn(
-            'test-password'
+            TestConstants::PASSWORD
         );
         $mockFileStorage->method('retrieveMachineId')->willReturn(
-            TestConstants::MACHINE_ID_PREFIX . 'test-machine-id'
+            TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
         );
         $mockFileStorage->method('retrieveToken')->willReturn(
-            'test-token'
+            TestConstants::TOKEN
+        );
+        $mockFileStorage->method('retrieveScenarios')->willReturn(
+            TestConstants::SCENARIOS
         );
 
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
@@ -177,7 +171,7 @@ class WatcherTest extends TestCase
                     $signals,
                     [
                         'User-Agent' => Constants::USER_AGENT_PREFIX .
-                                        Constants::VERSION .  '/' . TestConstants::USER_AGENT_SUFFIX,
+                                        Constants::VERSION . '/' . TestConstants::USER_AGENT_SUFFIX,
                         'Authorization' => 'Bearer test-token',
                     ],
                 ]
@@ -185,18 +179,20 @@ class WatcherTest extends TestCase
         $mockClient->pushSignals($signals);
     }
 
-
     public function testDecisionsStreamParams()
     {
         $mockFileStorage = $this->getFileStorageMock();
         $mockFileStorage->method('retrievePassword')->willReturn(
-            'test-password'
+            TestConstants::PASSWORD
         );
         $mockFileStorage->method('retrieveMachineId')->willReturn(
-            TestConstants::MACHINE_ID_PREFIX . 'test-machine-id'
+            TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
         );
         $mockFileStorage->method('retrieveToken')->willReturn(
-            'test-token'
+            TestConstants::TOKEN
+        );
+        $mockFileStorage->method('retrieveScenarios')->willReturn(
+            TestConstants::SCENARIOS
         );
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
             ->enableOriginalConstructor()
@@ -212,14 +208,13 @@ class WatcherTest extends TestCase
                     [],
                     [
                         'User-Agent' => Constants::USER_AGENT_PREFIX .
-                                        Constants::VERSION .  '/' . TestConstants::USER_AGENT_SUFFIX,
+                                        Constants::VERSION . '/' . TestConstants::USER_AGENT_SUFFIX,
                         'Authorization' => 'Bearer test-token',
                     ],
                 ]
             );
         $mockClient->getStreamDecisions();
     }
-
 
     public function testRequest()
     {
@@ -236,7 +231,7 @@ class WatcherTest extends TestCase
             new Response(MockedData::LOGIN_SUCCESS, MockedData::HTTP_200, [])
         ));
 
-        $response = $mockClient->request('POST', "", [], []);
+        $response = $mockClient->request('POST', '', [], []);
 
         $this->assertEquals(
             json_decode(MockedData::LOGIN_SUCCESS, true),
@@ -246,7 +241,7 @@ class WatcherTest extends TestCase
         // Test a not allowed request method (PUT)
         $error = false;
         try {
-            $mockClient->request('PUT', "", [], []);
+            $mockClient->request('PUT', '', [], []);
         } catch (ClientException $e) {
             $error = $e->getMessage();
         }
@@ -257,21 +252,5 @@ class WatcherTest extends TestCase
             $error,
             'Not allowed method should throw an exception before sending request'
         );
-    }
-
-    protected function getFileStorageMock()
-    {
-        return $this->getMockBuilder('CrowdSec\CapiClient\Storage\FileStorage')
-            ->onlyMethods(
-                [
-                    'retrieveToken',
-                    'retrievePassword',
-                    'retrieveMachineId',
-                    'storePassword',
-                    'storeMachineId',
-                    'storeToken'
-                ]
-            )
-            ->getMock();
     }
 }

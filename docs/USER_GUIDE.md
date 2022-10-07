@@ -197,49 +197,60 @@ $client = new Watcher($configs, $requestHandler);
 
 ```
 
-
-
 ## Example scripts
 
 
 You will find some ready-to-use php scripts in the `tests/scripts` folder. These scripts could be usefull to better 
-understand what you can do with this client. For each script, you have to pass a `MACHINE_ID` and a `PASSWORD` as 
-arguments.
+understand what you can do with this client. 
 
-### Register a watcher
+As Watcher methods need at least an array as parameter, we use a json format in command line.
 
-```bash
-php tests/scripts/watcher/register.php MACHINE_ID PASSWORD
-```
-
-### Login as watcher
-
-```bash
-php tests/scripts/watcher/login.php MACHINE_ID PASSWORD
-```
-
-If you want to see how the request handler override could work, you could run: 
-
-```bash
-php tests/scripts/watcher/request-handler-override/login.php MACHINE_ID PASSWORD
-```
 
 ### Get decisions stream
 
+#### Command usage
+
+```php
+php tests/scripts/watcher/decisions-stream.php <SCENARIOS_JSON>
+```
+
+#### Example usage
+
 ```bash
-php tests/scripts/watcher/decisions-stream.php MACHINE_ID PASSWORD
+php tests/scripts/watcher/decisions-stream.php '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]'
 ```
 
 Or, with the `file_get_contents` handler:
 
 ```bash
-php tests/scripts/watcher/request-handler-override/decisions-stream.php MACHINE_ID PASSWORD
+php tests/scripts/watcher/request-handler-override/decisions-stream.php '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]'
 ```
 
 ### Push signals
 
-As the `pushSignals` method need an array as parameter, we use a json to test this command line script: 
+#### Command usage
+
+```php
+php tests/scripts/watcher/signals.php <SCENARIOS_JSON> <SIGNALS_JSON>
+```
+
+#### Example
 
 ```bash
-php tests/scripts/watcher/signals.php MACHINE_ID PASSWORD "[{\"machine_id\":\"MACHINE_ID\",\"message\":\"Ip 1.1.1.1 performed 'crowdsecurity\/http-path-traversal-probing' (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338\",\"scenario\":\"crowdsecurity\/http-path-traversal-probing\",\"scenario_hash\":\"\",\"scenario_version\":\"\",\"source\":{\"id\":1,\"as_name\":\"TEST\",\"cn\":\"FR\",\"ip\":\"1.1.1.1\",\"latitude\":48.9917,\"longitude\":1.9097,\"range\":\"1.1.1.1\/32\",\"scope\":\"test\",\"value\":\"1.1.1.1\"},\"start_at\":\"2020-11-06T20:13:41.196817737Z\",\"stop_at\":\"2020-11-06T20:14:11.189252228Z\"},{\"machine_id\":\"MACHINE_ID\",\"message\":\"Ip 2.2.2.2 performed 'crowdsecurity\/http-probing' (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338\",\"scenario\":\"crowdsecurity\/http-probing\",\"scenario_hash\":\"\",\"scenario_version\":\"\",\"source\":{\"id\":2,\"as_name\":\"TEST\",\"cn\":\"FR\",\"ip\":\"2.2.2.2\",\"latitude\":48.9917,\"longitude\":1.9097,\"range\":\"2.2.2.2\/32\",\"scope\":\"test\",\"value\":\"2.2.2.2\"},\"start_at\":\"2020-11-06T20:13:41.196817737Z\",\"stop_at\":\"2020-11-06T20:14:11.189252228Z\"}]"
+php tests/scripts/watcher/signals.php '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' "[{\"machine_id\":\"MACHINE_ID\",\"message\":\"Ip 1.1.1.1 performed 'crowdsecurity\/http-path-traversal-probing' (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338\",\"scenario\":\"crowdsecurity\/http-path-traversal-probing\",\"scenario_hash\":\"\",\"scenario_version\":\"\",\"source\":{\"id\":1,\"as_name\":\"TEST\",\"cn\":\"FR\",\"ip\":\"1.1.1.1\",\"latitude\":48.9917,\"longitude\":1.9097,\"range\":\"1.1.1.1\/32\",\"scope\":\"test\",\"value\":\"1.1.1.1\"},\"start_at\":\"2020-11-06T20:13:41.196817737Z\",\"stop_at\":\"2020-11-06T20:14:11.189252228Z\"},{\"machine_id\":\"MACHINE_ID\",\"message\":\"Ip 2.2.2.2 performed 'crowdsecurity\/http-probing' (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338\",\"scenario\":\"crowdsecurity\/http-probing\",\"scenario_hash\":\"\",\"scenario_version\":\"\",\"source\":{\"id\":2,\"as_name\":\"TEST\",\"cn\":\"FR\",\"ip\":\"2.2.2.2\",\"latitude\":48.9917,\"longitude\":1.9097,\"range\":\"2.2.2.2\/32\",\"scope\":\"test\",\"value\":\"2.2.2.2\"},\"start_at\":\"2020-11-06T20:13:41.196817737Z\",\"stop_at\":\"2020-11-06T20:14:11.189252228Z\"}]"
+```
+
+### Enroll a watcher
+
+#### Command usage
+
+```php
+php enroll.php <SCENARIOS_JSON> <NAME> <OVERWRITE> <ENROLL_KEY> <TAGS_JSON>
+```
+
+
+#### Example
+
+```bash
+php enroll.php  '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' TESTWATCHER 0 ZZZZZAAAAA '["tag1", "tag2"]'
 ```

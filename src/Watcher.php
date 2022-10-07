@@ -36,7 +36,7 @@ class Watcher extends AbstractClient
      */
     protected $configs;
     /**
-     * @var string[]
+     * @var array
      */
     private $headers;
     /**
@@ -64,69 +64,53 @@ class Watcher extends AbstractClient
         $this->configure($configs);
         $this->headers = ['User-Agent' => $this->formatUserAgent($this->configs)];
         $this->storage = $storage;
+        $this->configs['api_url'] =
+            Constants::ENV_PROD === $this->getConfig('env') ? Constants::URL_PROD : Constants::URL_DEV;
         parent::__construct($this->configs, $requestHandler);
-    }
-
-    /**
-     * Process a decisions stream call to CAPI.
-     *
-     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
-     *
-     * @param array $scenarios
-     * @return array
-     */
-    public function getStreamDecisions(array $scenarios = []): array
-    {
-        return $this->manageRequest('GET', self::DECISIONS_STREAM_ENDPOINT, [], $scenarios);
-    }
-
-    /**
-     * Process a signals call to CAPI.
-     *
-     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
-     *
-     * @param array $signals
-     * @param array $scenarios
-     * @return array
-     */
-    public function pushSignals(array $signals, array $scenarios = []): array
-    {
-        return $this->manageRequest('POST', self::SIGNALS_ENDPOINT, $signals, $scenarios);
     }
 
     /**
      * Process an enroll call to CAPI.
      *
-     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
-     *
-     * @param string $name
-     * @param bool $overwrite
-     * @param string $enrollKey
-     * @param array $tags
-     * @param array $scenarios
-     * @return array
+     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
      */
-    public function enroll(string $name, bool $overwrite,  string $enrollKey, array $tags = [], array $scenarios = [])
-    :array
+    public function enroll(string $name, bool $overwrite, string $enrollKey, array $tags = []): array
     {
         $params = [
             'name' => $name,
             'overwrite' => $overwrite,
             'attachment_key' => $enrollKey,
-            'tags' => $tags
+            'tags' => $tags,
         ];
-        return $this->manageRequest('POST', self::ENROLL_ENDPOINT, $params, $scenarios);
+
+        return $this->manageRequest('POST', self::ENROLL_ENDPOINT, $params);
     }
 
+    /**
+     * Process a decisions stream call to CAPI.
+     *
+     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
+     */
+    public function getStreamDecisions(): array
+    {
+        return $this->manageRequest('GET', self::DECISIONS_STREAM_ENDPOINT, []);
+    }
 
     /**
-     * Configure this instance.
+     * Process a signals call to CAPI.
      *
-     * @param array $configs An array with all configuration parameters
+     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
+     */
+    public function pushSignals(array $signals): array
+    {
+        return $this->manageRequest('POST', self::SIGNALS_ENDPOINT, $signals);
+    }
+
+    /**
+     * Process and validate input configurations.
      */
     private function configure(array $configs): void
     {
-        // Process and validate input configuration.
         $configuration = new Configuration();
         $processor = new Processor();
         $this->configs = $processor->processConfiguration($configuration, [$configs]);
@@ -135,12 +119,12 @@ class Watcher extends AbstractClient
     /**
      * Ensure that machine is registered and that we have a token.
      */
-    private function ensureAuth(array $scenarios = []): void
+    private function ensureAuth(): void
     {
         $this->ensureRegister();
         $this->token = $this->storage->retrieveToken();
-        if (!$this->token) {
-            $this->refreshToken($scenarios);
+        if ($this->shouldLogin()) {
+            $this->handleLogin();
         }
     }
 
@@ -206,24 +190,46 @@ class Watcher extends AbstractClient
     }
 
     /**
+     * Retrieve a fresh token from login.
+     *
+     * @throws ClientException
+     */
+    private function handleLogin(): void
+    {
+        $loginResponse = $this->login();
+
+        $this->token = $loginResponse['token'] ?? null;
+        if (!$this->token) {
+            throw new ClientException('Login response does not contain required token.', 401);
+        }
+        $this->storage->storeToken($this->token);
+        $configScenarios = $this->getConfig('scenarios');
+        if (!$configScenarios) {
+            throw new ClientException('Configured scenarios list can not be empty.', 400);
+        }
+        $this->storage->storeScenarios($configScenarios);
+    }
+
+    /**
      * Handle required token (JWT) in header for next CAPI calls.
      *
      * @throws ClientException
      */
     private function handleTokenHeader(): array
     {
-        if(!$this->token){
+        if (!$this->token) {
             throw new ClientException('Token is required.', 401);
         }
+
         return ['Authorization' => sprintf('Bearer %s', $this->token)];
     }
 
     /**
      * Process a login call to CAPI.
      *
-     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_login
+     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_login
      */
-    private function login(array $scenarios = []): array
+    private function login(): array
     {
         return $this->request(
             'POST',
@@ -231,7 +237,7 @@ class Watcher extends AbstractClient
             [
                 'password' => $this->password,
                 'machine_id' => $this->machineId,
-                'scenarios' => $scenarios, ],
+                'scenarios' => $this->getConfig('scenarios'), ],
             $this->headers
         );
     }
@@ -239,20 +245,14 @@ class Watcher extends AbstractClient
     /**
      * Make a request and manage retry attempts (login and register errors).
      *
-     * @param string $method
-     * @param string $endpoint
-     * @param array $parameters
-     * @param array $scenarios
-     * @return array
      * @throws ClientException
      */
     private function manageRequest(
         string $method,
         string $endpoint,
-        array $parameters = [],
-        array $scenarios = []
+        array $parameters = []
     ): array {
-        $this->ensureAuth($scenarios);
+        $this->ensureAuth();
         $loginRetry = 0;
         $lastMessage = '';
         $response = [];
@@ -262,13 +262,13 @@ class Watcher extends AbstractClient
                 $headers = array_merge($this->headers, $this->handleTokenHeader());
                 $response = $this->request($method, $endpoint, $parameters, $headers);
             } catch (ClientException $e) {
-                if(401 !== $e->getCode()){
+                if (401 !== $e->getCode()) {
                     throw new ClientException($e->getMessage(), $e->getCode());
                 }
                 ++$loginRetry;
                 $retry = true;
                 $lastMessage = $e->getMessage();
-                $this->refreshToken($scenarios);
+                $this->handleLogin();
             }
         } while ($retry && ($loginRetry <= self::LOGIN_RETRY));
         if ($loginRetry > self::LOGIN_RETRY) {
@@ -291,25 +291,9 @@ class Watcher extends AbstractClient
     }
 
     /**
-     * Retrieve a fresh token from login.
-     *
-     * @throws ClientException
-     */
-    private function refreshToken(array $scenarios = []): void
-    {
-        $loginResponse = $this->login($scenarios);
-
-        $this->token = $loginResponse['token'] ?? null;
-        if (!$this->token) {
-            throw new ClientException('Token is required.', 401);
-        }
-        $this->storage->storeToken($this->token);
-    }
-
-    /**
      * Process a register call to CAPI.
      *
-     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers
+     * @link https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers
      *
      * @throws ClientException
      */
@@ -341,6 +325,22 @@ class Watcher extends AbstractClient
             $message = "Could not register after $registerRetry attempts. Last error was: ";
             throw new ClientException($message . $lastMessage);
         }
+    }
+
+    /**
+     * Check if we should log in (handle token and scenarios).
+     */
+    private function shouldLogin(): bool
+    {
+        if (!$this->token) {
+            return true;
+        }
+
+        // Verify that we have stored scenarios and that the match with current scenarios
+        $storedScenarios = $this->storage->retrieveScenarios();
+        $configScenarios = $this->getConfig('scenarios');
+
+        return !$storedScenarios || !empty(array_diff($storedScenarios, $configScenarios ?: []));
     }
 
     /**
