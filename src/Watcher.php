@@ -180,7 +180,7 @@ class Watcher extends AbstractClient
     }
 
     /**
-     * Generate a  cryptographically secure random string.
+     * Generate a cryptographically secure random string.
      *
      * @throws Exception
      */
@@ -214,10 +214,7 @@ class Watcher extends AbstractClient
         }
         $this->storage->storeToken($this->token);
         $configScenarios = $this->getConfig('scenarios');
-        if (!$configScenarios) {
-            throw new ClientException('Configured scenarios list can not be empty.', 400);
-        }
-        $this->storage->storeScenarios($configScenarios);
+        $this->storage->storeScenarios($configScenarios ?: []);
     }
 
     /**
@@ -266,9 +263,13 @@ class Watcher extends AbstractClient
         $loginRetry = 0;
         $lastMessage = '';
         $response = [];
+        $retry = false;
         do {
             try {
-                $retry = false;
+                if ($retry) {
+                    $retry = false;
+                    $this->handleLogin();
+                }
                 $headers = array_merge($this->headers, $this->handleTokenHeader());
                 $response = $this->request($method, $endpoint, $parameters, $headers);
             } catch (ClientException $e) {
@@ -278,7 +279,6 @@ class Watcher extends AbstractClient
                 ++$loginRetry;
                 $retry = true;
                 $lastMessage = $e->getMessage();
-                $this->handleLogin();
             }
         } while ($retry && ($loginRetry <= self::LOGIN_RETRY));
         if ($loginRetry > self::LOGIN_RETRY) {
@@ -311,9 +311,13 @@ class Watcher extends AbstractClient
     {
         $registerRetry = 0;
         $lastMessage = '';
+        $retry = false;
         do {
             try {
-                $retry = false;
+                if ($retry) {
+                    $retry = false;
+                    $this->refreshCredentials();
+                }
                 $this->request(
                     'POST',
                     self::REGISTER_ENDPOINT,
@@ -323,12 +327,12 @@ class Watcher extends AbstractClient
                     $this->headers
                 );
             } catch (ClientException $e) {
+                if (500 !== $e->getCode()) {
+                    throw new ClientException($e->getMessage(), $e->getCode());
+                }
                 ++$registerRetry;
                 $retry = true;
                 $lastMessage = $e->getMessage();
-                if (500 === $e->getCode()) {
-                    $this->refreshCredentials();
-                }
             }
         } while ($retry && ($registerRetry <= self::REGISTER_RETRY));
         if ($registerRetry > self::REGISTER_RETRY) {

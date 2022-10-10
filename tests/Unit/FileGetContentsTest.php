@@ -240,26 +240,6 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
     {
         $mockFGCRequest = $this->getFGCMock();
 
-        $request = new Request('test-uri', 'GET', ['User-Agent' => TestConstants::USER_AGENT_SUFFIX], ['foo' => 'bar']);
-
-        $error = false;
-        try {
-            $mockFGCRequest->method('exec')
-                ->will(
-                    $this->returnValue(false)
-                );
-            $mockFGCRequest->handle($request);
-        } catch (\TypeError $e) {
-            $error = $e->getMessage();
-        }
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/type array./',
-            $error,
-            'Should failed and throw if no response'
-        );
-
         $request = new Request('test-uri', 'POST', ['User-Agent' => null]);
         $error = false;
         try {
@@ -272,6 +252,31 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
             'User agent is required',
             $error,
             'Should failed and throw if no user agent'
+        );
+
+        $mockFGCRequest = $this->getFGCMock();
+        $mockFGCRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                ['header' => []]
+            )
+        );
+
+        $request = new Request('test-uri', 'POST', ['User-Agent' => TestConstants::USER_AGENT_SUFFIX]);
+
+        $code = 0;
+        try {
+            $mockFGCRequest->handle($request);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+            $code = $e->getCode();
+        }
+
+        $this->assertEquals(500, $code);
+
+        $this->assertEquals(
+            'Unexpected HTTP call failure.',
+            $error,
+            'Should failed and throw if no response'
         );
     }
 
@@ -376,7 +381,6 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
                 ['response' => MockedData::REGISTER_ALREADY, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_500]],
                 ['response' => MockedData::SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK']],
                 ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]],
-                ['response' => MockedData::BAD_REQUEST, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_400]],
                 ['response' => MockedData::REGISTER_ALREADY, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_500]],
                 ['response' => MockedData::SUCCESS, 'header' => ['HTTP/1.1 ' . MockedData::HTTP_200 . ' OK']]
             )
@@ -418,7 +422,7 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
             $error,
             'Success case'
         );
-        // 400 (successive attempts)
+        // 400 (first attempt)
         $error = '';
         try {
             PHPUnitUtil::callMethod(
@@ -435,7 +439,7 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
             $error,
             'Bad request registered case'
         );
-        // 200 (after 1 failed attempt)
+        // 200 (after 1 failed 500 attempt)
         $error = 'none';
         try {
             PHPUnitUtil::callMethod(

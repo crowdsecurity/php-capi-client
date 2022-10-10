@@ -35,7 +35,6 @@ use CrowdSec\CapiClient\Watcher;
  * @uses \CrowdSec\CapiClient\Watcher::formatUserAgent
  * @uses \CrowdSec\CapiClient\Watcher::ensureAuth
  * @uses \CrowdSec\CapiClient\Watcher::ensureRegister
- * @uses \CrowdSec\CapiClient\Watcher::manageRequest
  * @uses \CrowdSec\CapiClient\Watcher::shouldRefreshCredentials
  * @uses \CrowdSec\CapiClient\Watcher::generateMachineId
  * @uses \CrowdSec\CapiClient\Watcher::generatePassword
@@ -54,6 +53,7 @@ use CrowdSec\CapiClient\Watcher;
  * @covers \CrowdSec\CapiClient\Watcher::shouldLogin
  * @covers \CrowdSec\CapiClient\Watcher::handleLogin
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
+ * @covers \CrowdSec\CapiClient\Watcher::manageRequest
  */
 final class CurlTest extends AbstractClient
 {
@@ -577,5 +577,91 @@ final class CurlTest extends AbstractClient
             'Bad signals request'
         );
         $this->assertEquals(MockedData::HTTP_400, $code);
+
+        // Failed test with error not 401
+        $mockCurlRequest = $this->getCurlMock();
+        $mockFileStorage = $this->getFileStorageMock();
+        $mockCurlRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                MockedData::SUCCESS
+            )
+        );
+        $mockCurlRequest->method('getResponseHttpCode')->will(
+            $this->onConsecutiveCalls(MockedData::HTTP_500)
+        );
+        $mockFileStorage->method('retrievePassword')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::PASSWORD
+            )
+        );
+        $mockFileStorage->method('retrieveMachineId')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
+            )
+        );
+        $mockFileStorage->method('retrieveToken')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::TOKEN
+            )
+        );
+        $mockFileStorage->method('retrieveScenarios')->willReturn(
+            TestConstants::SCENARIOS
+        );
+        $client = new Watcher($this->configs, $mockFileStorage, $mockCurlRequest);
+
+        $code = 0;
+        try {
+            $client->pushSignals([]);
+        } catch (ClientException $e) {
+            $code = $e->getCode();
+        }
+
+        $this->assertEquals(MockedData::HTTP_500, $code, 'Should throw an error if not 401');
+
+        // Failed test with multiple error 401
+        $mockCurlRequest = $this->getCurlMock();
+        $mockFileStorage = $this->getFileStorageMock();
+        $mockCurlRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                MockedData::LOGIN_BAD_CREDENTIALS, MockedData::LOGIN_BAD_CREDENTIALS
+            )
+        );
+        $mockCurlRequest->method('getResponseHttpCode')->will(
+            $this->onConsecutiveCalls(MockedData::HTTP_401, MockedData::HTTP_401)
+        );
+        $mockFileStorage->method('retrievePassword')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::PASSWORD, TestConstants::PASSWORD
+            )
+        );
+        $mockFileStorage->method('retrieveMachineId')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID,
+                TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
+            )
+        );
+        $mockFileStorage->method('retrieveToken')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::TOKEN, TestConstants::TOKEN
+            )
+        );
+        $mockFileStorage->method('retrieveScenarios')->willReturn(
+            TestConstants::SCENARIOS, TestConstants::SCENARIOS
+        );
+        $client = new Watcher($this->configs, $mockFileStorage, $mockCurlRequest);
+
+        $error = '';
+        try {
+            $client->pushSignals([]);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Could not login after ' . (Watcher::LOGIN_RETRY + 1) . ' attempts/',
+            $error,
+            'Should throw error after multiple attempts'
+        );
     }
 }

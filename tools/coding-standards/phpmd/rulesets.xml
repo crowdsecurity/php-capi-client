@@ -10,7 +10,15 @@
         Rule set that checks CrowdSec CAPI PHP client
     </description>
 
-    <rule ref="rulesets/codesize.xml" />
+    <rule ref="rulesets/codesize.xml" >
+        <exclude name="ExcessiveClassComplexity"/>
+    </rule>
     <rule ref="rulesets/cleancode.xml" />
     <rule ref="rulesets/unusedcode.xml" />
+    <!-- Allow more complexity -->
+    <rule ref="rulesets/codesize.xml/ExcessiveClassComplexity">
+        <properties>
+            <property name="maximum" value="100" />
+        </properties>
+    </rule>
 </ruleset>

@@ -24,15 +24,17 @@ use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use Exception;
+use org\bovigo\vfs\vfsStream;
 
 /**
  * @uses \CrowdSec\CapiClient\AbstractClient
  * @uses \CrowdSec\CapiClient\Storage\FileStorage
- * @uses \CrowdSec\CapiClient\Watcher::refreshCredentials
  * @uses \CrowdSec\CapiClient\Watcher::shouldLogin
- * @uses \CrowdSec\CapiClient\Watcher::handleLogin
  * @uses \CrowdSec\CapiClient\HttpMessage\Response
  * @uses \CrowdSec\CapiClient\HttpMessage\Request
+ * @uses \CrowdSec\CapiClient\HttpMessage\AbstractMessage::getHeaders
+ * @uses \CrowdSec\CapiClient\RequestHandler\Curl::createOptions
+ * @uses \CrowdSec\CapiClient\RequestHandler\Curl::handle
  *
  * @covers \CrowdSec\CapiClient\Watcher::__construct
  * @covers \CrowdSec\CapiClient\Watcher::configure
@@ -53,6 +55,8 @@ use Exception;
  * @covers \CrowdSec\CapiClient\Watcher::generateMachineId
  * @covers \CrowdSec\CapiClient\Watcher::shouldRefreshCredentials
  * @covers \CrowdSec\CapiClient\Configuration::getConfigTreeBuilder
+ * @covers \CrowdSec\CapiClient\Watcher::handleLogin
+ * @covers \CrowdSec\CapiClient\Watcher::refreshCredentials
  */
 class WatcherTest extends AbstractClient
 {
@@ -535,8 +539,35 @@ class WatcherTest extends AbstractClient
             '$a and $b are different'
         );
 
-        // Test generatePassword
+        $a = ['A'];
+        $b = ['A', 'B'];
 
+        $result = PHPUnitUtil::callMethod(
+            $client,
+            'areEquals',
+            [$a, $b]
+        );
+        $this->assertEquals(
+            false,
+            $result,
+            '$a and $b are different'
+        );
+
+        $a = ['A', 'B'];
+        $b = ['A'];
+
+        $result = PHPUnitUtil::callMethod(
+            $client,
+            'areEquals',
+            [$a, $b]
+        );
+        $this->assertEquals(
+            false,
+            $result,
+            '$a and $b are different'
+        );
+
+        // Test generatePassword
         $result = PHPUnitUtil::callMethod(
             $client,
             'generatePassword',
@@ -602,7 +633,6 @@ class WatcherTest extends AbstractClient
         );
 
         // Test  generateRandomString
-
         $error = '';
         try {
             PHPUnitUtil::callMethod(
@@ -622,7 +652,6 @@ class WatcherTest extends AbstractClient
         );
 
         // Test shouldRefreshCredentials
-
         $result = PHPUnitUtil::callMethod(
             $client,
             'shouldRefreshCredentials',
@@ -681,6 +710,103 @@ class WatcherTest extends AbstractClient
             false,
             $result,
             'Should not refresh if machine id starts with machine id prefix'
+        );
+
+        // Test handleLogin errors
+        $mockCurlRequest = $this->getCurlMock();
+        $mockFileStorage = $this->getFileStorageMock();
+        $mockCurlRequest->method('exec')->will(
+            $this->onConsecutiveCalls(
+                MockedData::LOGIN_BAD_CREDENTIALS,
+                MockedData::LOGIN_SUCCESS
+            )
+        );
+        $mockCurlRequest->method('getResponseHttpCode')->will(
+            $this->onConsecutiveCalls(MockedData::HTTP_200, MockedData::HTTP_200
+            )
+        );
+        $client = new Watcher($this->configs, $mockFileStorage, $mockCurlRequest);
+
+        $error = '';
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'handleLogin',
+                []
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/required token/',
+            $error,
+            'Empty token should throw an error'
+        );
+
+        // Test refresh credentials
+        $root = vfsStream::setup('/tmp');
+        $storage = new FileStorage($root->url());
+        $client = new Watcher($this->configs, $storage);
+
+        $this->assertEquals(
+            false,
+            file_exists($root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE),
+            'File should not exist'
+        );
+
+        $this->assertEquals(
+            false,
+            file_exists($root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE),
+            'File should not exist'
+        );
+        PHPUnitUtil::callMethod(
+            $client,
+            'refreshCredentials',
+            []
+        );
+
+        $this->assertEquals(
+            true,
+            file_exists($root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::MACHINE_ID_FILE),
+            'File should exist'
+        );
+
+        $this->assertEquals(
+            true,
+            file_exists($root->url() . '/' . Constants::ENV_DEV . '-' . FileStorage::PASSWORD_FILE),
+            'File should exist'
+        );
+
+        $password = $storage->retrievePassword();
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/^[A-Za-z0-9]+$/',
+            $password,
+            'Password should be well formatted'
+        );
+
+        $machineId = $storage->retrieveMachineId();
+
+        $this->assertEquals(
+            Watcher::MACHINE_ID_LENGTH,
+            strlen($machineId),
+            'Machine id should have right length'
+        );
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/^[A-Za-z0-9]+$/',
+            $machineId,
+            'Machine should be well formatted'
+        );
+
+        $this->assertEquals(
+            TestConstants::MACHINE_ID_PREFIX,
+            substr($machineId, 0, strlen(TestConstants::MACHINE_ID_PREFIX)),
+            'Machine id should begin with machine id prefix'
         );
     }
 }

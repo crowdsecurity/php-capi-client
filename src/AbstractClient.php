@@ -48,9 +48,9 @@ abstract class AbstractClient
     /**
      * Retrieve a config value by name.
      *
-     * @param mixed|null $default
+     * @param mixed $default
      *
-     * @return mixed|null
+     * @return mixed
      */
     public function getConfig(string $name, $default = null)
     {

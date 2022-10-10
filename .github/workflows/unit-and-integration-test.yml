@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Clone DDEV files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: .ddev
           repository: julienloizelet/ddev-php
@@ -69,7 +69,7 @@ jobs:
           ddev exec php -v
 
       - name: Clone PHP lib Crowdsec files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ${{env.EXTENSION_PATH}}
 
