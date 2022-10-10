@@ -57,6 +57,7 @@ use org\bovigo\vfs\vfsStream;
  * @covers \CrowdSec\CapiClient\Configuration::getConfigTreeBuilder
  * @covers \CrowdSec\CapiClient\Watcher::handleLogin
  * @covers \CrowdSec\CapiClient\Watcher::refreshCredentials
+ * @covers \CrowdSec\CapiClient\Watcher::normalizeTags
  */
 class WatcherTest extends AbstractClient
 {
@@ -807,6 +808,81 @@ class WatcherTest extends AbstractClient
             TestConstants::MACHINE_ID_PREFIX,
             substr($machineId, 0, strlen(TestConstants::MACHINE_ID_PREFIX)),
             'Machine id should begin with machine id prefix'
+        );
+
+        // Test normalizeTags
+        $tags = ['tag1', 'tag2', 'tag3'];
+        $result = PHPUnitUtil::callMethod(
+            $client,
+            'normalizeTags',
+            [$tags]
+        );
+        $this->assertEquals(
+            $tags,
+            $result,
+            'Right tags should be unchanged'
+        );
+
+        $tags = ['tag1', 'tag1', 'tag3'];
+        $result = PHPUnitUtil::callMethod(
+            $client,
+            'normalizeTags',
+            [$tags]
+        );
+        $this->assertEquals(
+            [],
+            array_diff($result, ['tag1', 'tag3']),
+            'Tags should be unique'
+        );
+
+        $tags = ['a' => 'tag1'];
+        $result = PHPUnitUtil::callMethod(
+            $client,
+            'normalizeTags',
+            [$tags]
+        );
+        $this->assertEquals(
+            ['tag1'],
+            $result,
+            'Tags should be indexed array'
+        );
+
+        $error = '';
+        $tags = ['tag1', ['tag2']];
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'normalizeTags',
+                [$tags]
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Tag must be a string: array given/',
+            $error,
+            'Should throw an error if tag is not a string'
+        );
+
+        $error = '';
+        $tags = ['tag1', '', 'tag3'];
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'normalizeTags',
+                [$tags]
+            );
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Tag must not be empty/',
+            $error,
+            'Should throw an error if tag is empty'
         );
     }
 }

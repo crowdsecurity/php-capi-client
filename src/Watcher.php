@@ -70,12 +70,33 @@ class Watcher extends AbstractClient
     }
 
     /**
+     * Validate tags and and returns an indexed array unique.
+     *
+     * @throws ClientException
+     */
+    private function normalizeTags(array $tags): array
+    {
+        foreach ($tags as $tag) {
+            if (!is_string($tag)) {
+                throw new ClientException('Tag must be a string: ' . gettype($tag) . ' given.', 500);
+            }
+            if (empty($tag)) {
+                throw new ClientException('Tag must not be empty', 500);
+            }
+        }
+
+        return array_unique(array_values($tags));
+    }
+
+    /**
      * Process an enroll call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
      */
     public function enroll(string $name, bool $overwrite, string $enrollKey, array $tags = []): array
     {
+        $tags = $this->normalizeTags($tags);
+
         $params = [
             'name' => $name,
             'overwrite' => $overwrite,
