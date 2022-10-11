@@ -32,18 +32,16 @@
 
 ## Description
 
-This client allows you to interact with the CrowdSec CAPI.
-
+This client allows you to interact with the CrowdSec Central API (CAPI).
 
 ## Features
 
-- CrowdSec CAPI available endpoints
-  - Register a watcher
-  - Login as a watcher
+- CrowdSec CAPI Watcher available endpoints
   - Push signals
   - Retrieve decisions stream list
+  - Enroll a watcher
+- Automatic management of watcher credentials (password, machine_id and login token)
 - Overridable request handler (`curl` by default, `file_get_contents` also available)
-- Large PHP matrix compatibility: 5.3, 5.4, 5.5, 5.6, 7.0, 7.1, 7.2, 7.3, 7.4, 8.0 and 8.1
 
 
 ## Quick start
@@ -59,51 +57,45 @@ Please see the [Installation Guide](./INSTALLATION_GUIDE.md) for mor details.
 
 ### Watcher instantiation
 
-To instantiate a watcher, you have to know its `machine_id` and `password`:
+To instantiate a watcher, you have to:
+
+
+- Pass its `scenarios` in a `configs` array as a first parameter. You will find below [the list of other available 
+  settings](#watcher-configurations).
+
+
+- Pass an implementation of the provided `StorageInterface` in the second parameter. For this quick start, we will 
+  use a basic `FileStorage` implementation, but we advise you to develop a more secured class as we are storing sensitive data.
+
+
+- Optionally, you can pass an implementation of the `RequestHandlerInterface` as a third parameter. By default, a 
+  `Curl` request handler will be used. 
 
 ```php
 use CrowdSec\CapiClient\Watcher;
+use Crowdsec\CapiClient\Storage\FileStorage;
 
-$configs = array('machine_id' => '<YOUR_MACHINE_ID>', 'password' => '<MACHINE_PASSWORD>');
-$client = new Watcher($configs);
-
+$configs = array('scenarios' => ['crowdsecurity/http-backdoors-attempts']);
+$storage = new FileStorage();
+$client = new Watcher($configs, $storage);
 ````
 
-By default, a watcher will use the CrowdSec development url. If you are ready to use the CrowdSec production 
-environment, you have to add the key `prod` with value `true` in the `$configs` array: 
+By default, a watcher will use the CrowdSec development environment. If you are ready to use the CrowdSec production 
+environment, you have to add the key `env` with value `prod` in the `$configs` array: 
 ```php
 $configs = array(
-        'machine_id' => '<MACHINE_ID>', 
-        'password' => '<MACHINE_PASSWORD>',
-        'prod' => true
+        'scenarios' => ['crowdsecurity/http-backdoors-attempts'], 
+        'env' => 'prod'
 );
-$client = new WatcherClient($configs);
+$client = new WatcherClient($configs, $storage);
 ```
 
 #### CAPI calls
 
-Once your watcher in instantiated, you have to register it before doing more actions:
-
-##### Register your watcher
-
-```php
-$client->register();
-```
-
-Note that once your watcher has been registered, you don't have to register it a second time.
-
-Then, you will be able to interact with CAPI:
+Once your watcher is instantiated, you can perform the following calls:
 
 
-##### Login
-
-Sign in to get a valid token:
-
-```php
-$client->login();
-```
-
-##### Push signals/alerts
+##### Push signals
 
 You can push an array of signals to CAPI:
 
@@ -122,6 +114,134 @@ To retrieve the list of top decisions, you can do the following call:
 ```php
 $client->getStreamDecisions();
 ```
+
+##### Enroll a watcher
+
+To enroll a watcher you have to specify:
+
+- The `name` that will be display in the console for the instance
+- An `overwrite` boolean to force enroll the instance or not
+- An `enrollKey` that is generated in your CrowdSec backoffice account (a.k.a. `attachment_key`)
+- Optionally, an array of `tags` to apply on the console for the instance
+
+
+```php
+$client->enroll('My Watcher', true, '*****************', ['my_tag']);
+```
+
+## Watcher configurations
+
+The first parameter `$configs` of the Watcher constructor can be used to pass the following settings:
+
+### Environment
+
+```php
+$configs = array(
+        ... 
+        'env' => 'prod'
+        ...
+);
+```
+
+The `env` setting only accepts two values : `dev` and `prod`. 
+
+This setting is not required. If you don't set any value, `dev` will be used by default.
+
+It will mainly change the called CAPI url: `https://api.dev.crowdsec.net/v2/` for the `dev` environment and 
+`https://api.crowdsec.net/v2/` for the `prod` one.
+
+You should use it in your own code to implement different behaviors depending on the environment. For example, the 
+`FileStorage` class accepts a second parameter `$env` in its constructor to manage distinct `dev` and `prod` 
+credential files. 
+
+### Machine Id prefix
+
+
+```php
+$configs = array(
+        ... 
+        'machine_id_prefix' => 'MyCustomWatcher'
+        ...
+);
+```
+
+This setting is not required.
+
+When you make your first call with a watcher, a `machine_id` will be generated and stored through your storage 
+implementation. This `machine_id` is a string of length 48 composed of characters matching the regular expression `#^[A-Za-z0-9]+$#`.
+
+The `machine_id_prefix` setting allows to set a custom prefix to this `machine_id`. It must be a string with a length 
+less than or equal to 16 and matching the regular expression `#^[A-Za-z0-9]+$#` too. 
+
+The final generated `machine_id` will still have a length of 48.
+
+
+### User Agent suffix
+
+```php
+$configs = array(
+        ... 
+        'user_agent_suffix' => 'MySuffix'
+        ...
+);
+```
+This setting is not required.
+
+Sending a `User-Agent` header during a CAPI call is mandatory. By default, user agent will be `PHP CrowdSec CAPI 
+client/vX.Y.Z` where `vX.Y.Z` is the current release version of this library.
+
+You can add a custom suffix to this value by using the `user_agent_suffix` setting. It must be a string with a length
+less than or equal to 16 and matching the regular expression `#^[A-Za-z0-9]+$#`.
+
+With the example setting above, result will be  `PHP CrowdSec CAPI client/vX.Y.Z/MySuffix`.
+
+
+### Scenarios
+
+```php
+$configs = array(
+        ... 
+        'scenarios' => ['crowdsecurity/http-backdoors-attempts', 'crowdsecurity/http-bad-user-agent']
+        ...
+);
+```
+
+This `scenarios` setting is required.
+
+You have to pass an array of CrowdSec scenarios that will be used to log in your watcher. 
+You should find a list of available scenarios on the [CrowdSec hub collections page](https://hub.crowdsec.net/browse/).
+
+Beware that changing the scenarios list between two watcher instantiations will generate automatically new 
+`machine_id\password` pair.
+
+## Storage implementation
+
+The purpose of the `Storage/StorageInterface.php` interface is to give a guide on how to store and retrieve all 
+required data for interact with CAPI as a watcher.
+
+Note that you have to implement 8 methods : 
+
+- `retrieveMachineId`: Returns the stored `machine_id` or `null` if not found.
+
+- `retrievePassword`: Returns the stored `password` or `null` if not found.
+
+- `retrieveScenarios`: Returns the stored array of `scenarios` or `null` if not found.
+
+- `retrieveToken`: Returns the stored `token` or `null` if not found.
+
+- `storeMachineId`: Stores a `machine_id` in your storage. Returns `true` on success and `false` otherwise.
+
+- `storePassword`: Stores a `password` in your storage. Returns `true` on success and `false` otherwise.
+
+- `storeScenarios`: Stores a `scenarios` array in your storage. Returns `true` on success and `false` otherwise.
+
+- `storeToken`: Stores a `token` array in your storage. Returns `true` on success and `false` otherwise.
+
+As an example, you should look on the `Storage/FileStorage.php` class that stores and retrieves data from some
+files on your filesystem.
+
+Beware that this example is not secure enough as we are talking here about sensitive data like `password`, `token`
+and `machine_id`.
 
 
 ## Override the curl request handler
@@ -169,11 +289,10 @@ Once you have your custom request handler, you can instantiate the watcher that 
 use CrowdSec\CapiClient\Watcher;
 use CustomRequestHandler;
 
-$configs = array('machine_id' => '<YOUR_MACHINE_ID>', 'password' => '<MACHINE_PASSWORD>');
 
 $requestHandler = new CustomRequestHandler();
 
-$client = new Watcher($configs, $requestHandler);
+$client = new Watcher($configs, $storage, $requestHandler);
 
 ```
 
@@ -189,18 +308,17 @@ handler. To use it, you should instantiate it and pass the created object as a p
 use CrowdSec\CapiClient\Watcher;
 use CrowdSec\CapiClient\RequestHandler\FileGetContents;
 
-$configs = array('machine_id' => '<YOUR_MACHINE_ID>', 'password' => '<MACHINE_PASSWORD>');
 
 $requestHandler = new FileGetContents();
 
-$client = new Watcher($configs, $requestHandler);
+$client = new Watcher($configs, $storage, $requestHandler);
 
 ```
 
 ## Example scripts
 
 
-You will find some ready-to-use php scripts in the `tests/scripts` folder. These scripts could be usefull to better 
+You will find some ready-to-use php scripts in the `tests/scripts` folder. These scripts could be usefully to better 
 understand what you can do with this client. 
 
 As Watcher methods need at least an array as parameter, we use a json format in command line.

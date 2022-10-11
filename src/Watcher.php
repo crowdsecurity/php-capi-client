@@ -21,15 +21,45 @@ use Symfony\Component\Config\Definition\Processor;
  */
 class Watcher extends AbstractClient
 {
+    /**
+     * @var string The list of authorized characters for machine_id_and password
+     */
     public const CREDENTIAL_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    /**
+     * @var string The decisions stream endpoint
+     */
     public const DECISIONS_STREAM_ENDPOINT = '/decisions/stream';
+    /**
+     * @var string The watchers enroll endpoint
+     */
     public const ENROLL_ENDPOINT = '/watchers/enroll';
+    /**
+     * @var string The watchers login endpoint
+     */
     public const LOGIN_ENDPOINT = '/watchers/login';
+    /**
+     * @var int The number of login retry attempts in case of 401
+     */
     public const LOGIN_RETRY = 1;
+    /**
+     * @var int The machine_id length
+     */
     public const MACHINE_ID_LENGTH = 48;
+    /**
+     * @var int The password length
+     */
     public const PASSWORD_LENGTH = 32;
+    /**
+     * @var string The watchers register endpoint
+     */
     public const REGISTER_ENDPOINT = '/watchers';
+    /**
+     * @var int The number of register retry attempts in case of 500
+     */
     public const REGISTER_RETRY = 1;
+    /**
+     * @var string The signals push endpoint
+     */
     public const SIGNALS_ENDPOINT = '/signals';
     /**
      * @var array
@@ -67,25 +97,6 @@ class Watcher extends AbstractClient
         $this->configs['api_url'] =
             Constants::ENV_PROD === $this->getConfig('env') ? Constants::URL_PROD : Constants::URL_DEV;
         parent::__construct($this->configs, $requestHandler);
-    }
-
-    /**
-     * Validate tags and and returns an indexed array unique.
-     *
-     * @throws ClientException
-     */
-    private function normalizeTags(array $tags): array
-    {
-        foreach ($tags as $tag) {
-            if (!is_string($tag)) {
-                throw new ClientException('Tag must be a string: ' . gettype($tag) . ' given.', 500);
-            }
-            if (empty($tag)) {
-                throw new ClientException('Tag must not be empty', 500);
-            }
-        }
-
-        return array_unique(array_values($tags));
     }
 
     /**
@@ -308,6 +319,25 @@ class Watcher extends AbstractClient
         }
 
         return $response;
+    }
+
+    /**
+     * Validate tags and and returns an indexed array unique.
+     *
+     * @throws ClientException
+     */
+    private function normalizeTags(array $tags): array
+    {
+        foreach ($tags as $tag) {
+            if (!is_string($tag)) {
+                throw new ClientException('Tag must be a string: ' . gettype($tag) . ' given.', 500);
+            }
+            if (empty($tag)) {
+                throw new ClientException('Tag must not be empty', 500);
+            }
+        }
+
+        return array_unique(array_values($tags));
     }
 
     /**

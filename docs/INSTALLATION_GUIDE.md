@@ -1,6 +1,6 @@
 ![CrowdSec Logo](images/logo_crowdsec.png)
 
-# CrowdSec CAPI PHP client PHP
+# CrowdSec CAPI PHP client
 
 ## Installation Guide
 
@@ -17,13 +17,13 @@
 
 ## Requirements
 
-- PHP >= 5.3
+- PHP >= 7.2.5
 - required php extensions : `ext-json`
 
 By default, each call to the CrowdSec CAPI use [cURL](https://www.php.net/manual/en/book.curl.php) to process 
 http requests. Thus, if you are using this default curl request handler, then `ext-curl` is also required.
 
-As an alternative, you can implement your own request handler or use the `file_get_contents` request handler provided. 
+As an alternative, you can implement your own request handler or use the provided `file_get_contents` request handler. 
 
 ## Installation
 

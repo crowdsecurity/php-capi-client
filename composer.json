@@ -1,6 +1,6 @@
 {
     "name": "crowdsec/capi-client",
-    "description": "The official PHP client for the CrowdSec CAPI",
+    "description": "The official PHP client for the CrowdSec Central API (CAPI)",
     "type": "library",
     "license": "MIT",
     "minimum-stability": "stable",

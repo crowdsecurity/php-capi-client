@@ -2,7 +2,7 @@
 
 # CrowdSec CAPI PHP client
 
-> The official PHP client for the CrowdSec CAPI
+> The official PHP client for the CrowdSec Central API (CAPI)
 
 [![Version](https://img.shields.io/github/v/release/crowdsecurity/php-capi-client?include_prereleases)](https://github.com/crowdsecurity/php-capi-client/releases/)
 [![Test suite](https://github.com/crowdsecurity/php-capi-client/actions/workflows/unit-and-integration-test.yml/badge.svg)](https://github.com/crowdsecurity/php-capi-client/actions/workflows/unit-and-integration-test.yml)

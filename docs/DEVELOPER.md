@@ -36,12 +36,12 @@
 
 There are many ways to install this library on a local PHP environment.
 
-We are using [DDEV-Local](https://ddev.readthedocs.io/en/stable/) because it is quite simple to use and customize.
+We are using [DDEV](https://ddev.readthedocs.io/en/stable/) because it is quite simple to use and customize.
 
 Of course, you may use your own local stack, but we provide here some useful tools that depends on DDEV.
 
 
-### DDEV-Local setup
+### DDEV setup
 
 For a quick start, follow the below steps.
 
@@ -90,7 +90,7 @@ mkdir crowdsec-capi-client-dev-project
 
 ```bash
 cd crowdsec-capi-client-dev-project
-mkdir my-own-modules && mkdir my-own-modules/capi-client
+mkdir -p my-own-modules/capi-client
 cd my-own-modules/capi-client && git clone git@github.com:crowdsecurity/php-capi-client.git ./
 ```
 
@@ -243,7 +243,7 @@ global or difficult to assign to a specific part.
 
 Example:
 
-    feat(admin): Add css for admin actions
+    feat(watcher): Add a new endpoint for watcher
 
 
 You can use the `commit-msg` git hook that you will find in the `.githooks` folder : 
@@ -281,7 +281,7 @@ Before publishing a new release, there are some manual steps to take:
 Then, you have to [run the action manually from the GitHub repository](https://github.com/crowdsecurity/php-capi-client/actions/workflows/release.yml)
 
 
-Alternatively, you could use the [Github CLI](https://github.com/cli/cli): 
+Alternatively, you could use the [GitHub CLI](https://github.com/cli/cli): 
 - create a draft release: 
 ```
 gh workflow run release.yml -f tag_name=vx.y.z -f draft=true
@@ -295,7 +295,7 @@ gh workflow run release.yml -f tag_name=vx.y.z -f prerelease=true
 gh workflow run release.yml -f tag_name=vx.y.z
 ```
 
-Note that the Github action will fail if the tag `tag_name` already exits.
+Note that the GitHub action will fail if the tag `tag_name` already exits.
 
 
  
