@@ -9,10 +9,9 @@
 **Table of Contents**
 
 - [Local development](#local-development)
-  - [DDEV-Local setup](#ddev-local-setup)
+  - [DDEV setup](#ddev-setup)
     - [DDEV installation](#ddev-installation)
     - [Prepare DDEV PHP environment](#prepare-ddev-php-environment)
-      - [Older PHP versions : `5.3`,`5.4` and `5.5`](#older-php-versions--5354-and-55)
   - [DDEV Usage](#ddev-usage)
     - [Use composer to update or install the lib](#use-composer-to-update-or-install-the-lib)
     - [Unit test](#unit-test)
