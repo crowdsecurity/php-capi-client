@@ -56,9 +56,7 @@ class FileGetContents implements RequestHandlerInterface
     /**
      * @codeCoverageIgnore
      *
-     * @param string $url
      * @param resource $context
-     * @return array
      */
     protected function exec(string $url, $context): array
     {

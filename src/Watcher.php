@@ -305,6 +305,10 @@ class Watcher extends AbstractClient
                 $headers = array_merge($this->headers, $this->handleTokenHeader());
                 $response = $this->request($method, $endpoint, $parameters, $headers);
             } catch (ClientException $e) {
+                /**
+                 * If there is an issue with credentials or token, CAPI returns a 401 error.
+                 * In this case only, we try to log in again.
+                 */
                 if (401 !== $e->getCode()) {
                     throw new ClientException($e->getMessage(), $e->getCode());
                 }
@@ -378,6 +382,10 @@ class Watcher extends AbstractClient
                     $this->headers
                 );
             } catch (ClientException $e) {
+                /**
+                 * If the machine_id is already registered, CAPI returns a 500 error.
+                 * In this case only, we try to register again with new credentials.
+                 */
                 if (500 !== $e->getCode()) {
                     throw new ClientException($e->getMessage(), $e->getCode());
                 }

@@ -147,12 +147,11 @@ The `env` setting only accepts two values : `dev` and `prod`.
 
 This setting is not required. If you don't set any value, `dev` will be used by default.
 
-It will mainly change the called CAPI url: `https://api.dev.crowdsec.net/v2/` for the `dev` environment and 
-`https://api.crowdsec.net/v2/` for the `prod` one.
+It will mainly change the called CAPI url:
+- `https://api.dev.crowdsec.net/v2/` for the `dev` environment
+- `https://api.crowdsec.net/v2/` for the `prod` one.
 
-You should use it in your own code to implement different behaviors depending on the environment. For example, the 
-`FileStorage` class accepts a second parameter `$env` in its constructor to manage distinct `dev` and `prod` 
-credential files. 
+You should also use it in your own code to implement different behaviors depending on the environment. For example, the `FileStorage` class accepts a second parameter `$env` in its constructor to manage distinct `dev` and `prod`credential files.
 
 ### Machine Id prefix
 
