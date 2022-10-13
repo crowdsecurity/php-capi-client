@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Clone DDEV files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: .ddev
           repository: julienloizelet/ddev-php
@@ -38,7 +38,7 @@ jobs:
 
       - name: Install DDEV
         env:
-          DDEV_VERSION: v1.19.3
+          DDEV_VERSION: v1.21.1
         run: |
           # @see https://ddev.readthedocs.io/en/stable/#installationupgrade-script-linux-and-macos-armarm64-and-amd64-architectures
           sudo apt-get -qq update
@@ -65,7 +65,7 @@ jobs:
           ddev exec php -v
 
       - name: Clone PHP lib Crowdsec files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ${{env.EXTENSION_PATH}}
 

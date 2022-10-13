@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\HttpMessage;
 
 /**
@@ -10,7 +12,7 @@ namespace CrowdSec\CapiClient\HttpMessage;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 abstract class AbstractMessage
@@ -18,12 +20,9 @@ abstract class AbstractMessage
     /**
      * @var array
      */
-    protected $headers = array();
+    protected $headers = [];
 
-    /**
-     * @return array
-     */
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->headers;
     }

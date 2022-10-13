@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['5.6','7.0','7.1','7.2','7.3','7.4','8.0','8.1']
+        php-version: ['7.2','7.3','7.4','8.0','8.1']
 
     name: Unit and integration test
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Clone DDEV files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: .ddev
           repository: julienloizelet/ddev-php
@@ -42,7 +42,7 @@ jobs:
 
       - name: Install DDEV
         env:
-          DDEV_VERSION: v1.19.3
+          DDEV_VERSION: v1.21.1
         run: |
           # @see https://ddev.readthedocs.io/en/stable/#installationupgrade-script-linux-and-macos-armarm64-and-amd64-architectures
           sudo apt-get -qq update
@@ -69,7 +69,7 @@ jobs:
           ddev exec php -v
 
       - name: Clone PHP lib Crowdsec files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ${{env.EXTENSION_PATH}}
 
@@ -85,11 +85,11 @@ jobs:
         if: |
           github.event.inputs.unit_tests == 'true' ||
           github.event_name == 'push'
-        run:  ddev php ./${{env.EXTENSION_PATH}}/vendor/bin/phpunit --debug ./${{env.EXTENSION_PATH}}/tests/Unit
+        run:  ddev php ./${{env.EXTENSION_PATH}}/vendor/bin/phpunit --debug ./${{env.EXTENSION_PATH}}/tests/Unit --testdox
 
       - name: Run Integration tests
         if: |
           github.event.inputs.integration_tests == 'true' ||
           github.event_name == 'push'
-        run: ddev exec "export MACHINE_ID=${{ secrets.TEST_MACHINE_ID }}; export PASSWORD=${{ secrets.TEST_MACHINE_PWD }}; php  ./${{env.EXTENSION_PATH}}/vendor/bin/phpunit  ./${{env.EXTENSION_PATH}}/tests/Integration"
+        run: ddev php  ./${{env.EXTENSION_PATH}}/vendor/bin/phpunit  ./${{env.EXTENSION_PATH}}/tests/Integration --testdox
 

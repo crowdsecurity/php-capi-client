@@ -9,13 +9,14 @@ namespace CrowdSec\CapiClient\Tests\Integration;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 
 use CrowdSec\CapiClient\AbstractClient;
 use CrowdSec\CapiClient\RequestHandler\FileGetContents;
-use CrowdSec\CapiClient\Tests\MockedData;
+use CrowdSec\CapiClient\Storage\FileStorage;
+use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use PHPUnit\Framework\TestCase;
@@ -25,110 +26,18 @@ use PHPUnit\Framework\TestCase;
  */
 final class WatcherTest extends TestCase
 {
-    const BAD_MACHINE_ID = 'test';
+    protected $configs = [
+        'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
+        'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX,
+        'scenarios' => ['crowdsecurity/http-backdoors-attempts'],
+    ];
 
-    const BAD_PASSWORD = '1234';
-
-    public function requestHandlerProvider()
+    public function requestHandlerProvider(): array
     {
-        return array(
-            'Default (Curl)' => array(null),
-            'FileGetContents' => array(new FileGetContents()),
-        );
-    }
-
-    /**
-     * @dataProvider requestHandlerProvider
-     */
-    public function testRegister($requestHandler)
-    {
-        $machineId = getenv('MACHINE_ID');
-        $password = getenv('PASSWORD');
-        $this->assertNotFalse($machineId, 'Machine id must be defined');
-        $this->assertNotFalse($password, 'Password must be defined');
-        // Test with bad credentials
-        $configs = array('machine_id' => self::BAD_MACHINE_ID, 'password' => self::BAD_MACHINE_ID);
-        $client = new Watcher($configs, $requestHandler);
-        $this->checkRequestHandler($client, $requestHandler);
-        $response = $client->register();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_500 . '.*Something went wrong/',
-            $response['error'],
-            'Bad credentials'
-        );
-        // Test with already registered watcher
-        $configs = array('machine_id' => $machineId, 'password' => $password);
-        $client = new Watcher($configs, $requestHandler);
-        $this->checkRequestHandler($client, $requestHandler);
-        $response = $client->register();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_500 . '.*User already registered/',
-            $response['error'],
-            'Already registered'
-        );
-        // Test with already registered watcher but bad password
-        $configs = array('machine_id' => $machineId, 'password' => self::BAD_PASSWORD);
-        $client = new Watcher($configs, $requestHandler);
-        $this->checkRequestHandler($client, $requestHandler);
-        $response = $client->register();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_500 . '.*Something went wrong/',
-            $response['error'],
-            'Bad password'
-        );
-    }
-
-    /**
-     * @dataProvider requestHandlerProvider
-     */
-    public function testLogin($requestHandler)
-    {
-        $machineId = getenv('MACHINE_ID');
-        $password = getenv('PASSWORD');
-        $this->assertNotFalse($machineId, 'Machine id must be defined');
-        $this->assertNotFalse($password, 'Password must be defined');
-        // Test with bad credentials
-        $configs = array('machine_id' => self::BAD_MACHINE_ID, 'password' => self::BAD_MACHINE_ID);
-        $client = new Watcher($configs, $requestHandler);
-        $this->checkRequestHandler($client, $requestHandler);
-        $response = $client->login();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_400 . '.*too short/',
-            $response['error'],
-            'Bad credentials'
-        );
-        // Test with already registered watcher
-        $configs = array('machine_id' => $machineId, 'password' => $password);
-        $client = new Watcher($configs, $requestHandler);
-        $this->checkRequestHandler($client, $requestHandler);
-        $response = $client->login();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_200 . '/',
-            (string) $response['code'],
-            'Login ok'
-        );
-        // Test with already registered watcher but bad password
-        $configs = array('machine_id' => $machineId, 'password' => self::BAD_PASSWORD);
-        $client = new Watcher($configs, $requestHandler);
-        $this->checkRequestHandler($client, $requestHandler);
-        $response = $client->login();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/' . MockedData::HTTP_403 . '.*password is incorrect/',
-            $response['error'],
-            'Bad password'
-        );
+        return [
+            'Default (Curl)' => [null],
+            'FileGetContents' => [new FileGetContents()],
+        ];
     }
 
     /**
@@ -136,25 +45,7 @@ final class WatcherTest extends TestCase
      */
     public function testDecisionsStream($requestHandler)
     {
-        $machineId = getenv('MACHINE_ID');
-        $password = getenv('PASSWORD');
-        $this->assertNotFalse($machineId, 'Machine id must be defined');
-        $this->assertNotFalse($password, 'Password must be defined');
-        // Test with bad credentials
-        $configs = array('machine_id' => self::BAD_MACHINE_ID, 'password' => self::BAD_MACHINE_ID);
-        $client = new Watcher($configs, $requestHandler);
-        $this->checkRequestHandler($client, $requestHandler);
-        $response = $client->getStreamDecisions();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/Token is required.*' . MockedData::HTTP_400 . '.*too short/',
-            $response['error'],
-            'Token is required'
-        );
-        // Test with already registered watcher
-        $configs = array('machine_id' => $machineId, 'password' => $password);
-        $client = new Watcher($configs, $requestHandler);
+        $client = new Watcher($this->configs, new FileStorage(), $requestHandler);
         $this->checkRequestHandler($client, $requestHandler);
         $response = $client->getStreamDecisions();
 
@@ -167,27 +58,9 @@ final class WatcherTest extends TestCase
      */
     public function testPushSignals($requestHandler)
     {
-        $machineId = getenv('MACHINE_ID');
-        $password = getenv('PASSWORD');
-        $this->assertNotFalse($machineId, 'Machine id must be defined');
-        $this->assertNotFalse($password, 'Password must be defined');
-        // Test with bad credentials
-        $configs = array('machine_id' => self::BAD_MACHINE_ID, 'password' => self::BAD_MACHINE_ID);
-        $client = new Watcher($configs, $requestHandler);
+        $client = new Watcher($this->configs, new FileStorage(), $requestHandler);
         $this->checkRequestHandler($client, $requestHandler);
-        $response = $client->getStreamDecisions();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/Token is required.*' . MockedData::HTTP_400 . '.*too short/',
-            $response['error'],
-            'Token is required'
-        );
-        // Test with already registered watcher
-        $configs = array('machine_id' => $machineId, 'password' => $password);
-        $client = new Watcher($configs, $requestHandler);
-        $this->checkRequestHandler($client, $requestHandler);
-        $signals = $this->getSignals($machineId);
+        $signals = $this->getSignals();
         $response = $client->pushSignals($signals);
 
         PHPUnitUtil::assertRegExp(
@@ -199,12 +72,11 @@ final class WatcherTest extends TestCase
     }
 
     /**
-     * @param AbstractClient $client
      * @param $requestHandler
      *
      * @return void
      */
-    private function checkRequestHandler($client, $requestHandler)
+    private function checkRequestHandler(AbstractClient $client, $requestHandler)
     {
         if (null === $requestHandler) {
             $this->assertEquals(
@@ -222,20 +94,18 @@ final class WatcherTest extends TestCase
     }
 
     /**
-     * @param $machineId
-     *
      * @return array[]
      */
-    private function getSignals($machineId)
+    private function getSignals(): array
     {
-        return array(
-            0 => array(
-                'machine_id' => $machineId,
+        return [
+            0 => [
+                'machine_id' => 'MACHINE_ID',
                 'message' => 'Ip 1.1.1.1 performed "crowdsecurity / http - path - traversal - probing" (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338',
                 'scenario' => 'crowdsecurity/http-path-traversal-probing',
                 'scenario_hash' => '',
                 'scenario_version' => '',
-                'source' => array(
+                'source' => [
                     'id' => 1,
                     'as_name' => 'CAPI CLIENT PHP INTEGRATION TEST',
                     'cn' => 'FR',
@@ -245,17 +115,17 @@ final class WatcherTest extends TestCase
                     'range' => '1.1.1.1/32',
                     'scope' => 'test',
                     'value' => '1.1.1.1',
-                ),
+                ],
                 'start_at' => '2020-11-06T20:13:41.196817737Z',
                 'stop_at' => '2020-11-06T20:14:11.189252228Z',
-            ),
-            1 => array(
-                'machine_id' => $machineId,
+            ],
+            1 => [
+                'machine_id' => 'MACHINE_ID',
                 'message' => 'Ip 2.2.2.2 performed "crowdsecurity / http - probing" (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338',
                 'scenario' => 'crowdsecurity/http-probing',
                 'scenario_hash' => '',
                 'scenario_version' => '',
-                'source' => array(
+                'source' => [
                     'id' => 2,
                     'as_name' => 'CAPI CLIENT PHP INTEGRATION TEST',
                     'cn' => 'FR',
@@ -265,10 +135,10 @@ final class WatcherTest extends TestCase
                     'range' => '2.2.2.2/32',
                     'scope' => 'test',
                     'value' => '2.2.2.2',
-                ),
+                ],
                 'start_at' => '2020-11-06T20:13:41.196817737Z',
                 'stop_at' => '2020-11-06T20:14:11.189252228Z',
-            ),
-        );
+            ],
+        ];
     }
 }

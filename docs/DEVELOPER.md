@@ -36,26 +36,26 @@
 
 There are many ways to install this library on a local PHP environment.
 
-We are using [DDEV-Local](https://ddev.readthedocs.io/en/stable/) because it is quite simple to use and customize.
+We are using [DDEV](https://ddev.readthedocs.io/en/stable/) because it is quite simple to use and customize.
 
 Of course, you may use your own local stack, but we provide here some useful tools that depends on DDEV.
 
 
-### DDEV-Local setup
+### DDEV setup
 
 For a quick start, follow the below steps.
 
 
 #### DDEV installation
 
-This project is fully compatible with DDEV 1.19.3, and it is recommended to use this specific version.
+This project is fully compatible with DDEV 1.21.1, and it is recommended to use this specific version.
 For the DDEV installation, please follow the [official instructions](https://ddev.readthedocs.io/en/stable/#installation).
 On a Linux distribution, you can run:
 ```
 sudo apt-get -qq update
 sudo apt-get -qq -y install libnss3-tools
 curl -LO https://raw.githubusercontent.com/drud/ddev/master/scripts/install_ddev.sh
-bash install_ddev.sh v1.19.3
+bash install_ddev.sh v1.21.1
 rm install_ddev.sh
 ```
 
@@ -90,7 +90,7 @@ mkdir crowdsec-capi-client-dev-project
 
 ```bash
 cd crowdsec-capi-client-dev-project
-mkdir my-own-modules && mkdir my-own-modules/capi-client
+mkdir -p my-own-modules/capi-client
 cd my-own-modules/capi-client && git clone git@github.com:crowdsecurity/php-capi-client.git ./
 ```
 
@@ -116,26 +116,6 @@ cd .ddev && ddev start
 This should take some times on the first launch as this will download all necessary docker images.
 
 
-##### Older PHP versions : `5.3`,`5.4` and `5.5`
-The oldest version of PHP that DDEV maintains is `5.6`. For older versions, we use additional docker-compose files 
-that wil add a [Devilbox ready-to-use container](https://github.com/devilbox/docker-php-fpm).
-
-Before launching DDEV, you have to copy one of the 3 additional docker-compose files. For example, if you want to 
-test the lib in a PHP `5.3` container:
-```bash
-cd crowdsec-capi-client-dev-project
-cp .ddev/additional_docker_compose/docker-compose.php53.yaml .ddev/docker-compose.php53.yaml
-```
-
-Then, for each DDEV line command that you will see below, you will have to replace `ddev` by `ddev exec -s php53` 
-and replace relative path by absolute paths.
-
-For example, to run the `composer update` command, run:
-
-```bash
-ddev exec -s php53 composer update --working-dir /var/www/html/my-own-modules/capi-client
-```
-
 ### DDEV Usage
 
 
@@ -158,7 +138,7 @@ ddev php ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-
 In order to launch integration tests, we have to set some environment variables:
 
 ```bash
-ddev exec "export MACHINE_ID=<YOUR_TEST_MACHINE_ID>; export PASSWORD=<YOUR_TEST_MACHINE_PASSWORD>; php  ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-client/tests/Integration"     
+ddev php ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-client/tests/Integration --testdox     
 ```
 
 
@@ -263,7 +243,7 @@ global or difficult to assign to a specific part.
 
 Example:
 
-    feat(admin): Add css for admin actions
+    feat(watcher): Add a new endpoint for watcher
 
 
 You can use the `commit-msg` git hook that you will find in the `.githooks` folder : 
@@ -301,7 +281,7 @@ Before publishing a new release, there are some manual steps to take:
 Then, you have to [run the action manually from the GitHub repository](https://github.com/crowdsecurity/php-capi-client/actions/workflows/release.yml)
 
 
-Alternatively, you could use the [Github CLI](https://github.com/cli/cli): 
+Alternatively, you could use the [GitHub CLI](https://github.com/cli/cli): 
 - create a draft release: 
 ```
 gh workflow run release.yml -f tag_name=vx.y.z -f draft=true
@@ -315,7 +295,7 @@ gh workflow run release.yml -f tag_name=vx.y.z -f prerelease=true
 gh workflow run release.yml -f tag_name=vx.y.z
 ```
 
-Note that the Github action will fail if the tag `tag_name` already exits.
+Note that the GitHub action will fail if the tag `tag_name` already exits.
 
 
  

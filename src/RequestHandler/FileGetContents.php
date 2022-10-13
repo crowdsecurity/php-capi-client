@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\RequestHandler;
 
 use CrowdSec\CapiClient\ClientException;
@@ -7,13 +9,13 @@ use CrowdSec\CapiClient\HttpMessage\Request;
 use CrowdSec\CapiClient\HttpMessage\Response;
 
 /**
- * file_get_contents request handler.
+ * File_get_contents request handler.
  *
  * @author    CrowdSec team
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 class FileGetContents implements RequestHandlerInterface
@@ -23,7 +25,7 @@ class FileGetContents implements RequestHandlerInterface
      *
      * @throws ClientException
      */
-    public function handle(Request $request)
+    public function handle(Request $request): Response
     {
         $config = $this->createContextConfig($request);
         $context = stream_context_create($config);
@@ -42,47 +44,44 @@ class FileGetContents implements RequestHandlerInterface
         $fullResponse = $this->exec($url, $context);
         $responseBody = (isset($fullResponse['response'])) ? $fullResponse['response'] : false;
         if (false === $responseBody) {
-            throw new ClientException('Unexpected HTTP call failure.');
+            throw new ClientException('Unexpected HTTP call failure.', 500);
         }
-        $responseHeaders = (isset($fullResponse['header'])) ? $fullResponse['header'] : array();
-        $parts = !empty($responseHeaders) ? explode(' ', $responseHeaders[0]) : array();
+        $responseHeaders = (isset($fullResponse['header'])) ? $fullResponse['header'] : [];
+        $parts = !empty($responseHeaders) ? explode(' ', $responseHeaders[0]) : [];
         $status = $this->getResponseHttpCode($parts);
 
         return new Response($responseBody, $status);
     }
 
     /**
-     * Retrieve configuration for the stream content.
+     * @codeCoverageIgnore
      *
-     * @return array|array[]
+     * @param resource $context
      */
-    private function createContextConfig(Request $request)
+    protected function exec(string $url, $context): array
     {
-        $headers = $request->getHeaders();
-        if (!isset($headers['User-Agent'])) {
-            throw new ClientException('User agent is required');
-        }
-        $header = $this->convertHeadersToString($headers);
-        $method = $request->getMethod();
-        $config = array(
-            'http' => array(
-                'method' => $method,
-                'header' => $header,
-                'ignore_errors' => true,
-            ),
-        );
+        return ['response' => file_get_contents($url, false, $context), 'header' => $http_response_header];
+    }
 
-        if ('POST' === strtoupper($method)) {
-            $config['http']['content'] = json_encode($request->getParams());
+    /**
+     * @param string[] $parts
+     *
+     * @psalm-param list<string> $parts
+     */
+    protected function getResponseHttpCode(array $parts): int
+    {
+        $status = 0;
+        if (\count($parts) > 1) {
+            $status = (int) $parts[1];
         }
 
-        return $config;
+        return $status;
     }
 
     /**
      * Convert a key-value array of headers to the official HTTP header string.
      */
-    private function convertHeadersToString(array $headers)
+    private function convertHeadersToString(array $headers): string
     {
         $builtHeaderString = '';
         foreach ($headers as $key => $value) {
@@ -93,30 +92,32 @@ class FileGetContents implements RequestHandlerInterface
     }
 
     /**
-     * @codeCoverageIgnore
+     * Retrieve configuration for the stream content.
      *
-     * @param $url
-     * @param $context
+     * @return array|array[]
      *
-     * @return array
+     * @throws ClientException
      */
-    protected function exec($url, $context)
+    private function createContextConfig(Request $request): array
     {
-        return array('response' => file_get_contents($url, false, $context), 'header' => $http_response_header);
-    }
+        $headers = $request->getHeaders();
+        if (!isset($headers['User-Agent'])) {
+            throw new ClientException('User agent is required', 400);
+        }
+        $header = $this->convertHeadersToString($headers);
+        $method = $request->getMethod();
+        $config = [
+            'http' => [
+                'method' => $method,
+                'header' => $header,
+                'ignore_errors' => true,
+            ],
+        ];
 
-    /**
-     * @param $parts
-     *
-     * @return int
-     */
-    protected function getResponseHttpCode($parts)
-    {
-        $status = 0;
-        if (\count($parts) > 1) {
-            $status = (int) ($parts[1]);
+        if ('POST' === strtoupper($method)) {
+            $config['http']['content'] = json_encode($request->getParams());
         }
 
-        return $status;
+        return $config;
     }
 }

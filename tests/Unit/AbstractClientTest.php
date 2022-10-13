@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\Tests\Unit;
 
 /**
@@ -9,38 +11,44 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\HttpMessage\Response;
+use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
-use PHPUnit\Framework\TestCase;
+use DateTime;
+use TypeError;
 
 /**
+ * @uses \CrowdSec\CapiClient\HttpMessage\Response
+ * @uses \CrowdSec\CapiClient\Configuration::getConfigTreeBuilder
+ * @uses \CrowdSec\CapiClient\Watcher::formatUserAgent
+ * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
+ *
  * @covers \CrowdSec\CapiClient\AbstractClient::__construct
- * @covers \CrowdSec\CapiClient\AbstractClient::getUrl
  * @covers \CrowdSec\CapiClient\AbstractClient::getConfig
+ * @covers \CrowdSec\CapiClient\AbstractClient::getUrl
  * @covers \CrowdSec\CapiClient\AbstractClient::getRequestHandler
  * @covers \CrowdSec\CapiClient\AbstractClient::formatResponseBody
  * @covers \CrowdSec\CapiClient\AbstractClient::getFullUrl
- *
- * @uses \CrowdSec\CapiClient\HttpMessage\Response
+ * @covers \CrowdSec\CapiClient\Watcher::__construct
+ * @covers \CrowdSec\CapiClient\Watcher::configure
  */
-final class AbstractClientTest extends TestCase
+final class AbstractClientTest extends AbstractClient
 {
     public function testClientInit()
     {
-        $configs = array('machine_id' => 'test', 'password' => 'test-password');
-        $client = new Watcher($configs);
+        $client = new Watcher($this->configs, new FileStorage());
 
         $url = $client->getUrl();
         $this->assertEquals(
-            Constants::DEV_URL,
+            Constants::URL_DEV,
             $url,
             'Url should be dev by default'
         );
@@ -50,13 +58,6 @@ final class AbstractClientTest extends TestCase
             'Url should end with /'
         );
 
-        $config = $client->getConfig('password');
-        $this->assertEquals(
-            'test-password',
-            $config,
-            'Config should be set'
-        );
-
         $requestHandler = $client->getRequestHandler();
         $this->assertEquals(
             'CrowdSec\CapiClient\RequestHandler\Curl',
@@ -64,10 +65,10 @@ final class AbstractClientTest extends TestCase
             'Request handler must be curl by default'
         );
 
-        $client = new Watcher(array_merge($configs, array('prod' => true)));
+        $client = new Watcher(array_merge($this->configs, ['env' => Constants::ENV_PROD]), new FileStorage());
         $url = $client->getUrl();
         $this->assertEquals(
-            Constants::PROD_URL,
+            Constants::URL_PROD,
             $url,
             'Url should be prod if specified'
         );
@@ -78,18 +79,10 @@ final class AbstractClientTest extends TestCase
         );
 
         $error = false;
-        if (\PHP_VERSION_ID < 70000) {
-            try {
-                new Watcher($configs, new \DateTime());
-            } catch (\Exception $e) {
-                $error = $e->getMessage();
-            }
-        } else {
-            try {
-                new Watcher($configs, new \DateTime());
-            } catch (\TypeError $e) {
-                $error = $e->getMessage();
-            }
+        try {
+            new Watcher($this->configs, new FileStorage(), new DateTime());
+        } catch (TypeError $e) {
+            $error = $e->getMessage();
         }
 
         PHPUnitUtil::assertRegExp(
@@ -102,30 +95,29 @@ final class AbstractClientTest extends TestCase
 
     public function testPrivateOrProtectedMethods()
     {
-        $configs = array('machine_id' => 'test', 'password' => 'test');
-        $client = new Watcher($configs);
+        $client = new Watcher($this->configs, new FileStorage());
 
         $fullUrl = PHPUnitUtil::callMethod(
             $client,
             'getFullUrl',
-            array('/test-endpoint')
+            ['/test-endpoint']
         );
         $this->assertEquals(
-            Constants::DEV_URL . 'test-endpoint',
+            Constants::URL_DEV . 'test-endpoint',
             $fullUrl,
             'Full Url should be ok'
         );
 
-        $jsonBody = json_encode(array('message' => 'ok'));
+        $jsonBody = json_encode(['message' => 'ok']);
 
         $response = new Response($jsonBody, 200);
 
-        $formattedResponse = array('message' => 'ok');
+        $formattedResponse = ['message' => 'ok'];
 
         $validateResponse = PHPUnitUtil::callMethod(
             $client,
             'formatResponseBody',
-            array($response)
+            [$response]
         );
         $this->assertEquals(
             $formattedResponse,
@@ -140,7 +132,7 @@ final class AbstractClientTest extends TestCase
             PHPUnitUtil::callMethod(
                 $client,
                 'formatResponseBody',
-                array($response)
+                [$response]
             );
         } catch (ClientException $e) {
             $error = $e->getMessage();
@@ -158,11 +150,11 @@ final class AbstractClientTest extends TestCase
         $decodedResponse = PHPUnitUtil::callMethod(
             $client,
             'formatResponseBody',
-            array($response)
+            [$response]
         );
 
         $this->assertEquals(
-            array('message' => 'User already registered.'),
+            ['message' => 'User already registered.'],
             $decodedResponse,
             'Decoded response should be correct'
         );
@@ -174,7 +166,7 @@ final class AbstractClientTest extends TestCase
             PHPUnitUtil::callMethod(
                 $client,
                 'formatResponseBody',
-                array($response)
+                [$response]
             );
         } catch (ClientException $e) {
             $error = $e->getMessage();
@@ -187,14 +179,15 @@ final class AbstractClientTest extends TestCase
             'Should throw error on 403'
         );
 
-        $response = new Response(null, 200);
+        $response = new Response('', 200);
 
         $error = false;
+        $decoded = [];
         try {
             $decoded = PHPUnitUtil::callMethod(
                 $client,
                 'formatResponseBody',
-                array($response)
+                [$response]
             );
         } catch (ClientException $e) {
             $error = true;
@@ -207,19 +200,19 @@ final class AbstractClientTest extends TestCase
         );
 
         $this->assertEquals(
-            array('message' => ''),
+            ['message' => ''],
             $decoded,
             'An empty response body should not return some array'
         );
 
-        $response = new Response(null, 500);
+        $response = new Response('', 500);
 
         $error = false;
         try {
             PHPUnitUtil::callMethod(
                 $client,
                 'formatResponseBody',
-                array($response)
+                [$response]
             );
         } catch (ClientException $e) {
             $error = $e->getMessage();
@@ -232,22 +225,16 @@ final class AbstractClientTest extends TestCase
             'An empty response body should throw error for bad status'
         );
 
-        $response = new Response(array('test'), 200);
-
         $error = false;
         try {
-            PHPUnitUtil::callMethod(
-                $client,
-                'formatResponseBody',
-                array($response)
-            );
-        } catch (ClientException $e) {
+            new Response(['test'], 200);
+        } catch (TypeError $e) {
             $error = $e->getMessage();
         }
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/Body response must be a string./',
+            '/type .*string/',
             $error,
             'If response body is not a string it should throw error'
         );

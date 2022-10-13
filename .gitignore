@@ -7,3 +7,6 @@ composer.lock
 
 #debug
 *.log
+
+# File storage
+src/Storage/*.json

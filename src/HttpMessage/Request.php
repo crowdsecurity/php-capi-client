@@ -1,8 +1,8 @@
 <?php
 
-namespace CrowdSec\CapiClient\HttpMessage;
+declare(strict_types=1);
 
-use CrowdSec\CapiClient\Constants;
+namespace CrowdSec\CapiClient\HttpMessage;
 
 /**
  * Request that will be sent to CAPI.
@@ -11,7 +11,7 @@ use CrowdSec\CapiClient\Constants;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 class Request extends AbstractMessage
@@ -19,70 +19,43 @@ class Request extends AbstractMessage
     /**
      * @var array
      */
-    protected $headers = array(
+    protected $headers = [
         'Accept' => 'application/json',
         'Content-Type' => 'application/json',
-    );
-
+    ];
+    /**
+     * @var string
+     */
+    private $method;
+    /**
+     * @var array
+     */
+    private $parameters;
     /**
      * @var string
      */
     private $uri;
 
-    /**
-     * @var string
-     */
-    private $method;
-
-    /**
-     * @var array
-     */
-    private $parameters;
-
-    /**
-     * @param string $uri
-     * @param string $method
-     */
-    public function __construct($uri, $method, array $headers = array(), array $parameters = array())
+    public function __construct(string $uri, string $method, array $headers = [], array $parameters = [])
     {
         $this->uri = $uri;
         $this->method = $method;
-        $this->headers['User-Agent'] = $this->formatUserAgent();
         $this->headers = array_merge($this->headers, $headers);
         $this->parameters = $parameters;
     }
 
-    /**
-     * @return string
-     */
-    public function getUri()
-    {
-        return $this->uri;
-    }
-
-    /**
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->parameters;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMethod()
+    public function getMethod(): string
     {
         return $this->method;
     }
 
-    /**
-     * Retrieve the user agent used to call CAPI.
-     *
-     * @return string
-     */
-    protected function formatUserAgent()
+    public function getParams(): array
     {
-        return Constants::USER_AGENT_PREFIX . Constants::VERSION;
+        return $this->parameters;
+    }
+
+    public function getUri(): string
+    {
+        return $this->uri;
     }
 }

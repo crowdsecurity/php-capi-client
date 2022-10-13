@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CrowdSec\CapiClient\RequestHandler;
 
 use CrowdSec\CapiClient\ClientException;
@@ -13,7 +15,7 @@ use CrowdSec\CapiClient\HttpMessage\Response;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
- * @copyright Copyright (c) 2020+ CrowdSec
+ * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
 class Curl implements RequestHandlerInterface
@@ -23,7 +25,7 @@ class Curl implements RequestHandlerInterface
      *
      * @throws ClientException
      */
-    public function handle(Request $request)
+    public function handle(Request $request): Response
     {
         $handle = curl_init();
 
@@ -33,7 +35,7 @@ class Curl implements RequestHandlerInterface
         $response = $this->exec($handle);
 
         if (false === $response) {
-            throw new ClientException('Unexpected CURL call failure: ' . curl_error($handle));
+            throw new ClientException('Unexpected CURL call failure: ' . curl_error($handle), 500);
         }
 
         $statusCode = $this->getResponseHttpCode($handle);
@@ -43,13 +45,13 @@ class Curl implements RequestHandlerInterface
 
         curl_close($handle);
 
-        return new Response($response, $statusCode);
+        return new Response((string) $response, $statusCode);
     }
 
     /**
      * @codeCoverageIgnore
      *
-     * @param $handle
+     * @param resource $handle
      *
      * @return bool|string
      */
@@ -61,7 +63,7 @@ class Curl implements RequestHandlerInterface
     /**
      * @codeCoverageIgnore
      *
-     * @param $handle
+     * @param resource $handle
      *
      * @return mixed
      */
@@ -73,28 +75,26 @@ class Curl implements RequestHandlerInterface
     /**
      * Retrieve Curl options.
      *
-     * @return array
-     *
      * @throws ClientException
      */
-    private function createOptions(Request $request)
+    private function createOptions(Request $request): array
     {
         $headers = $request->getHeaders();
         $method = $request->getMethod();
         $url = $request->getUri();
         $parameters = $request->getParams();
         if (!isset($headers['User-Agent'])) {
-            throw new ClientException('User agent is required');
+            throw new ClientException('User agent is required', 400);
         }
-        $options = array(
+        $options = [
             \CURLOPT_HEADER => false,
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_USERAGENT => $headers['User-Agent'],
-        );
+        ];
 
-        $options[\CURLOPT_HTTPHEADER] = array();
+        $options[\CURLOPT_HTTPHEADER] = [];
         foreach ($headers as $key => $values) {
-            foreach (\is_array($values) ? $values : array($values) as $value) {
+            foreach (\is_array($values) ? $values : [$values] as $value) {
                 $options[\CURLOPT_HTTPHEADER][] = sprintf('%s:%s', $key, $value);
             }
         }
