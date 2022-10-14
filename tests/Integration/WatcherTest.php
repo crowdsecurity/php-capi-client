@@ -31,7 +31,7 @@ final class WatcherTest extends TestCase
     protected $configs = [
         'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
         'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX,
-        'scenarios' => ['crowdsecurity/http-backdoors-attempts'],
+        'scenarios' => ['crowdsecurity/http-backdoors-attempts', 'crowdsecurity/http-bad-user-agent'],
     ];
 
     public function requestHandlerProvider(): array
