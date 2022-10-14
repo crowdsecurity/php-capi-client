@@ -22,13 +22,13 @@ use Symfony\Component\Config\Definition\Processor;
 class Watcher extends AbstractClient
 {
     /**
-     * @var string The list of authorized characters for machine_id_and password
-     */
-    public const CREDENTIAL_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    /**
      * @var string The decisions stream endpoint
      */
     public const DECISIONS_STREAM_ENDPOINT = '/decisions/stream';
+    /**
+     * @var string The list of available digits
+     */
+    private const DIGITS = '0123456789';
     /**
      * @var string The watchers enroll endpoint
      */
@@ -41,6 +41,10 @@ class Watcher extends AbstractClient
      * @var int The number of login retry attempts in case of 401
      */
     public const LOGIN_RETRY = 1;
+    /**
+     * @var string The list of available lowercase letters
+     */
+    private const LOWERS = 'abcdefghijklmnopqrstuvwxyz';
     /**
      * @var int The machine_id length
      */
@@ -61,6 +65,10 @@ class Watcher extends AbstractClient
      * @var string The signals push endpoint
      */
     public const SIGNALS_ENDPOINT = '/signals';
+    /**
+     * @var string The list of available uppercase letters
+     */
+    private const UPPERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     /**
      * @var array
      */
@@ -200,7 +208,10 @@ class Watcher extends AbstractClient
     {
         $prefix = !empty($configs['machine_id_prefix']) ? $configs['machine_id_prefix'] : '';
 
-        return $prefix . $this->generateRandomString(self::MACHINE_ID_LENGTH - strlen($prefix));
+        return $prefix . $this->generateRandomString(
+            self::MACHINE_ID_LENGTH - strlen($prefix),
+            self::LOWERS . self::DIGITS
+        );
     }
 
     /**
@@ -208,7 +219,7 @@ class Watcher extends AbstractClient
      */
     private function generatePassword(): string
     {
-        return $this->generateRandomString(self::PASSWORD_LENGTH);
+        return $this->generateRandomString(self::PASSWORD_LENGTH, self::UPPERS . self::LOWERS . self::DIGITS);
     }
 
     /**
@@ -216,13 +227,15 @@ class Watcher extends AbstractClient
      *
      * @throws Exception
      */
-    private function generateRandomString(int $length): string
+    private function generateRandomString(int $length, string $chars): string
     {
         if ($length < 1) {
             throw new Exception('Length must be greater than zero.');
         }
-        $chars = self::CREDENTIAL_CHARS;
         $chLen = strlen($chars);
+        if ($chLen < 1) {
+            throw new Exception('There must be at least one allowed character.');
+        }
         $res = '';
         for ($i = 0; $i < $length; ++$i) {
             $res .= $chars[random_int(0, $chLen - 1)];

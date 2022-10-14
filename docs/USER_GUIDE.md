@@ -177,10 +177,10 @@ $configs = array(
 This setting is not required.
 
 When you make your first call with a watcher, a `machine_id` will be generated and stored through your storage 
-implementation. This `machine_id` is a string of length 48 composed of characters matching the regular expression `#^[A-Za-z0-9]+$#`.
+implementation. This `machine_id` is a string of length 48 composed of characters matching the regular expression `#^[a-z0-9]+$#`.
 
 The `machine_id_prefix` setting allows to set a custom prefix to this `machine_id`. It must be a string with a length 
-less than or equal to 16 and matching the regular expression `#^[A-Za-z0-9]+$#` too. 
+less than or equal to 16 and matching the regular expression `#^[a-z0-9]+$#` too. 
 
 The final generated `machine_id` will still have a length of 48.
 
@@ -372,12 +372,12 @@ php tests/scripts/watcher/signals.php '["crowdsecurity/http-backdoors-attempts",
 #### Command usage
 
 ```php
-php enroll.php <SCENARIOS_JSON> <NAME> <OVERWRITE> <ENROLL_KEY> <TAGS_JSON>
+php tests/scripts/watcher/enroll.php <SCENARIOS_JSON> <NAME> <OVERWRITE> <ENROLL_KEY> <TAGS_JSON>
 ```
 
 
 #### Example
 
 ```bash
-php enroll.php  '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' TESTWATCHER 0 ZZZZZAAAAA '["tag1", "tag2"]'
+php tests/scripts/watcher/enroll.php  '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' TESTWATCHER 0 ZZZZZAAAAA '["tag1", "tag2"]'
 ```

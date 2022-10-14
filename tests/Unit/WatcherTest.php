@@ -603,7 +603,7 @@ class WatcherTest extends AbstractClient
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/^[A-Za-z0-9]+$/',
+            '/^[a-z0-9]+$/',
             $result,
             'Machine should be well formatted'
         );
@@ -611,7 +611,7 @@ class WatcherTest extends AbstractClient
         $result = PHPUnitUtil::callMethod(
             $client,
             'generateMachineId',
-            [['machine_id_prefix' => 'ThisIsATest']]
+            [['machine_id_prefix' => 'thisisatest']]
         );
 
         $this->assertEquals(
@@ -622,14 +622,14 @@ class WatcherTest extends AbstractClient
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/^[A-Za-z0-9]+$/',
+            '/^[a-z0-9]+$/',
             $result,
             'Machine should be well formatted'
         );
 
         $this->assertEquals(
-            'ThisIsATest',
-            substr($result, 0, strlen('ThisIsATest')),
+            'thisisatest',
+            substr($result, 0, strlen('thisisatest')),
             'Machine id should begin with machine id prefix'
         );
 
@@ -639,7 +639,7 @@ class WatcherTest extends AbstractClient
             PHPUnitUtil::callMethod(
                 $client,
                 'generateRandomString',
-                [0]
+                [0, 'ab']
             );
         } catch (Exception $e) {
             $error = $e->getMessage();
@@ -650,6 +650,24 @@ class WatcherTest extends AbstractClient
             '/Length must be greater than zero/',
             $error,
             'Random string must have a length greater than 0'
+        );
+
+        $error = '';
+        try {
+            PHPUnitUtil::callMethod(
+                $client,
+                'generateRandomString',
+                [2, '']
+            );
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/There must be at least one allowed character./',
+            $error,
+            'There must be at least one allowed character.'
         );
 
         // Test shouldRefreshCredentials
