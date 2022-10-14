@@ -85,7 +85,7 @@ To instantiate a watcher, you have to:
 use CrowdSec\CapiClient\Watcher;
 use Crowdsec\CapiClient\Storage\FileStorage;
 
-$configs = array('scenarios' => ['crowdsecurity/http-backdoors-attempts']);
+$configs = ['scenarios' => ['crowdsecurity/http-backdoors-attempts']];
 $storage = new FileStorage();
 $client = new Watcher($configs, $storage);
 ````
@@ -93,10 +93,10 @@ $client = new Watcher($configs, $storage);
 By default, a watcher will use the CrowdSec development environment. If you are ready to use the CrowdSec production 
 environment, you have to add the key `env` with value `prod` in the `$configs` array: 
 ```php
-$configs = array(
+$configs = [
         'scenarios' => ['crowdsecurity/http-backdoors-attempts'], 
         'env' => 'prod'
-);
+];
 $client = new WatcherClient($configs, $storage);
 ```
 
@@ -113,7 +113,7 @@ You can push an array of signals to CAPI:
 /**
 * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals for fields details
  */
-$signals = array('...');
+$signals = ['...'];
 $client->pushSignals($signals);
 ```
 
@@ -146,11 +146,11 @@ The first parameter `$configs` of the Watcher constructor can be used to pass th
 ### Environment
 
 ```php
-$configs = array(
+$configs = [
         ... 
         'env' => 'prod'
         ...
-);
+];
 ```
 
 The `env` setting only accepts two values : `dev` and `prod`. 
@@ -167,11 +167,11 @@ You should also use it in your own code to implement different behaviors dependi
 
 
 ```php
-$configs = array(
+$configs = [
         ... 
         'machine_id_prefix' => 'mycustomwatcher'
         ...
-);
+];
 ```
 
 This setting is not required.
@@ -188,11 +188,11 @@ The final generated `machine_id` will still have a length of 48.
 ### User Agent suffix
 
 ```php
-$configs = array(
+$configs = [
         ... 
         'user_agent_suffix' => 'MySuffix'
         ...
-);
+];
 ```
 This setting is not required.
 
@@ -208,11 +208,11 @@ With the example setting above, result will be  `PHP CrowdSec CAPI client/vX.Y.Z
 ### Scenarios
 
 ```php
-$configs = array(
+$configs = [
         ... 
         'scenarios' => ['crowdsecurity/http-backdoors-attempts', 'crowdsecurity/http-bad-user-agent']
         ...
-);
+];
 ```
 
 This `scenarios` setting is required.
