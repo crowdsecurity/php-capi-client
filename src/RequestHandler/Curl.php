@@ -51,7 +51,7 @@ class Curl implements RequestHandlerInterface
     /**
      * @codeCoverageIgnore
      *
-     * @param resource $handle
+     * @param mixed $handle
      *
      * @return bool|string
      */
@@ -63,7 +63,7 @@ class Curl implements RequestHandlerInterface
     /**
      * @codeCoverageIgnore
      *
-     * @param resource $handle
+     * @param mixed $handle
      *
      * @return mixed
      */

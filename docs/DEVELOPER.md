@@ -146,7 +146,7 @@ ddev php ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-
 We set up some coding standards tools that you will find in the `tools/coding-standards` folder.
 In order to use these, you will need to work with a PHP version >= 7.4 and run first:
 
-```
+```bash
 ddev composer update --working-dir=./my-own-modules/capi-client/tools/coding-standards
 ```
 
