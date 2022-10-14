@@ -14,6 +14,7 @@ namespace CrowdSec\CapiClient\Tests\Integration;
  */
 
 use CrowdSec\CapiClient\AbstractClient;
+use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\RequestHandler\FileGetContents;
 use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Tests\Constants as TestConstants;
@@ -70,6 +71,24 @@ final class WatcherTest extends TestCase
             $response['message'],
             'Signals should be pushed'
         );
+
+        unset($signals[0]["source"]);
+        $error = '';
+        $code = 0;
+        try {
+            $client->pushSignals([$signals[0]]);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+            $code = $e->getCode();
+        }
+
+        $this->assertEquals(400, $code);
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/missing required properties/',
+            $error,
+            'Should throw an error for bad formatted signal'
+        );
     }
 
     /**
@@ -90,6 +109,23 @@ final class WatcherTest extends TestCase
             '/OK/',
             $response['message'],
             'Instance should be enrolled'
+        );
+
+        $error = '';
+        $code = 0;
+        try {
+            $client->enroll('CAPI CLIENT INTEGRATION TEST', false, 'ThisEnrollmentKeyDoesNotExist', ['test-tag']);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+            $code = $e->getCode();
+        }
+
+        $this->assertEquals(403, $code);
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/attachment key provided is not valid/',
+            $error,
+            'Should throw an error for bad enrollment key'
         );
     }
 
