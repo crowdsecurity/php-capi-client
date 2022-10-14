@@ -10,3 +10,6 @@ composer.lock
 
 # File storage
 src/Storage/*.json
+
+# Integration test
+.enrollment_key.txt

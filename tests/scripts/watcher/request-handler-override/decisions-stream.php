@@ -6,8 +6,12 @@ use CrowdSec\CapiClient\RequestHandler\FileGetContents;
 use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Watcher;
 
-$scenarios = isset($argv[1]) ? json_decode($argv[1]) : null;
+$scenarios = isset($argv[1]) ? json_decode($argv[1], true) : false;
 if (is_null($scenarios)) {
+    exit('Param <SCENARIOS_JSON> is not a valid json' . \PHP_EOL . 'Usage: php decisions-stream.php <SCENARIOS_JSON>'
+         . \PHP_EOL);
+}
+if (!$scenarios) {
     exit(
         'Usage: php decisions-stream.php <SCENARIOS_JSON>' . \PHP_EOL .
         'Example: php decisions-stream.php \'["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]\' ' .
@@ -17,7 +21,7 @@ if (is_null($scenarios)) {
 
 echo \PHP_EOL . 'Instantiate watcher ...' . \PHP_EOL;
 $configs = [
-    'machine_id_prefix' => 'CapiClientTest',
+    'machine_id_prefix' => 'capiclienttest',
     'user_agent_suffix' => 'CapiClientTest',
     'scenarios' => $scenarios,
     ];

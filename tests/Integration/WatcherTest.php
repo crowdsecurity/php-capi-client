@@ -20,6 +20,7 @@ use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Util\Exception;
 
 /**
  * @coversNothing
@@ -72,8 +73,27 @@ final class WatcherTest extends TestCase
     }
 
     /**
-     * @param $requestHandler
-     *
+     * @dataProvider requestHandlerProvider
+     */
+    public function testEnroll($requestHandler)
+    {
+        $enrollmentKey = file_get_contents(__DIR__ . '/.enrollment_key.txt');
+        if (!$enrollmentKey) {
+            throw new Exception('Error while trying to get content of .enrollment_key.txt file');
+        }
+        $client = new Watcher($this->configs, new FileStorage(), $requestHandler);
+        $this->checkRequestHandler($client, $requestHandler);
+        $response = $client->enroll('CAPI CLIENT INTEGRATION TEST', false, trim(preg_replace('/\s\s+/', '', $enrollmentKey)), ['test-tag']);
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/OK/',
+            $response['message'],
+            'Instance should be enrolled'
+        );
+    }
+
+    /**
      * @return void
      */
     private function checkRequestHandler(AbstractClient $client, $requestHandler)
@@ -100,7 +120,6 @@ final class WatcherTest extends TestCase
     {
         return [
             0 => [
-                'machine_id' => 'MACHINE_ID',
                 'message' => 'Ip 1.1.1.1 performed "crowdsecurity / http - path - traversal - probing" (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338',
                 'scenario' => 'crowdsecurity/http-path-traversal-probing',
                 'scenario_hash' => '',
@@ -120,7 +139,6 @@ final class WatcherTest extends TestCase
                 'stop_at' => '2020-11-06T20:14:11.189252228Z',
             ],
             1 => [
-                'machine_id' => 'MACHINE_ID',
                 'message' => 'Ip 2.2.2.2 performed "crowdsecurity / http - probing" (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338',
                 'scenario' => 'crowdsecurity/http-probing',
                 'scenario_hash' => '',

@@ -24,7 +24,7 @@ class Constants
     /**
      * @var string The machine id prefix used to send request to CAPI
      */
-    public const MACHINE_ID_PREFIX = 'CapiClientTest';
+    public const MACHINE_ID_PREFIX = 'capiclienttest';
 
     /**
      * @var array The scenario used to send request to CAPI

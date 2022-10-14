@@ -39,12 +39,12 @@ class Configuration implements ConfigurationInterface
                 ->validate()
                 ->ifTrue(function (string $value) {
                     if (!empty($value)) {
-                        return strlen($value) > 16 || 1 !== preg_match('#^[A-Za-z0-9]+$#', $value);
+                        return strlen($value) > 16 || 1 !== preg_match('#^[a-z0-9]+$#', $value);
                     }
 
                     return false;
                 })
-                ->thenInvalid('Invalid machine id prefix. Length must be <= 16. Allowed chars are A-Za-z0-9')
+                ->thenInvalid('Invalid machine id prefix. Length must be <= 16. Allowed chars are a-z0-9')
                 ->end()
             ->end()
             ->scalarNode('user_agent_suffix')
