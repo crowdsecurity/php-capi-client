@@ -131,12 +131,12 @@ To enroll a watcher you have to specify:
 
 - The `name` that will be display in the console for the instance
 - An `overwrite` boolean to force enroll the instance or not
-- An `enrollKey` that is generated in your CrowdSec backoffice account (a.k.a. `attachment_key`)
+- An `enrollKey` that is generated in your CrowdSec backoffice account (a.k.a. `enrollement key`)
 - Optionally, an array of `tags` to apply on the console for the instance
 
 
 ```php
-$client->enroll('My Watcher', true, '*****************', ['my_tag']);
+$client->enroll('MyWatcher', true, '*****************', ['my_tag']);
 ```
 
 ## Watcher configurations
@@ -169,7 +169,7 @@ You should also use it in your own code to implement different behaviors dependi
 ```php
 $configs = array(
         ... 
-        'machine_id_prefix' => 'MyCustomWatcher'
+        'machine_id_prefix' => 'mycustomwatcher'
         ...
 );
 ```
@@ -289,7 +289,6 @@ class CustomRequestHandler implements RequestHandlerInterface
         */
     }
 }
-
 ```
 
 Once you have your custom request handler, you can instantiate the watcher that will use it:
@@ -298,11 +297,9 @@ Once you have your custom request handler, you can instantiate the watcher that 
 use CrowdSec\CapiClient\Watcher;
 use CustomRequestHandler;
 
-
 $requestHandler = new CustomRequestHandler();
 
 $client = new Watcher($configs, $storage, $requestHandler);
-
 ```
 
 Then, you can make any of the CAPI calls that we have seen above.
@@ -317,11 +314,9 @@ handler. To use it, you should instantiate it and pass the created object as a p
 use CrowdSec\CapiClient\Watcher;
 use CrowdSec\CapiClient\RequestHandler\FileGetContents;
 
-
 $requestHandler = new FileGetContents();
 
 $client = new Watcher($configs, $storage, $requestHandler);
-
 ```
 
 ## Example scripts
@@ -364,7 +359,7 @@ php tests/scripts/watcher/signals.php <SCENARIOS_JSON> <SIGNALS_JSON>
 #### Example
 
 ```bash
-php tests/scripts/watcher/signals.php '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' "[{\"machine_id\":\"MACHINE_ID\",\"message\":\"Ip 1.1.1.1 performed 'crowdsecurity\/http-path-traversal-probing' (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338\",\"scenario\":\"crowdsecurity\/http-path-traversal-probing\",\"scenario_hash\":\"\",\"scenario_version\":\"\",\"source\":{\"id\":1,\"as_name\":\"TEST\",\"cn\":\"FR\",\"ip\":\"1.1.1.1\",\"latitude\":48.9917,\"longitude\":1.9097,\"range\":\"1.1.1.1\/32\",\"scope\":\"test\",\"value\":\"1.1.1.1\"},\"start_at\":\"2020-11-06T20:13:41.196817737Z\",\"stop_at\":\"2020-11-06T20:14:11.189252228Z\"},{\"machine_id\":\"MACHINE_ID\",\"message\":\"Ip 2.2.2.2 performed 'crowdsecurity\/http-probing' (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338\",\"scenario\":\"crowdsecurity\/http-probing\",\"scenario_hash\":\"\",\"scenario_version\":\"\",\"source\":{\"id\":2,\"as_name\":\"TEST\",\"cn\":\"FR\",\"ip\":\"2.2.2.2\",\"latitude\":48.9917,\"longitude\":1.9097,\"range\":\"2.2.2.2\/32\",\"scope\":\"test\",\"value\":\"2.2.2.2\"},\"start_at\":\"2020-11-06T20:13:41.196817737Z\",\"stop_at\":\"2020-11-06T20:14:11.189252228Z\"}]"
+php tests/scripts/watcher/signals.php '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' '[{"message":"Ip 1.1.1.1 performed crowdsecurity/http-path-traversal-probing (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338","scenario":"crowdsecurity\/http-path-traversal-probing","scenario_hash":"","scenario_version":"","source":{"id":1,"as_name":"TEST","cn":"FR","ip":"1.1.1.1","latitude":48.9917,"longitude":1.9097,"range":"1.1.1.1\/32","scope":"Ip","value":"1.1.1.1"},"start_at":"2020-11-06T20:13:41.196817737Z","stop_at":"2020-11-06T20:14:11.189252228Z"},{"message":"Ip 2.2.2.2 performed crowdsecurity/http-probing (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338","scenario":"crowdsecurity\/http-probing","scenario_hash":"","scenario_version":"","source":{"id":2,"as_name":"TEST","cn":"FR","ip":"2.2.2.2","latitude":48.9917,"longitude":1.9097,"range":"2.2.2.2\/32","scope":"Ip","value":"2.2.2.2"},"start_at":"2020-11-06T20:13:41.196817737Z","stop_at":"2020-11-06T20:14:11.189252228Z"}]'
 ```
 
 ### Enroll a watcher
@@ -379,5 +374,5 @@ php tests/scripts/watcher/enroll.php <SCENARIOS_JSON> <NAME> <OVERWRITE> <ENROLL
 #### Example
 
 ```bash
-php tests/scripts/watcher/enroll.php  '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' TESTWATCHER 0 ZZZZZAAAAA '["tag1", "tag2"]'
+php tests/scripts/watcher/enroll.php  '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' TESTWATCHER 0 YourEnrollKey '["tag1", "tag2"]'
 ```
