@@ -83,7 +83,7 @@ final class WatcherTest extends TestCase
         }
         $client = new Watcher($this->configs, new FileStorage(), $requestHandler);
         $this->checkRequestHandler($client, $requestHandler);
-        $response = $client->enroll('CAPI CLIENT INTEGRATION TEST', false, trim(preg_replace('/\s\s+/', '', $enrollmentKey)), ['test-tag']);
+        $response = $client->enroll('CAPI CLIENT INTEGRATION TEST', false, $enrollmentKey, ['test-tag']);
 
         PHPUnitUtil::assertRegExp(
             $this,
