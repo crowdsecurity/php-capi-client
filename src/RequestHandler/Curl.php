@@ -116,8 +116,6 @@ class Curl implements RequestHandlerInterface
 
         $options[\CURLOPT_URL] = $url;
 
-        // $options[CURLOPT_VERBOSE] = true;
-
         return $options;
     }
 }

@@ -72,7 +72,7 @@ final class WatcherTest extends TestCase
             'Signals should be pushed'
         );
 
-        unset($signals[0]["source"]);
+        unset($signals[0]['source']);
         $error = '';
         $code = 0;
         try {

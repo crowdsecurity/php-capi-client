@@ -65,7 +65,7 @@ class Configuration implements ConfigurationInterface
                 ->then(function (array $value) {
                     return array_unique(array_values($value));
                 })
-            ->end()
+                ->end()
                 ->scalarPrototype()->cannotBeEmpty()
                 ->end()
             ->end()

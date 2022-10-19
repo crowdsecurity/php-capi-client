@@ -90,8 +90,8 @@ class WatcherTest extends AbstractClient
                                0,
                                strlen(TestConstants::MACHINE_ID_PREFIX)
                            );
-                }), ['User-Agent' => Constants::USER_AGENT_PREFIX . Constants::VERSION . '/' .
-                                     TestConstants::USER_AGENT_SUFFIX, ]
+                }), ['User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
+                                     . '/' . Constants::VERSION, ]
             );
 
         PHPUnitUtil::callMethod(
@@ -130,8 +130,8 @@ class WatcherTest extends AbstractClient
                     'scenarios' => TestConstants::SCENARIOS,
                 ],
                 [
-                    'User-Agent' => Constants::USER_AGENT_PREFIX .
-                                    Constants::VERSION . '/' . TestConstants::USER_AGENT_SUFFIX,
+                    'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
+                                    . '/' . Constants::VERSION,
                 ]
             );
         $code = 0;
@@ -181,8 +181,8 @@ class WatcherTest extends AbstractClient
                     Watcher::SIGNALS_ENDPOINT,
                     $signals,
                     [
-                        'User-Agent' => Constants::USER_AGENT_PREFIX .
-                                        Constants::VERSION . '/' . TestConstants::USER_AGENT_SUFFIX,
+                        'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
+                                        . '/' . Constants::VERSION,
                         'Authorization' => 'Bearer ' . TestConstants::TOKEN,
                     ],
                 ]
@@ -218,8 +218,8 @@ class WatcherTest extends AbstractClient
                     Watcher::DECISIONS_STREAM_ENDPOINT,
                     [],
                     [
-                        'User-Agent' => Constants::USER_AGENT_PREFIX .
-                                        Constants::VERSION . '/' . TestConstants::USER_AGENT_SUFFIX,
+                        'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
+                                        . '/' . Constants::VERSION,
                         'Authorization' => 'Bearer ' . TestConstants::TOKEN,
                     ],
                 ]
@@ -265,8 +265,8 @@ class WatcherTest extends AbstractClient
                     Watcher::ENROLL_ENDPOINT,
                     $params,
                     [
-                        'User-Agent' => Constants::USER_AGENT_PREFIX .
-                                        Constants::VERSION . '/' . TestConstants::USER_AGENT_SUFFIX,
+                        'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
+                                        . '/' . Constants::VERSION,
                         'Authorization' => 'Bearer ' . TestConstants::TOKEN,
                     ],
                 ]

@@ -35,7 +35,7 @@ class Constants
     /**
      * @var string The user agent prefix used to send request to CAPI
      */
-    public const USER_AGENT_PREFIX = 'PHP CrowdSec CAPI client/';
+    public const USER_AGENT_PREFIX = 'csphpcapi';
     /**
      * @var string The current version of this library
      */
