@@ -192,13 +192,13 @@ class Watcher extends AbstractClient
     }
 
     /**
-     * Format User-Agent header.
+     * Format User-Agent header. <PHP CAPI client prefix>_<custom suffix>/<vX.Y.Z>.
      */
     private function formatUserAgent(array $configs = []): string
     {
-        $userAgent = Constants::USER_AGENT_PREFIX . Constants::VERSION;
+        $userAgentSuffix = !empty($configs['user_agent_suffix']) ? '_' . $configs['user_agent_suffix'] : '';
 
-        return !empty($configs['user_agent_suffix']) ? $userAgent . '/' . $configs['user_agent_suffix'] : $userAgent;
+        return Constants::USER_AGENT_PREFIX . $userAgentSuffix . '/' . Constants::VERSION;
     }
 
     /**
@@ -230,11 +230,11 @@ class Watcher extends AbstractClient
     private function generateRandomString(int $length, string $chars): string
     {
         if ($length < 1) {
-            throw new Exception('Length must be greater than zero.');
+            throw new ClientException('Length must be greater than zero.');
         }
         $chLen = strlen($chars);
         if ($chLen < 1) {
-            throw new Exception('There must be at least one allowed character.');
+            throw new ClientException('There must be at least one allowed character.');
         }
         $res = '';
         for ($i = 0; $i < $length; ++$i) {

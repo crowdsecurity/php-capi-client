@@ -184,6 +184,9 @@ less than or equal to 16 and matching the regular expression `#^[a-z0-9]+$#` too
 
 The final generated `machine_id` will still have a length of 48.
 
+Beware that changing `machine_id_prefix` between two watcher instantiations may imply a new `machine_id\password` 
+pair generation and registration.
+
 
 ### User Agent suffix
 
@@ -196,13 +199,13 @@ $configs = [
 ```
 This setting is not required.
 
-Sending a `User-Agent` header during a CAPI call is mandatory. By default, user agent will be `PHP CrowdSec CAPI 
-client/vX.Y.Z` where `vX.Y.Z` is the current release version of this library.
+Sending a `User-Agent` header during a CAPI call is mandatory. By default, user agent will be `csphpcapi/vX.Y.Z` where 
+`vX.Y.Z` is the current release version of this library.
 
 You can add a custom suffix to this value by using the `user_agent_suffix` setting. It must be a string with a length
 less than or equal to 16 and matching the regular expression `#^[A-Za-z0-9]+$#`.
 
-With the example setting above, result will be  `PHP CrowdSec CAPI client/vX.Y.Z/MySuffix`.
+With the example setting above, result will be  `csphpcapi_MySuffix/vX.Y.Z`.
 
 
 ### Scenarios
@@ -219,9 +222,6 @@ This `scenarios` setting is required.
 
 You have to pass an array of CrowdSec scenarios that will be used to log in your watcher. 
 You should find a list of available scenarios on the [CrowdSec hub collections page](https://hub.crowdsec.net/browse/).
-
-Beware that changing the scenarios list between two watcher instantiations will generate automatically new 
-`machine_id\password` pair.
 
 ## Storage implementation
 
@@ -359,7 +359,7 @@ php tests/scripts/watcher/signals.php <SCENARIOS_JSON> <SIGNALS_JSON>
 #### Example
 
 ```bash
-php tests/scripts/watcher/signals.php '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' '[{"message":"Ip 1.1.1.1 performed crowdsecurity/http-path-traversal-probing (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338","scenario":"crowdsecurity\/http-path-traversal-probing","scenario_hash":"","scenario_version":"","source":{"id":1,"as_name":"TEST","cn":"FR","ip":"1.1.1.1","latitude":48.9917,"longitude":1.9097,"range":"1.1.1.1\/32","scope":"Ip","value":"1.1.1.1"},"start_at":"2020-11-06T20:13:41.196817737Z","stop_at":"2020-11-06T20:14:11.189252228Z"},{"message":"Ip 2.2.2.2 performed crowdsecurity/http-probing (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338","scenario":"crowdsecurity\/http-probing","scenario_hash":"","scenario_version":"","source":{"id":2,"as_name":"TEST","cn":"FR","ip":"2.2.2.2","latitude":48.9917,"longitude":1.9097,"range":"2.2.2.2\/32","scope":"Ip","value":"2.2.2.2"},"start_at":"2020-11-06T20:13:41.196817737Z","stop_at":"2020-11-06T20:14:11.189252228Z"}]'
+php tests/scripts/watcher/signals.php '["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]' '[{"message":"Ip 1.1.1.1 performed crowdsecurity/http-path-traversal-probing (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338","scenario":"crowdsecurity/http-path-traversal-probing","scenario_hash":"","scenario_version":"","source":{"id":1,"as_name":"TEST","cn":"FR","ip":"1.1.1.1","latitude":48.9917,"longitude":1.9097,"range":"1.1.1.1\/32","scope":"Ip","value":"1.1.1.1"},"start_at":"2020-11-06T20:13:41.196817737Z","stop_at":"2020-11-06T20:14:11.189252228Z"},{"message":"Ip 2.2.2.2 performed crowdsecurity/http-probing (6 events over 29.992437958s) at 2020-11-06 20:14:11.189255784 +0000 UTC m=+52.785061338","scenario":"crowdsecurity/http-probing","scenario_hash":"","scenario_version":"","source":{"id":2,"as_name":"TEST","cn":"FR","ip":"2.2.2.2","latitude":48.9917,"longitude":1.9097,"range":"2.2.2.2\/32","scope":"Ip","value":"2.2.2.2"},"start_at":"2020-11-06T20:13:41.196817737Z","stop_at":"2020-11-06T20:14:11.189252228Z"}]'
 ```
 
 ### Enroll a watcher

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - No more `password` and `machine_id` to pass, there are now automatically handled in background
   - An array of `configs` must be passed as first argument
   - An implementation of a `StorageInterface` must be passed as a second argument
+- Change User Agent format: `csphpcapi_custom-suffix/vX.Y.Z`
 
 ### Added
 - Add `enroll` public method
