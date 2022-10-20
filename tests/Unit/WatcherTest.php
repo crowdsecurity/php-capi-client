@@ -641,7 +641,7 @@ class WatcherTest extends AbstractClient
                 'generateRandomString',
                 [0, 'ab']
             );
-        } catch (Exception $e) {
+        } catch (ClientException $e) {
             $error = $e->getMessage();
         }
 
@@ -659,7 +659,7 @@ class WatcherTest extends AbstractClient
                 'generateRandomString',
                 [2, '']
             );
-        } catch (Exception $e) {
+        } catch (ClientException $e) {
             $error = $e->getMessage();
         }
 

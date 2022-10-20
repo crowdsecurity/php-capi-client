@@ -230,11 +230,11 @@ class Watcher extends AbstractClient
     private function generateRandomString(int $length, string $chars): string
     {
         if ($length < 1) {
-            throw new Exception('Length must be greater than zero.');
+            throw new ClientException('Length must be greater than zero.');
         }
         $chLen = strlen($chars);
         if ($chLen < 1) {
-            throw new Exception('There must be at least one allowed character.');
+            throw new ClientException('There must be at least one allowed character.');
         }
         $res = '';
         for ($i = 0; $i < $length; ++$i) {
