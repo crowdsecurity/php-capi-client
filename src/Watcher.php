@@ -6,7 +6,6 @@ namespace CrowdSec\CapiClient;
 
 use CrowdSec\CapiClient\RequestHandler\RequestHandlerInterface;
 use CrowdSec\CapiClient\Storage\StorageInterface;
-use Exception;
 use Symfony\Component\Config\Definition\Processor;
 
 /**
@@ -225,7 +224,7 @@ class Watcher extends AbstractClient
     /**
      * Generate a cryptographically secure random string.
      *
-     * @throws Exception
+     * @throws ClientException
      */
     private function generateRandomString(int $length, string $chars): string
     {
