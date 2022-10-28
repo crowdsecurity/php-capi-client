@@ -222,7 +222,7 @@ final class CurlTest extends AbstractClient
         $url = Constants::URL_DEV . 'watchers';
         $method = 'POST';
         $parameters = ['machine_id' => 'test', 'password' => 'test'];
-        $configs = [];
+        $configs = ['scenarios' => TestConstants::SCENARIOS];
 
         $client = new Watcher($configs, new FileStorage());
         $curlRequester = $client->getRequestHandler();

@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+
+## [0.2.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.2.0) - 2022-10-28
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.1.0...v0.2.0)
+
+### Changed
+- *Breaking change*: Missing `scenarios` key in `configs` will throw an exception
+
+---
+
 ## [0.1.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.1.0) - 2022-10-21
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.0.1...v0.1.0)
 

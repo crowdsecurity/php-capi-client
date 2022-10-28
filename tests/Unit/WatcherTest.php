@@ -358,6 +358,20 @@ class WatcherTest extends AbstractClient
 
         $error = '';
         try {
+            new Watcher([], new FileStorage());
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/The child config "scenarios" under "config" must be configured./',
+            $error,
+            'Scenarios key must be in configs'
+        );
+
+        $error = '';
+        try {
             new Watcher(['scenarios' => []], new FileStorage());
         } catch (Exception $e) {
             $error = $e->getMessage();
@@ -412,7 +426,7 @@ class WatcherTest extends AbstractClient
             'machine_id_prefix should contain allowed chars'
         );
 
-        $client = new Watcher(['machine_id_prefix' => ''], new FileStorage());
+        $client = new Watcher(['scenarios' => TestConstants::SCENARIOS, 'machine_id_prefix' => ''], new FileStorage());
 
         $this->assertEquals(
             '',
@@ -448,7 +462,7 @@ class WatcherTest extends AbstractClient
             'user_agent_suffix should contain allowed chars'
         );
 
-        $client = new Watcher(['user_agent_suffix' => ''], new FileStorage());
+        $client = new Watcher(['scenarios' => TestConstants::SCENARIOS, 'user_agent_suffix' => ''], new FileStorage());
 
         $this->assertEquals(
             '',

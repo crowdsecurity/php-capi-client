@@ -59,7 +59,7 @@ class Configuration implements ConfigurationInterface
                 ->thenInvalid('Invalid user agent suffix. Length must be <= 16. Allowed chars are A-Za-z0-9')
                 ->end()
             ->end()
-            ->arrayNode('scenarios')->cannotBeEmpty()
+            ->arrayNode('scenarios')->isRequired()->cannotBeEmpty()
                 ->validate()
                 ->ifArray()
                 ->then(function (array $value) {
