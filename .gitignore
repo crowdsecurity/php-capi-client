@@ -5,7 +5,7 @@ composer.lock
 # Systems
 .DS_Store
 
-#debug
+#log
 *.log
 
 # File storage

@@ -6,6 +6,7 @@ namespace CrowdSec\CapiClient;
 
 use CrowdSec\CapiClient\RequestHandler\RequestHandlerInterface;
 use CrowdSec\CapiClient\Storage\StorageInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Processor;
 
 /**
@@ -96,14 +97,15 @@ class Watcher extends AbstractClient
     public function __construct(
         array $configs,
         StorageInterface $storage,
-        RequestHandlerInterface $requestHandler = null
+        RequestHandlerInterface $requestHandler = null,
+        LoggerInterface $logger = null
     ) {
         $this->configure($configs);
         $this->headers = ['User-Agent' => $this->formatUserAgent($this->configs)];
         $this->storage = $storage;
         $this->configs['api_url'] =
             Constants::ENV_PROD === $this->getConfig('env') ? Constants::URL_PROD : Constants::URL_DEV;
-        parent::__construct($this->configs, $requestHandler);
+        parent::__construct($this->configs, $requestHandler, $logger);
     }
 
     /**
@@ -303,6 +305,12 @@ class Watcher extends AbstractClient
         string $endpoint,
         array $parameters = []
     ): array {
+        $this->logger->debug('', [
+            'type' => 'WATCHER_CLIENT_REQUEST',
+            'method' => $method,
+            'endpoint' => $endpoint,
+            'parameters' => $parameters,
+        ]);
         $this->ensureAuth();
         $loginRetry = 0;
         $lastMessage = '';

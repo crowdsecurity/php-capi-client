@@ -15,13 +15,12 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient\Tests;
 
 use PHPUnit\Runner\Version;
-use ReflectionClass;
 
 class PHPUnitUtil
 {
     public static function callMethod($obj, $name, array $args)
     {
-        $class = new ReflectionClass($obj);
+        $class = new \ReflectionClass($obj);
         $method = $class->getMethod($name);
         $method->setAccessible(true);
 

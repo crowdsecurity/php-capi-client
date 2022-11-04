@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient;
 
-use RuntimeException;
-
 /**
  * Exception interface for all exceptions thrown by CrowdSec CAPI Client.
  *
@@ -16,6 +14,6 @@ use RuntimeException;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class ClientException extends RuntimeException
+class ClientException extends \RuntimeException
 {
 }

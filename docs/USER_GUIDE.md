@@ -78,8 +78,13 @@ To instantiate a watcher, you have to:
   use a basic `FileStorage` implementation, but we advise you to develop a more secured class as we are storing sensitive data.
 
 
-- Optionally, you can pass an implementation of the `RequestHandlerInterface` as a third parameter. By default, a 
-  `Curl` request handler will be used. 
+- Optionally, you can pass an implementation of the `RequestHandlerInterface` as a third 
+  parameter. By default, a 
+  `Curl` request handler will be used.
+
+
+- Optionally, to log some information, you can pass an implementation of the `Psr\Log\LoggerInterface` as a fourth 
+  parameter. You will find an example of such implementation with the provided `Logger\FileLog` class.
 
 ```php
 use CrowdSec\CapiClient\Watcher;

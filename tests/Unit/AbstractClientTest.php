@@ -22,8 +22,6 @@ use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
-use DateTime;
-use TypeError;
 
 /**
  * @uses \CrowdSec\CapiClient\HttpMessage\Response
@@ -80,8 +78,8 @@ final class AbstractClientTest extends AbstractClient
 
         $error = false;
         try {
-            new Watcher($this->configs, new FileStorage(), new DateTime());
-        } catch (TypeError $e) {
+            new Watcher($this->configs, new FileStorage(), new \DateTime());
+        } catch (\TypeError $e) {
             $error = $e->getMessage();
         }
 
@@ -228,7 +226,7 @@ final class AbstractClientTest extends AbstractClient
         $error = false;
         try {
             new Response(['test'], 200);
-        } catch (TypeError $e) {
+        } catch (\TypeError $e) {
             $error = $e->getMessage();
         }
 
