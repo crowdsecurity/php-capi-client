@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.3.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.3.0) - 2022-11-04
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.2.0...v0.3.0)
+
+### Added
+- Add optional logger parameter in client constructor 
+
+---
+
 
 ## [0.2.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.2.0) - 2022-10-28
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.1.0...v0.2.0)

@@ -8,6 +8,9 @@ use CrowdSec\CapiClient\HttpMessage\Request;
 use CrowdSec\CapiClient\HttpMessage\Response;
 use CrowdSec\CapiClient\RequestHandler\Curl;
 use CrowdSec\CapiClient\RequestHandler\RequestHandlerInterface;
+use Monolog\Handler\NullHandler;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 /**
  * The low level REST Client.
@@ -30,6 +33,10 @@ abstract class AbstractClient
      */
     private $allowedMethods = ['POST', 'GET'];
     /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+    /**
      * @var RequestHandlerInterface
      */
     private $requestHandler;
@@ -38,11 +45,19 @@ abstract class AbstractClient
      */
     private $url;
 
-    public function __construct(array $configs, RequestHandlerInterface $requestHandler = null)
-    {
+    public function __construct(
+        array $configs,
+        RequestHandlerInterface $requestHandler = null,
+        LoggerInterface $logger = null
+    ) {
         $this->configs = $configs;
         $this->requestHandler = ($requestHandler) ?: new Curl();
         $this->url = $this->configs['api_url'];
+        if (!$logger) {
+            $logger = new Logger('null');
+            $logger->pushHandler(new NullHandler());
+        }
+        $this->logger = $logger;
     }
 
     /**

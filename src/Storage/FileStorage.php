@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient\Storage;
 
 use CrowdSec\CapiClient\Constants;
-use Exception;
 
 /**
  * File storage. Should be used only for test or/and as an example of StorageInterface implementation.
@@ -87,7 +86,7 @@ class FileStorage implements StorageInterface
         try {
             $json = json_encode(['machine_id' => $machineId]);
             $this->writeFile($this->getBasePath() . self::MACHINE_ID_FILE, $json);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
 
@@ -102,7 +101,7 @@ class FileStorage implements StorageInterface
         try {
             $json = json_encode(['password' => $password]);
             $this->writeFile($this->getBasePath() . self::PASSWORD_FILE, $json);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
 
@@ -117,7 +116,7 @@ class FileStorage implements StorageInterface
         try {
             $json = json_encode(['scenarios' => $scenarios]);
             $this->writeFile($this->getBasePath() . self::SCENARIOS_FILE, $json);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
 
@@ -132,7 +131,7 @@ class FileStorage implements StorageInterface
         try {
             $json = json_encode(['token' => $token]);
             $this->writeFile($this->getBasePath() . self::TOKEN_FILE, $json);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
 

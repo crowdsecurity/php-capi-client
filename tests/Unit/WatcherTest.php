@@ -23,7 +23,6 @@ use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
-use Exception;
 use org\bovigo\vfs\vfsStream;
 
 /**
@@ -359,7 +358,7 @@ class WatcherTest extends AbstractClient
         $error = '';
         try {
             new Watcher([], new FileStorage());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
@@ -373,7 +372,7 @@ class WatcherTest extends AbstractClient
         $error = '';
         try {
             new Watcher(['scenarios' => []], new FileStorage());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
@@ -387,7 +386,7 @@ class WatcherTest extends AbstractClient
         $error = '';
         try {
             new Watcher(['scenarios' => ['']], new FileStorage());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
@@ -401,7 +400,7 @@ class WatcherTest extends AbstractClient
         $error = '';
         try {
             new Watcher(['machine_id_prefix' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa'], new FileStorage());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
@@ -415,7 +414,7 @@ class WatcherTest extends AbstractClient
         $error = '';
         try {
             new Watcher(['machine_id_prefix' => 'aaaaa  a'], new FileStorage());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
@@ -437,7 +436,7 @@ class WatcherTest extends AbstractClient
         $error = '';
         try {
             new Watcher(['user_agent_suffix' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa'], new FileStorage());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
@@ -451,7 +450,7 @@ class WatcherTest extends AbstractClient
         $error = '';
         try {
             new Watcher(['user_agent_suffix' => 'aaaaa  a'], new FileStorage());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
@@ -473,7 +472,7 @@ class WatcherTest extends AbstractClient
         $error = '';
         try {
             new Watcher(['env' => 'preprod'], new FileStorage());
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
