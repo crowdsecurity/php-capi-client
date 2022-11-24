@@ -129,7 +129,7 @@ ddev composer update --working-dir ./my-own-modules/capi-client
 #### Unit test
 
 ```bash
-ddev php ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-client/tests/Unit 
+ddev php ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-client/tests/Unit --testdox
 ```
 
 #### Integration test
