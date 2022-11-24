@@ -58,7 +58,7 @@ use org\bovigo\vfs\vfsStream;
  * @covers \CrowdSec\CapiClient\Watcher::refreshCredentials
  * @covers \CrowdSec\CapiClient\Watcher::normalizeTags
  */
-class WatcherTest extends AbstractClient
+final class WatcherTest extends AbstractClient
 {
     public function testRegisterParams()
     {

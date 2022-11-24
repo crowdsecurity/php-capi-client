@@ -63,7 +63,7 @@ class Configuration implements ConfigurationInterface
                 ->validate()
                 ->ifArray()
                 ->then(function (array $value) {
-                    return array_unique(array_values($value));
+                    return array_values(array_unique($value));
                 })
                 ->end()
                 ->scalarPrototype()->cannotBeEmpty()
