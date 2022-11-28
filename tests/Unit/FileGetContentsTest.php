@@ -58,6 +58,8 @@ use CrowdSec\CapiClient\Watcher;
  * @covers \CrowdSec\CapiClient\Watcher::handleLogin
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
  * @covers \CrowdSec\CapiClient\Watcher::getStreamDecisions
+ * @covers \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::__construct
+ * @covers \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::getConfig
  */
 final class FileGetContentsTest extends AbstractClient
 {
@@ -66,7 +68,7 @@ final class FileGetContentsTest extends AbstractClient
         $method = 'POST';
         $parameters = ['machine_id' => 'test', 'password' => 'test'];
 
-        $fgcRequestHandler = new FileGetContents();
+        $fgcRequestHandler = new FileGetContents($this->configs);
 
         $client = new Watcher($this->configs, new FileStorage(), $fgcRequestHandler);
         $fgcRequester = $client->getRequestHandler();
@@ -90,6 +92,7 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
 ',
                 'ignore_errors' => true,
                 'content' => '{"machine_id":"test","password":"test"}',
+                'timeout' => TestConstants::API_TIMEOUT,
             ],
         ];
 
@@ -120,6 +123,7 @@ Content-Type: application/json
 User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
 ',
                 'ignore_errors' => true,
+                'timeout' => TestConstants::API_TIMEOUT,
             ],
         ];
 

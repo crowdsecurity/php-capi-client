@@ -54,6 +54,9 @@ use CrowdSec\CapiClient\Watcher;
  * @covers \CrowdSec\CapiClient\Watcher::handleLogin
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
  * @covers \CrowdSec\CapiClient\Watcher::manageRequest
+ * @covers \CrowdSec\CapiClient\RequestHandler\Curl::handleConfigs
+ * @covers \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::__construct
+ * @covers \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::getConfig
  */
 final class CurlTest extends AbstractClient
 {
@@ -222,7 +225,7 @@ final class CurlTest extends AbstractClient
         $url = Constants::URL_DEV . 'watchers';
         $method = 'POST';
         $parameters = ['machine_id' => 'test', 'password' => 'test'];
-        $configs = ['scenarios' => TestConstants::SCENARIOS];
+        $configs = ['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => TestConstants::API_TIMEOUT];
 
         $client = new Watcher($configs, new FileStorage());
         $curlRequester = $client->getRequestHandler();
@@ -246,6 +249,7 @@ final class CurlTest extends AbstractClient
             \CURLOPT_POSTFIELDS => '{"machine_id":"test","password":"test"}',
             \CURLOPT_URL => $url,
             \CURLOPT_CUSTOMREQUEST => $method,
+            \CURLOPT_TIMEOUT => TestConstants::API_TIMEOUT,
         ];
 
         $this->assertEquals(
@@ -281,6 +285,7 @@ final class CurlTest extends AbstractClient
             \CURLOPT_HTTPGET => true,
             \CURLOPT_URL => $url . '?foo=bar&crowd=sec',
             \CURLOPT_CUSTOMREQUEST => $method,
+            \CURLOPT_TIMEOUT => TestConstants::API_TIMEOUT,
         ];
 
         $this->assertEquals(

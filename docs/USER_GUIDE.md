@@ -228,6 +228,25 @@ This `scenarios` setting is required.
 You have to pass an array of CrowdSec scenarios that will be used to log in your watcher. 
 You should find a list of available scenarios on the [CrowdSec hub collections page](https://hub.crowdsec.net/browse/).
 
+### CAPI timeout
+
+
+```php
+$configs = [
+        ... 
+        'api_timeout' => 10
+        ...
+];
+```
+
+This setting is not required.
+
+This is the maximum number of seconds allowed to execute a CAPI request.
+
+It must be an integer greater than 1. If you don't set any value, `10` will be used by default.
+
+
+
 ## Storage implementation
 
 The purpose of the `Storage/StorageInterface.php` interface is to give a guide on how to store and retrieve all 
@@ -319,7 +338,7 @@ handler. To use it, you should instantiate it and pass the created object as a p
 use CrowdSec\CapiClient\Watcher;
 use CrowdSec\CapiClient\RequestHandler\FileGetContents;
 
-$requestHandler = new FileGetContents();
+$requestHandler = new FileGetContents($configs);
 
 $client = new Watcher($configs, $storage, $requestHandler);
 ```

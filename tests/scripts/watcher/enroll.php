@@ -15,7 +15,7 @@ if (is_null($scenarios)) {
     exit('Param <SCENARIOS_JSON> is not a valid json' . \PHP_EOL . 'Usage: php enroll.php <SCENARIOS_JSON> <NAME> <OVERWRITE> <ENROLL_KEY> <TAGS_JSON>' . \PHP_EOL);
 }
 if (is_null($tags)) {
-    exit('Pparam <TAGS_JSON> is not a valid json' . \PHP_EOL . 'Usage: php enroll.php <SCENARIOS_JSON> <NAME> <OVERWRITE> <ENROLL_KEY> <TAGS_JSON>' . \PHP_EOL);
+    exit('Param <TAGS_JSON> is not a valid json' . \PHP_EOL . 'Usage: php enroll.php <SCENARIOS_JSON> <NAME> <OVERWRITE> <ENROLL_KEY> <TAGS_JSON>' . \PHP_EOL);
 }
 
 if (!$scenarios || !$name || is_null($overwrite) || !$enrollKey || !$tags) {

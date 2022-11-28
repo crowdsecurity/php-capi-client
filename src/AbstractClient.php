@@ -51,7 +51,7 @@ abstract class AbstractClient
         LoggerInterface $logger = null
     ) {
         $this->configs = $configs;
-        $this->requestHandler = ($requestHandler) ?: new Curl();
+        $this->requestHandler = ($requestHandler) ?: new Curl($this->configs);
         $this->url = $this->configs['api_url'];
         if (!$logger) {
             $logger = new Logger('null');
@@ -63,13 +63,11 @@ abstract class AbstractClient
     /**
      * Retrieve a config value by name.
      *
-     * @param mixed $default
-     *
      * @return mixed
      */
-    public function getConfig(string $name, $default = null)
+    public function getConfig(string $name)
     {
-        return (isset($this->configs[$name])) ? $this->configs[$name] : $default;
+        return (isset($this->configs[$name])) ? $this->configs[$name] : null;
     }
 
     /**
@@ -82,7 +80,7 @@ abstract class AbstractClient
 
     public function getUrl(): string
     {
-        return $this->url;
+        return rtrim($this->url, '/') . '/';
     }
 
     /**
@@ -90,8 +88,12 @@ abstract class AbstractClient
      *
      * @throws ClientException
      */
-    public function request(string $method, string $endpoint, array $parameters = [], array $headers = []): array
-    {
+    protected function request(
+        string $method,
+        string $endpoint,
+        array $parameters = [],
+        array $headers = []
+    ): array {
         $method = strtoupper($method);
         if (!in_array($method, $this->allowedMethods)) {
             throw new ClientException("Method ($method) is not allowed.");
@@ -107,7 +109,7 @@ abstract class AbstractClient
     /**
      * @codeCoverageIgnore
      */
-    public function sendRequest(Request $request): Response
+    private function sendRequest(Request $request): Response
     {
         return $this->requestHandler->handle($request);
     }

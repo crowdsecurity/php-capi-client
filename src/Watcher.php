@@ -361,7 +361,7 @@ class Watcher extends AbstractClient
             }
         }
 
-        return array_unique(array_values($tags));
+        return array_values(array_unique($tags));
     }
 
     /**
