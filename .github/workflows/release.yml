@@ -81,7 +81,7 @@ jobs:
           fi
 
       - name: Create Tag ${{ github.event.inputs.tag_name }}
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           github-token: ${{ github.token }}
           script: |
