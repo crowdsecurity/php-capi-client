@@ -22,6 +22,7 @@
   - [Machine Id prefix](#machine-id-prefix)
   - [User Agent suffix](#user-agent-suffix)
   - [Scenarios](#scenarios)
+  - [CAPI timeout](#capi-timeout)
 - [Storage implementation](#storage-implementation)
 - [Override the curl request handler](#override-the-curl-request-handler)
   - [Custom implementation](#custom-implementation)
