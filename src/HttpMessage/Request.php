@@ -36,8 +36,12 @@ class Request extends AbstractMessage
      */
     private $uri;
 
-    public function __construct(string $uri, string $method, array $headers = [], array $parameters = [])
-    {
+    public function __construct(
+        string $uri,
+        string $method,
+        array $headers = [],
+        array $parameters = []
+    ) {
         $this->uri = $uri;
         $this->method = $method;
         $this->headers = array_merge($this->headers, $headers);

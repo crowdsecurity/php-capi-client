@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.4.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.4.0) - 2022-12-01
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.3.0...v0.4.0)
+
+### Changed
+- *Breaking change*: Make method `AbstractClient::sendRequest` private instead of public
+- *Breaking change*: Make method `AbstractClient::request` protected instead of public
+
+### Added
+- Add `api_timeout` configuration
+- Add an optional param `$configs` in `Curl` and `FileGetContents` constructors
+
+---
+
 ## [0.3.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.3.0) - 2022-11-04
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.2.0...v0.3.0)
 
@@ -12,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add optional logger parameter in client constructor 
 
 ---
-
 
 ## [0.2.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.2.0) - 2022-10-28
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.1.0...v0.2.0)

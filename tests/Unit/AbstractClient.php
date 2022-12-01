@@ -24,12 +24,15 @@ abstract class AbstractClient extends TestCase
         'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
         'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX,
         'scenarios' => TestConstants::SCENARIOS,
+        'api_timeout' => TestConstants::API_TIMEOUT,
     ];
 
-    protected function getCurlMock()
+    protected function getCurlMock(array $methods = [])
     {
+        $methods = array_merge(['exec', 'getResponseHttpCode'], $methods);
+
         return $this->getMockBuilder('CrowdSec\CapiClient\RequestHandler\Curl')
-            ->onlyMethods(['exec', 'getResponseHttpCode'])
+            ->onlyMethods($methods)
             ->getMock();
     }
 

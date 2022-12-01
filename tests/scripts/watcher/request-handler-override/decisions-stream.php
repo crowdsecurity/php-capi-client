@@ -26,7 +26,7 @@ $configs = [
     'scenarios' => $scenarios,
     ];
 echo \PHP_EOL . 'Instantiate custom request handler ...' . \PHP_EOL;
-$customRequestHandler = new FileGetContents();
+$customRequestHandler = new FileGetContents($configs);
 $client = new Watcher($configs, new FileStorage(), $customRequestHandler);
 echo 'Watcher instantiated' . \PHP_EOL;
 

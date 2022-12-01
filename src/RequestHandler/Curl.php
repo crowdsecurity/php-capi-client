@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient\RequestHandler;
 
 use CrowdSec\CapiClient\ClientException;
+use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\HttpMessage\Request;
 use CrowdSec\CapiClient\HttpMessage\Response;
 
@@ -18,7 +19,7 @@ use CrowdSec\CapiClient\HttpMessage\Response;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class Curl implements RequestHandlerInterface
+class Curl extends AbstractRequestHandler implements RequestHandlerInterface
 {
     /**
      * {@inheritdoc}
@@ -72,6 +73,13 @@ class Curl implements RequestHandlerInterface
         return curl_getinfo($handle, \CURLINFO_HTTP_CODE);
     }
 
+    private function handleConfigs(): array
+    {
+        $timeout = $this->getConfig('api_timeout');
+
+        return [\CURLOPT_TIMEOUT => $timeout ?: Constants::API_TIMEOUT];
+    }
+
     /**
      * Retrieve Curl options.
      *
@@ -80,17 +88,20 @@ class Curl implements RequestHandlerInterface
     private function createOptions(Request $request): array
     {
         $headers = $request->getHeaders();
-        $method = $request->getMethod();
-        $url = $request->getUri();
-        $parameters = $request->getParams();
         if (!isset($headers['User-Agent'])) {
             throw new ClientException('User agent is required', 400);
         }
+        $method = $request->getMethod();
+        $url = $request->getUri();
+        $parameters = $request->getParams();
+
         $options = [
             \CURLOPT_HEADER => false,
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_USERAGENT => $headers['User-Agent'],
         ];
+        // We need to keep keys indexes
+        $options += $this->handleConfigs();
 
         $options[\CURLOPT_HTTPHEADER] = [];
         foreach ($headers as $key => $values) {

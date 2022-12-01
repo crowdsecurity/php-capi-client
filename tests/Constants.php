@@ -45,4 +45,9 @@ class Constants
      * @var string The machine_id used to send request to CAPI
      */
     public const MACHINE_ID = 'test-machine-id';
+
+    /**
+     * @var string The timeout for CAPI request
+     */
+    public const API_TIMEOUT = 20;
 }

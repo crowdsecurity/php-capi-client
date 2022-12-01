@@ -69,6 +69,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarPrototype()->cannotBeEmpty()
                 ->end()
             ->end()
+            ->integerNode('api_timeout')->min(1)->defaultValue(Constants::API_TIMEOUT)->end()
         ->end()
         ;
 

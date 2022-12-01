@@ -17,6 +17,10 @@ namespace CrowdSec\CapiClient;
 class Constants
 {
     /**
+     * @var int The default timeout (in seconds) when calling CAPI
+     */
+    public const API_TIMEOUT = 10;
+    /**
      * @var string The development environment flag
      */
     public const ENV_DEV = 'dev';
@@ -39,5 +43,5 @@ class Constants
     /**
      * @var string The current version of this library
      */
-    public const VERSION = 'v0.3.0';
+    public const VERSION = 'v0.4.0';
 }

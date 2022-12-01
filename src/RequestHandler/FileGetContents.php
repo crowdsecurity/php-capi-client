@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient\RequestHandler;
 
 use CrowdSec\CapiClient\ClientException;
+use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\HttpMessage\Request;
 use CrowdSec\CapiClient\HttpMessage\Response;
 
@@ -18,7 +19,7 @@ use CrowdSec\CapiClient\HttpMessage\Response;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class FileGetContents implements RequestHandlerInterface
+class FileGetContents extends AbstractRequestHandler implements RequestHandlerInterface
 {
     /**
      * {@inheritdoc}
@@ -106,11 +107,13 @@ class FileGetContents implements RequestHandlerInterface
         }
         $header = $this->convertHeadersToString($headers);
         $method = $request->getMethod();
+        $timeout = $this->getConfig('api_timeout');
         $config = [
             'http' => [
                 'method' => $method,
                 'header' => $header,
                 'ignore_errors' => true,
+                'timeout' => $timeout ?: Constants::API_TIMEOUT,
             ],
         ];
 

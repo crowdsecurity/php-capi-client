@@ -34,6 +34,9 @@ use org\bovigo\vfs\vfsStream;
  * @uses \CrowdSec\CapiClient\HttpMessage\AbstractMessage::getHeaders
  * @uses \CrowdSec\CapiClient\RequestHandler\Curl::createOptions
  * @uses \CrowdSec\CapiClient\RequestHandler\Curl::handle
+ * @uses \CrowdSec\CapiClient\RequestHandler\Curl::handleConfigs
+ * @uses \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::__construct
+ * @uses \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::getConfig
  *
  * @covers \CrowdSec\CapiClient\Watcher::__construct
  * @covers \CrowdSec\CapiClient\Watcher::configure
@@ -278,17 +281,27 @@ final class WatcherTest extends AbstractClient
         // Test a valid POST request and its return
         $mockFileStorage = $this->getFileStorageMock();
 
+        $mockCurl = $this->getCurlMock(['handle']);
+
         $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
             ->enableOriginalConstructor()
-            ->setConstructorArgs(['configs' => $this->configs, 'storage' => $mockFileStorage])
+            ->setConstructorArgs([
+                'configs' => $this->configs,
+                'storage' => $mockFileStorage,
+                'requestHandler' => $mockCurl,
+            ])
             ->onlyMethods(['sendRequest'])
             ->getMock();
 
-        $mockClient->expects($this->exactly(1))->method('sendRequest')->will($this->returnValue(
+        $mockCurl->expects($this->exactly(1))->method('handle')->will($this->returnValue(
             new Response(MockedData::LOGIN_SUCCESS, MockedData::HTTP_200, [])
         ));
 
-        $response = $mockClient->request('POST', '', [], []);
+        $response = PHPUnitUtil::callMethod(
+            $mockClient,
+            'request',
+            ['POST', '', [], []]
+        );
 
         $this->assertEquals(
             json_decode(MockedData::LOGIN_SUCCESS, true),
@@ -298,7 +311,11 @@ final class WatcherTest extends AbstractClient
         // Test a not allowed request method (PUT)
         $error = '';
         try {
-            $mockClient->request('PUT', '', [], []);
+            PHPUnitUtil::callMethod(
+                $mockClient,
+                'request',
+                ['PUT', '', [], []]
+            );
         } catch (ClientException $e) {
             $error = $e->getMessage();
         }
@@ -335,6 +352,12 @@ final class WatcherTest extends AbstractClient
             TestConstants::USER_AGENT_SUFFIX,
             $client->getConfig('user_agent_suffix'),
             'User agent suffix should be configured'
+        );
+
+        $this->assertEquals(
+            TestConstants::API_TIMEOUT,
+            $client->getConfig('api_timeout'),
+            'Api timeout should be configured'
         );
 
         $client = new Watcher(['scenarios' => ['test-scenario', 'test-scenario']],
@@ -481,6 +504,20 @@ final class WatcherTest extends AbstractClient
             '/Permissible values:/',
             $error,
             'env should be dev or prod'
+        );
+
+        $error = '';
+        try {
+            new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => 0], new FileStorage());
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Should be greater than or equal to 1/',
+            $error,
+            'Api timeout should be greater than 1'
         );
     }
 
