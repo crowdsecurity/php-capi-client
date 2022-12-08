@@ -47,14 +47,14 @@ For a quick start, follow the below steps.
 
 #### DDEV installation
 
-This project is fully compatible with DDEV 1.21.2, and it is recommended to use this specific version.
+This project is fully compatible with DDEV 1.21.3, and it is recommended to use this specific version.
 For the DDEV installation, please follow the [official instructions](https://ddev.readthedocs.io/en/stable/#installation).
 On a Linux distribution, you can run:
 ```
 sudo apt-get -qq update
 sudo apt-get -qq -y install libnss3-tools
 curl -LO https://raw.githubusercontent.com/drud/ddev/master/scripts/install_ddev.sh
-bash install_ddev.sh v1.21.2
+bash install_ddev.sh v1.21.3
 rm install_ddev.sh
 ```
 
@@ -134,12 +134,9 @@ ddev php ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-
 
 #### Integration test
 
-In order to launch integration tests, we have to set some environment variables:
-
 ```bash
 ddev php ./my-own-modules/capi-client/vendor/bin/phpunit  ./my-own-modules/capi-client/tests/Integration --testdox     
 ```
-
 
 #### Coding standards
 

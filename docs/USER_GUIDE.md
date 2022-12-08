@@ -347,7 +347,7 @@ $client = new Watcher($configs, $storage, $requestHandler);
 ## Example scripts
 
 
-You will find some ready-to-use php scripts in the `tests/scripts` folder. These scripts could be usefully to better 
+You will find some ready-to-use php scripts in the `tests/scripts` folder. These scripts could be useful to better 
 understand what you can do with this client. 
 
 As Watcher methods need at least an array as parameter, we use a json format in command line.
