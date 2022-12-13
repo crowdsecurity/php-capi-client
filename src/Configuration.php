@@ -59,6 +59,19 @@ class Configuration implements ConfigurationInterface
                 ->thenInvalid('Invalid user agent suffix. Length must be <= 16. Allowed chars are A-Za-z0-9')
                 ->end()
             ->end()
+            ->scalarNode('user_agent_version')
+                ->validate()
+                ->ifTrue(function (string $value) {
+                    if (!empty($value)) {
+                        return 1 !== preg_match('#^v\d+\.\d+\.\d+$#', $value);
+                    }
+
+                    return true;
+                })
+                ->thenInvalid('Invalid user agent version. Must match vX.Y.Z format')
+                ->end()
+                ->defaultValue(Constants::VERSION)
+            ->end()
             ->arrayNode('scenarios')->isRequired()->cannotBeEmpty()
                 ->validate()
                 ->ifArray()

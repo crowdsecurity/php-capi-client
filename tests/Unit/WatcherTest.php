@@ -93,7 +93,7 @@ final class WatcherTest extends AbstractClient
                                strlen(TestConstants::MACHINE_ID_PREFIX)
                            );
                 }), ['User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
-                                     . '/' . Constants::VERSION, ]
+                                     . '/' . TestConstants::USER_AGENT_VERSION, ]
             );
 
         PHPUnitUtil::callMethod(
@@ -133,7 +133,7 @@ final class WatcherTest extends AbstractClient
                 ],
                 [
                     'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
-                                    . '/' . Constants::VERSION,
+                                    . '/' . TestConstants::USER_AGENT_VERSION,
                 ]
             );
         $code = 0;
@@ -184,7 +184,7 @@ final class WatcherTest extends AbstractClient
                     $signals,
                     [
                         'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
-                                        . '/' . Constants::VERSION,
+                                        . '/' . TestConstants::USER_AGENT_VERSION,
                         'Authorization' => 'Bearer ' . TestConstants::TOKEN,
                     ],
                 ]
@@ -221,7 +221,7 @@ final class WatcherTest extends AbstractClient
                     [],
                     [
                         'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
-                                        . '/' . Constants::VERSION,
+                                        . '/' . TestConstants::USER_AGENT_VERSION,
                         'Authorization' => 'Bearer ' . TestConstants::TOKEN,
                     ],
                 ]
@@ -268,7 +268,7 @@ final class WatcherTest extends AbstractClient
                     $params,
                     [
                         'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
-                                        . '/' . Constants::VERSION,
+                                        . '/' . TestConstants::USER_AGENT_VERSION,
                         'Authorization' => 'Bearer ' . TestConstants::TOKEN,
                     ],
                 ]
@@ -352,6 +352,12 @@ final class WatcherTest extends AbstractClient
             TestConstants::USER_AGENT_SUFFIX,
             $client->getConfig('user_agent_suffix'),
             'User agent suffix should be configured'
+        );
+
+        $this->assertEquals(
+            TestConstants::USER_AGENT_VERSION,
+            $client->getConfig('user_agent_version'),
+            'User agent version should be configured'
         );
 
         $this->assertEquals(
@@ -518,6 +524,50 @@ final class WatcherTest extends AbstractClient
             '/Should be greater than or equal to 1/',
             $error,
             'Api timeout should be greater than 1'
+        );
+
+        $client = new Watcher(['scenarios' => TestConstants::SCENARIOS], new FileStorage());
+
+        $this->assertEquals(
+            Constants::VERSION,
+            $client->getConfig('user_agent_version'),
+            'user_agent_version should be lib version by default'
+        );
+
+        $client = new Watcher(['scenarios' => TestConstants::SCENARIOS, 'user_agent_version' => 'v4.56.7'], new FileStorage());
+
+        $this->assertEquals(
+            'v4.56.7',
+            $client->getConfig('user_agent_version'),
+            'user_agent_version should be configurable'
+        );
+
+        $error = '';
+        try {
+            new Watcher(['scenarios' => TestConstants::SCENARIOS, 'user_agent_version' => ''], new FileStorage());
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Must match vX.Y.Z format/',
+            $error,
+            'User Agent version cannot be empty'
+        );
+
+        $error = '';
+        try {
+            new Watcher(['scenarios' => TestConstants::SCENARIOS, 'user_agent_version' => 'my-version'], new FileStorage());
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Must match vX.Y.Z format/',
+            $error,
+            'User Agent version should match regex vX.Y.Z'
         );
     }
 
