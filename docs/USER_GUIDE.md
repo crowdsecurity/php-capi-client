@@ -21,6 +21,7 @@
   - [Environment](#environment)
   - [Machine Id prefix](#machine-id-prefix)
   - [User Agent suffix](#user-agent-suffix)
+  - [User Agent version](#user-agent-version)
   - [Scenarios](#scenarios)
   - [CAPI timeout](#capi-timeout)
 - [Storage implementation](#storage-implementation)
