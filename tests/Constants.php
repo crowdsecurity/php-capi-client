@@ -22,6 +22,11 @@ class Constants
     public const USER_AGENT_SUFFIX = 'PHPCAPITEST';
 
     /**
+     * @var string The user agent version used to send request to CAPI
+     */
+    public const USER_AGENT_VERSION = 'v0.0.0';
+
+    /**
      * @var string The machine id prefix used to send request to CAPI
      */
     public const MACHINE_ID_PREFIX = 'capiclienttest';

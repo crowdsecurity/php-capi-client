@@ -214,6 +214,25 @@ less than or equal to 16 and matching the regular expression `#^[A-Za-z0-9]+$#`.
 With the example setting above, result will be  `csphpcapi_MySuffix/vX.Y.Z`.
 
 
+### User Agent version
+
+```php
+$configs = [
+        ... 
+        'user_agent_version' => 'v2.3.0'
+        ...
+];
+```
+This setting is not required.
+
+As mentioned above, default user agent is `csphpcapi/vX.Y.Z` where `vX.Y.Z` is the current release version of this 
+library.
+
+You can add a custom version to this value by using the `user_agent_version` setting. It must be a string matching the regular expression `#^v\d+\.\d+\.\d+$#`.
+
+With the example setting above, result will be  `csphpcapi/v2.3.0`.
+
+
 ### Scenarios
 
 ```php

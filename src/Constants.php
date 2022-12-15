@@ -43,5 +43,5 @@ class Constants
     /**
      * @var string The current version of this library
      */
-    public const VERSION = 'v0.4.1';
+    public const VERSION = 'v0.5.0';
 }

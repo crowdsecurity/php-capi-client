@@ -23,6 +23,7 @@ abstract class AbstractClient extends TestCase
     protected $configs = [
         'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
         'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX,
+        'user_agent_version' => TestConstants::USER_AGENT_VERSION,
         'scenarios' => TestConstants::SCENARIOS,
         'api_timeout' => TestConstants::API_TIMEOUT,
     ];
