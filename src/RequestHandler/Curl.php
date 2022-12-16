@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient\RequestHandler;
 
 use CrowdSec\CapiClient\ClientException;
+use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\HttpMessage\Request;
 use CrowdSec\CapiClient\HttpMessage\Response;
 
@@ -74,9 +75,10 @@ class Curl extends AbstractRequestHandler implements RequestHandlerInterface
 
     private function handleConfigs(): array
     {
-        $timeout = (int) $this->getConfig('api_timeout');
-
-        return [\CURLOPT_TIMEOUT => $timeout];
+        $timeout = $this->getConfig('api_timeout');
+        $timeout = is_null($timeout) ? Constants::API_TIMEOUT : $timeout;
+        // To obtain an unlimited timeout, we don't pass the option (as it is the default behavior)
+        return $timeout > 0 ? [\CURLOPT_TIMEOUT => $timeout] : [];
     }
 
     /**
