@@ -29,7 +29,7 @@ use CrowdSec\CapiClient\Watcher;
  * @uses \CrowdSec\CapiClient\HttpMessage\Request
  * @uses \CrowdSec\CapiClient\HttpMessage\Response
  * @uses \CrowdSec\CapiClient\HttpMessage\AbstractMessage
- * @uses \CrowdSec\CapiClient\Configuration::getConfigTreeBuilder
+ * @uses \CrowdSec\CapiClient\Configuration\Watcher::getConfigTreeBuilder
  * @uses \CrowdSec\CapiClient\Watcher::__construct
  * @uses \CrowdSec\CapiClient\Watcher::configure
  * @uses \CrowdSec\CapiClient\Watcher::formatUserAgent

@@ -17,9 +17,17 @@ namespace CrowdSec\CapiClient;
 class Constants
 {
     /**
-     * @var int The default timeout (in seconds) when calling CAPI
+     * @var int The default timeout (in seconds) when calling CAPI. -1 means no limit.
      */
-    public const API_TIMEOUT = 10;
+    public const API_TIMEOUT = -1;
+    /**
+     * @var string The date format for CrowdSec data
+     */
+    public const DATE_FORMAT = 'Y-m-d\TH:i:s.u\Z';
+    /**
+     * @var int The CrowdSec TTL for decisions (in seconds)
+     */
+    public const DURATION = 86400;
     /**
      * @var string The development environment flag
      */
@@ -28,6 +36,18 @@ class Constants
      * @var string The production environment flag
      */
     public const ENV_PROD = 'prod';
+    /**
+     * @var string The CrowdSec origin for decisions
+     */
+    public const ORIGIN = 'crowdsec';
+    /**
+     * @var string The ban remediation
+     */
+    public const REMEDIATION_BAN = 'ban';
+    /**
+     * @var string The CrowdSec Ip scope for decisions
+     */
+    public const SCOPE_IP = 'ip';
     /**
      * @var string The Development URL of the CrowdSec CAPI
      */

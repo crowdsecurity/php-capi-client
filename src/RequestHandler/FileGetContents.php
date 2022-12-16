@@ -107,13 +107,13 @@ class FileGetContents extends AbstractRequestHandler implements RequestHandlerIn
         }
         $header = $this->convertHeadersToString($headers);
         $method = $request->getMethod();
-        $timeout = $this->getConfig('api_timeout');
+        $timeout = (int) $this->getConfig('api_timeout');
         $config = [
             'http' => [
                 'method' => $method,
                 'header' => $header,
                 'ignore_errors' => true,
-                'timeout' => $timeout ?: Constants::API_TIMEOUT,
+                'timeout' => $timeout > 0 ? $timeout : Constants::API_TIMEOUT,
             ],
         ];
 

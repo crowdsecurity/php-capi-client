@@ -264,7 +264,7 @@ This setting is not required.
 
 This is the maximum number of seconds allowed to execute a CAPI request.
 
-It must be an integer greater than 1. If you don't set any value, `10` will be used by default.
+It must be an integer. If you don't set any value or a negative value, timeout will be unlimited.
 
 
 

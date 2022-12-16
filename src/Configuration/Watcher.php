@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CrowdSec\CapiClient;
+namespace CrowdSec\CapiClient\Configuration;
 
+use CrowdSec\CapiClient\Constants;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -18,11 +19,11 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class Configuration implements ConfigurationInterface
+class Watcher implements ConfigurationInterface
 {
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder('config');
+        $treeBuilder = new TreeBuilder('watcherConfig');
         /** @var ArrayNodeDefinition $rootNode */
         $rootNode = $treeBuilder->getRootNode();
         $rootNode->children()
@@ -82,7 +83,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarPrototype()->cannotBeEmpty()
                 ->end()
             ->end()
-            ->integerNode('api_timeout')->min(1)->defaultValue(Constants::API_TIMEOUT)->end()
+            ->integerNode('api_timeout')->defaultValue(Constants::API_TIMEOUT)->end()
         ->end()
         ;
 

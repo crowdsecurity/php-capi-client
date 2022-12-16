@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient;
 
+use CrowdSec\CapiClient\Configuration\Watcher as WatcherConfig;
 use CrowdSec\CapiClient\RequestHandler\RequestHandlerInterface;
 use CrowdSec\CapiClient\Storage\StorageInterface;
+use DateTime;
+use DateTimeInterface;
+use DateTimeZone;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Processor;
 
@@ -148,6 +152,67 @@ class Watcher extends AbstractClient
     }
 
     /**
+     * Convert seconds into duration format : XhYmZs (example 86400 => 24h0m0s).
+     */
+    private function convertSecondsToDuration(int $seconds): string
+    {
+        return sprintf('%dh%dm%ds', $seconds / 3600, $seconds / 60 % 60, $seconds % 60);
+    }
+
+    /**
+     * Helper to create well formatted signal array.
+     */
+    public function createSignal(
+        string $scenario,
+        string $sourceValue,
+        ?DateTimeInterface $startAt,
+        ?DateTimeInterface $stopAt,
+        string $message = '',
+        string $sourceScope = Constants::SCOPE_IP,
+        int $decisionDuration = Constants::DURATION,
+        string $decisionType = Constants::REMEDIATION_BAN
+    ): array {
+        $currentTime = new DateTime('now', new DateTimeZone('UTC'));
+        $createdAt = $currentTime->format(Constants::DATE_FORMAT);
+        $startAt = $startAt ? $startAt->format(Constants::DATE_FORMAT) : $createdAt;
+        $stopAt = $stopAt ? $stopAt->format(Constants::DATE_FORMAT) : $createdAt;
+        $machineId = $this->storage->retrieveMachineId();
+        if (!$machineId) {
+            $this->ensureRegister();
+            $machineId = $this->storage->retrieveMachineId();
+        }
+
+        $properties = [
+            'scenario' => $scenario,
+            'scenario_hash' => '',
+            'scenario_version' => '',
+            'created_at' => $createdAt,
+            'machine_id' => $machineId,
+            'message' => $message,
+            'start_at' => $startAt,
+            'stop_at' => $stopAt,
+        ];
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+        $decisions = [
+            [
+                'duration' => $this->convertSecondsToDuration($decisionDuration),
+                'scenario' => $scenario,
+                'origin' => Constants::ORIGIN,
+                'scope' => $sourceScope,
+                'value' => $sourceValue,
+                'type' => $decisionType,
+            ],
+        ];
+
+        $signal = new Signal($properties, $source, $decisions);
+
+        return $signal->toArray();
+    }
+
+    /**
      * Check if two indexed arrays are equals.
      */
     private function areEquals(array $arrayOne, array $arrayTwo): bool
@@ -162,7 +227,7 @@ class Watcher extends AbstractClient
      */
     private function configure(array $configs): void
     {
-        $configuration = new Configuration();
+        $configuration = new WatcherConfig();
         $processor = new Processor();
         $this->configs = $processor->processConfiguration($configuration, [$configs]);
     }

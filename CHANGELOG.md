@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.6.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.5.0) - 2022-12-16
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.5.0...v0.6.0)
+
+### Changed
+
+- Default `api_timeout` is now unlimited instead of 10 seconds
+
+### Added
+- Add `createSignal` helper method to create ready-to-use signal
+
+---
+
+
 ## [0.5.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.5.0) - 2022-12-15
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.4.1...v0.5.0)
 
