@@ -51,7 +51,7 @@ class Signal implements ConfigurationInterface
                 ->ifTrue(function (string $value) {
                     return 1 !== preg_match(self::ISO8601_REGEX, $value);
                 })
-                ->thenInvalid('Invalid created_at. Must match with ' . self::ISO8601_REGEX . ' regex')
+                ->thenInvalid('Invalid created_at. Must match with ' . self::ISO8601_REGEX)
                 ->end()
             ->end()
             ->scalarNode('machine_id')->cannotBeEmpty()->end()
@@ -63,7 +63,7 @@ class Signal implements ConfigurationInterface
                 ->ifTrue(function (string $value) {
                     return 1 !== preg_match(self::ISO8601_REGEX, $value);
                 })
-                ->thenInvalid('Invalid start_at. Must match with ' . self::ISO8601_REGEX . ' regex')
+                ->thenInvalid('Invalid start_at. Must match with ' . self::ISO8601_REGEX)
                 ->end()
             ->end()
             ->scalarNode('stop_at')
@@ -72,7 +72,7 @@ class Signal implements ConfigurationInterface
                 ->ifTrue(function (string $value) {
                     return 1 !== preg_match(self::ISO8601_REGEX, $value);
                 })
-                ->thenInvalid('Invalid stop_at. Must match with ' . self::ISO8601_REGEX . ' regex')
+                ->thenInvalid('Invalid stop_at. Must match with ' . self::ISO8601_REGEX)
                 ->end()
             ->end()
         ->end()
