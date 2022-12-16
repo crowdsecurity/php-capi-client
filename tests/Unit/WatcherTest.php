@@ -16,6 +16,7 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  */
 
 use CrowdSec\CapiClient\ClientException;
+use Crowdsec\CapiClient\Configuration\Signal;
 use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\HttpMessage\Response;
 use CrowdSec\CapiClient\Storage\FileStorage;
@@ -56,10 +57,20 @@ use org\bovigo\vfs\vfsStream;
  * @covers \CrowdSec\CapiClient\Watcher::generateRandomString
  * @covers \CrowdSec\CapiClient\Watcher::generateMachineId
  * @covers \CrowdSec\CapiClient\Watcher::shouldRefreshCredentials
- * @covers \CrowdSec\CapiClient\Configuration::getConfigTreeBuilder
+ * @covers \CrowdSec\CapiClient\Configuration\Watcher::getConfigTreeBuilder
  * @covers \CrowdSec\CapiClient\Watcher::handleLogin
  * @covers \CrowdSec\CapiClient\Watcher::refreshCredentials
  * @covers \CrowdSec\CapiClient\Watcher::normalizeTags
+ * @covers \CrowdSec\CapiClient\Configuration\Signal::getConfigTreeBuilder
+ * @covers \CrowdSec\CapiClient\Configuration\Signal\Decisions::getConfigTreeBuilder
+ * @covers \CrowdSec\CapiClient\Configuration\Signal\Source::getConfigTreeBuilder
+ * @covers \CrowdSec\CapiClient\Signal::__construct
+ * @covers \CrowdSec\CapiClient\Signal::configureDecisions
+ * @covers \CrowdSec\CapiClient\Signal::configureProperties
+ * @covers \CrowdSec\CapiClient\Signal::configureSource
+ * @covers \CrowdSec\CapiClient\Signal::toArray
+ * @covers \CrowdSec\CapiClient\Watcher::convertSecondsToDuration
+ * @covers \CrowdSec\CapiClient\Watcher::createSignal
  */
 final class WatcherTest extends AbstractClient
 {
@@ -366,7 +377,7 @@ final class WatcherTest extends AbstractClient
             'Api timeout should be configured'
         );
 
-        $client = new Watcher(['scenarios' => ['test-scenario', 'test-scenario']],
+        $client = new Watcher(['scenarios' => [TestConstants::SCENARIOS[0], TestConstants::SCENARIOS[0]]],
             new FileStorage()
         );
 
@@ -376,7 +387,7 @@ final class WatcherTest extends AbstractClient
             'Scenarios should be array unique'
         );
 
-        $client = new Watcher(['scenarios' => ['not-numeric-key' => 'test-scenario']], new FileStorage());
+        $client = new Watcher(['scenarios' => ['not-numeric-key' => TestConstants::SCENARIOS[0]]], new FileStorage());
 
         $this->assertEquals(
             TestConstants::SCENARIOS,
@@ -393,7 +404,7 @@ final class WatcherTest extends AbstractClient
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/The child config "scenarios" under "config" must be configured./',
+            '/The child config "scenarios" under "watcherConfig" must be configured./',
             $error,
             'Scenarios key must be in configs'
         );
@@ -462,6 +473,11 @@ final class WatcherTest extends AbstractClient
             'machine_id_prefix can be empty'
         );
 
+        $this->assertTrue(
+            (int) $client->getConfig('api_timeout')  === Constants::API_TIMEOUT,
+            'api timeout should be default'
+        );
+
         $error = '';
         try {
             new Watcher(['user_agent_suffix' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa'], new FileStorage());
@@ -512,18 +528,18 @@ final class WatcherTest extends AbstractClient
             'env should be dev or prod'
         );
 
-        $error = '';
-        try {
-            new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => 0], new FileStorage());
-        } catch (\Exception $e) {
-            $error = $e->getMessage();
-        }
+        $client =  new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => 0], new FileStorage());
+        $this->assertEquals(
+            0,
+            $client->getConfig('api_timeout'),
+            'api timeout can be 0'
+        );
 
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/Should be greater than or equal to 1/',
-            $error,
-            'Api timeout should be greater than 1'
+        $client =  new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => -1], new FileStorage());
+        $this->assertEquals(
+            -1,
+            $client->getConfig('api_timeout'),
+            'api timeout can be negative'
         );
 
         $client = new Watcher(['scenarios' => TestConstants::SCENARIOS], new FileStorage());
@@ -1001,6 +1017,209 @@ final class WatcherTest extends AbstractClient
             '/Tag must not be empty/',
             $error,
             'Should throw an error if tag is empty'
+        );
+
+        // Test convertSecondsToDuration
+
+        $result = PHPUnitUtil::callMethod(
+            $client,
+            'convertSecondsToDuration',
+            [86400]
+        );
+        $this->assertEquals(
+            '24h0m0s',
+            $result,
+            '86400s Should be 24h0m0s'
+        );
+
+        $result = PHPUnitUtil::callMethod(
+            $client,
+            'convertSecondsToDuration',
+            [90]
+        );
+        $this->assertEquals(
+            '0h1m30s',
+            $result,
+            '90s Should be 0h1m30s'
+        );
+    }
+
+    private function getTestSignal(string $machineId): string
+    {
+        return '{"scenario":"' . TestConstants::SCENARIOS[0] . '","scenario_hash":"","scenario_version":"","created_at":"XXX","machine_id":"' . $machineId . '","message":"","start_at":"XXX","stop_at":"XXX","scenario_trust":"manual","decisions":[{"duration":"24h0m0s","scenario":"' . TestConstants::SCENARIOS[0] . '","origin":"' . Constants::ORIGIN . '","scope":"' . Constants::SCOPE_IP . '","value":"1.2.3.4","type":"' . Constants::REMEDIATION_BAN . '","simulated":false}],"source":{"scope":"' . Constants::SCOPE_IP . '","value":"1.2.3.4"}}
+';
+    }
+
+    public function testCreateSignal()
+    {
+        $mockFileStorage = $this->getFileStorageMock();
+        $machineId = TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID;
+
+        $mockFileStorage->method('retrieveMachineId')->will(
+            $this->onConsecutiveCalls(
+                $machineId, // Test 1 : machine id is already in storage
+                null, // Test 2 : machine id is not in storage
+                $machineId . 'test2', // Test 2 : machine id is now in storage (freshly created)
+                $machineId . 'test2', // Test 2 : machine id is now in storage
+                $machineId . 'test3', // Test 3 : machine id is already in storage
+                $machineId . 'test4' // Test 4 : machine id is already in storage
+            )
+        );
+
+        $mockFileStorage->method('retrievePassword')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::PASSWORD // Test 2 : machine id is not already in storage
+            )
+        );
+
+        $client = new Watcher($this->configs, $mockFileStorage);
+
+        $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
+        // Test 1
+        $signal = $client->createSignal(TestConstants::SCENARIOS[0], '1.2.3.4', null, null);
+        $signalCreated = new \DateTime($signal['created_at']);
+        $signalCreatedTimestamp = $signalCreated->getTimestamp();
+        $signalStart = new \DateTime($signal['start_at']);
+        $signalStartTimestamp = $signalStart->getTimestamp();
+        $signalStop = new \DateTime($signal['stop_at']);
+        $signalStopTimestamp = $signalStop->getTimestamp();
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['created_at'],
+            'created_at should be well formatted'
+        );
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['stop_at'],
+            'stop_at should be well formatted'
+        );
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['start_at'],
+            'start_at should be well formatted'
+        );
+        // Test Only non date field (hard to test with milliseconds)
+        $signal['created_at'] = 'XXX';
+        $signal['start_at'] = 'XXX';
+        $signal['stop_at'] = 'XXX';
+
+        $this->assertEquals(
+            $signal,
+            json_decode($this->getTestSignal($machineId), true),
+            'Signal should be well formatted'
+        );
+
+        $this->assertEquals(
+            $signalCreatedTimestamp,
+            $currentTime->getTimestamp(),
+            'Signal created_at should be current time'
+        );
+        $this->assertEquals(
+            $signalStartTimestamp,
+            $currentTime->getTimestamp(),
+            'Signal start_at should be current time'
+        );
+        $this->assertEquals(
+            $signalStopTimestamp,
+            $currentTime->getTimestamp(),
+            'Signal stop_at should be current time'
+        );
+
+        $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
+        // Test 2
+        $signal = $client->createSignal(TestConstants::SCENARIOS[0], '1.2.3.4', null, null);
+        $signalCreated = new \DateTime($signal['created_at']);
+        $signalCreatedTimestamp = $signalCreated->getTimestamp();
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['created_at'],
+            'created_at should be well formatted'
+        );
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['stop_at'],
+            'stop_at should be well formatted'
+        );
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['start_at'],
+            'start_at should be well formatted'
+        );
+        // Test Only non date field (hard to test with milliseconds)
+        $signal['created_at'] = 'XXX';
+        $signal['start_at'] = 'XXX';
+        $signal['stop_at'] = 'XXX';
+
+        $this->assertEquals(
+            $signal,
+            json_decode($this->getTestSignal($machineId . 'test2'), true),
+            'Signal should be well formatted if watcher not registered at first'
+        );
+
+        $this->assertEquals(
+            $signalCreatedTimestamp,
+            $currentTime->getTimestamp(),
+            'Signal created_at should be current time'
+        );
+
+        // Test 3
+        $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startTime = new \DateTime('1979-03-06 10:55:28');
+        $endTime = new \DateTime('2079-03-06 10:55:28');
+        $signal = $client->createSignal(TestConstants::SCENARIOS[0], '1.2.3.4', $startTime, $endTime);
+        $signalCreated = new \DateTime($signal['created_at']);
+        $signalCreatedTimestamp = $signalCreated->getTimestamp();
+        $signalStart = new \DateTime($signal['start_at']);
+        $signalStartTimestamp = $signalStart->getTimestamp();
+        $signalStop = new \DateTime($signal['stop_at']);
+        $signalStopTimestamp = $signalStop->getTimestamp();
+
+        $this->assertEquals(
+            $signalCreatedTimestamp,
+            $currentTime->getTimestamp(),
+            'Signal created_at should be current time'
+        );
+        $this->assertEquals(
+            $signalStartTimestamp,
+            $startTime->getTimestamp(),
+            'Signal start_at should be current time'
+        );
+        $this->assertEquals(
+            $signalStopTimestamp,
+            $endTime->getTimestamp(),
+            'Signal stop_at should be current time'
+        );
+        // Test Only non date field (hard to test with milliseconds)
+        $signal['created_at'] = 'XXX';
+        $signal['start_at'] = 'XXX';
+        $signal['stop_at'] = 'XXX';
+        $this->assertEquals(
+            $signal,
+            json_decode($this->getTestSignal($machineId . 'test3'), true),
+            'Signal should be well formatted if watcher not registered at first'
+        );
+
+        // Test 4 : errors
+        $error = '';
+        try {
+            $client->createSignal('hello-world-bad-scenario', '1.2.3.4', null, null);
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Invalid scenario/',
+            $error,
+            'Should throw an error for bad scenario'
         );
     }
 }

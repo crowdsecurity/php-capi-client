@@ -34,7 +34,7 @@ class Constants
     /**
      * @var array The scenario used to send request to CAPI
      */
-    public const SCENARIOS = ['test-scenario'];
+    public const SCENARIOS = ['test/scenario'];
 
     /**
      * @var string The password used to send request to CAPI
