@@ -76,8 +76,7 @@ class Curl extends AbstractRequestHandler implements RequestHandlerInterface
     {
         $timeout = (int) $this->getConfig('api_timeout');
 
-        // Default \CURLOPT_TIMEOUT is 0 : unlimited timeout.
-        return $timeout > 0 ? [\CURLOPT_TIMEOUT => $timeout] : [];
+        return [\CURLOPT_TIMEOUT => $timeout];
     }
 
     /**

@@ -24,7 +24,7 @@ if (!$scenarios || !$scenario || !$value) {
     exit(
         'Usage: php signal-builder.php <SCENARIOS_JSON> <SCENARIO> <VALUE> <START> <STOP> <MESSAGE> <SCOPE> <DURATION> <TYPE> ' . \PHP_EOL .
         'Example: php signal-builder.php \'["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]\' "crowdsecurity/http-backdoors-attempts" "1.2.3.4" ' . \PHP_EOL .
-        'Example 2: php signal-builder.php \'["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]\' "crowdsecurity/http-backdoors-attempts" "1.2.3.4/24" "2022-12-14 23:25:00" "2022-12-14 23:48:56" "(6 events over 30s)" "Range" "86400" "captcha"' . \PHP_EOL
+        'Example 2: php signal-builder.php \'["crowdsecurity/http-backdoors-attempts", "crowdsecurity/http-bad-user-agent"]\' "crowdsecurity/http-backdoors-attempts" "1.2.3.4/24" "2022-12-14 23:25:00" "2022-12-14 23:48:56" "6 events over 30s" "Range" "86400" "captcha"' . \PHP_EOL
     );
 }
 echo \PHP_EOL . 'Instantiate watcher ...' . \PHP_EOL;

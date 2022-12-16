@@ -124,6 +124,46 @@ $signals = ['...'];
 $client->pushSignals($signals);
 ```
 
+
+###### Signal builder 
+
+In order to quickly create a well formatted signal, we provide the `createSignal` helper method.
+
+```php
+$signal1 = $client->createSignal('crowdsecurity/http-bad-user-agent', '1.2.3.4', null, null);
+$signal2 = $client->createSignal(
+    'crowdsecurity/http-bad-user-agent', 
+    '5.6.7.8', 
+    new \DateTime('2022-12-24 14:55:30'),
+    new \DateTime('2022-12-24 14:56:00'),
+    '6 events over 30s',
+    'ip',
+    86400,
+    'captcha'
+);
+$client->pushSignals([$signal1, $signal2]);
+```
+
+Available parameters for this method are: 
+
+- `$scenario` : The scenario that triggered the alert. This is required.
+
+- `$sourceValue` : It depends on the scope : it could be an IP (if scope is `ip`), a range (if scope is `range`) or 
+  any value that matches with the current scope. This is required
+
+- `$startAt`: The first event for alert. This is required : could be a DateTimeInterface or null.
+
+- `$stopAt`: The last event for alert. This is required : could be a DateTimeInterface or null.
+
+- `$message` : A human-readable message to add context for the alert. This is not required. Default to an empty message.
+
+- `$sourceScope`: The scope of the alert : `ip`, `range`, etc. This is not required. Default to `ip`.
+
+- `$decisionDuration`: The time to live (in seconds) of the decision. This is not required. Default to 86400.
+
+- `$decisionDuration`: The decision type: `ban`, `captcha`, etc. This is not required. Default to `ban`.
+
+
 ##### Get Decisions stream list
 
 To retrieve the list of top decisions, you can do the following call:
@@ -264,8 +304,8 @@ This setting is not required.
 
 This is the maximum number of seconds allowed to execute a CAPI request.
 
-It must be an integer. If you don't set any value or a negative value, timeout will be unlimited.
-
+It must be an integer. If you don't set any value, default value is 120. If you set a negative value, timeout is 
+unlimited. 
 
 
 ## Storage implementation

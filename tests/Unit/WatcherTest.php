@@ -474,8 +474,8 @@ final class WatcherTest extends AbstractClient
         );
 
         $this->assertTrue(
-            (int) $client->getConfig('api_timeout') < 0,
-            'api timeout should be negative by default'
+            (int) $client->getConfig('api_timeout')  === Constants::API_TIMEOUT,
+            'api timeout should be default'
         );
 
         $error = '';
@@ -528,18 +528,18 @@ final class WatcherTest extends AbstractClient
             'env should be dev or prod'
         );
 
-        $error = '';
-        try {
-            new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => 0], new FileStorage());
-        } catch (\Exception $e) {
-            $error = $e->getMessage();
-        }
+        $client =  new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => 0], new FileStorage());
+        $this->assertEquals(
+            0,
+            $client->getConfig('api_timeout'),
+            'api timeout can be 0'
+        );
 
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '//',
-            $error,
-            'Api timeout can be 0'
+        $client =  new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => -1], new FileStorage());
+        $this->assertEquals(
+            -1,
+            $client->getConfig('api_timeout'),
+            'api timeout can be negative'
         );
 
         $client = new Watcher(['scenarios' => TestConstants::SCENARIOS], new FileStorage());
@@ -1059,9 +1059,16 @@ final class WatcherTest extends AbstractClient
             $this->onConsecutiveCalls(
                 $machineId, // Test 1 : machine id is already in storage
                 null, // Test 2 : machine id is not in storage
-                null, // Test 2 : machine id is not in storage
                 $machineId . 'test2', // Test 2 : machine id is now in storage (freshly created)
-                $machineId . 'test3' // Test 2 : machine id is already in storage
+                $machineId . 'test2', // Test 2 : machine id is now in storage
+                $machineId . 'test3', // Test 3 : machine id is already in storage
+                $machineId . 'test4' // Test 4 : machine id is already in storage
+            )
+        );
+
+        $mockFileStorage->method('retrievePassword')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::PASSWORD // Test 2 : machine id is not already in storage
             )
         );
 

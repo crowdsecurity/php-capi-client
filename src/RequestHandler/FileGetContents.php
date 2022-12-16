@@ -113,7 +113,7 @@ class FileGetContents extends AbstractRequestHandler implements RequestHandlerIn
                 'method' => $method,
                 'header' => $header,
                 'ignore_errors' => true,
-                'timeout' => $timeout > 0 ? $timeout : Constants::API_TIMEOUT,
+                'timeout' => $timeout,
             ],
         ];
 

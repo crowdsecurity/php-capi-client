@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Default `api_timeout` is now unlimited instead of 10 seconds
+- Default `api_timeout` is now 120 seconds instead of 10 seconds
 
 ### Added
 - Add `createSignal` helper method to create ready-to-use signal

@@ -17,9 +17,9 @@ namespace CrowdSec\CapiClient;
 class Constants
 {
     /**
-     * @var int The default timeout (in seconds) when calling CAPI. -1 means no limit.
+     * @var int The default timeout (in seconds) when calling CAPI.
      */
-    public const API_TIMEOUT = -1;
+    public const API_TIMEOUT = 120;
     /**
      * @var string The date format for CrowdSec data
      */
@@ -63,5 +63,5 @@ class Constants
     /**
      * @var string The current version of this library
      */
-    public const VERSION = 'v0.5.0';
+    public const VERSION = 'v0.6.0';
 }

@@ -156,7 +156,7 @@ class Watcher extends AbstractClient
      */
     private function convertSecondsToDuration(int $seconds): string
     {
-        return sprintf('%dh%dm%ds', $seconds / 3600, $seconds / 60 % 60, $seconds % 60);
+        return sprintf('%dh%dm%ds', intval($seconds / 3600), intval($seconds / 60) % 60, $seconds % 60);
     }
 
     /**
