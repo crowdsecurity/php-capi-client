@@ -404,6 +404,10 @@ $requestHandler = new FileGetContents($configs);
 $client = new Watcher($configs, $storage, $requestHandler);
 ```
 
+**N.B.**: Please note that you should pass a `$configs` param if you want to use some configuration value as 
+`api_timeout`. 
+
+
 ## Example scripts
 
 
