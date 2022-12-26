@@ -21,6 +21,10 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  */
 class Decisions implements ConfigurationInterface
 {
+    /**
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('signalDecisionsConfig');
