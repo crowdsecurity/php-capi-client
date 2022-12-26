@@ -198,6 +198,7 @@ class Watcher extends AbstractClient
         ];
         $decisions = [
             [
+                'id' => 0,
                 'duration' => $this->convertSecondsToDuration($decisionDuration),
                 'scenario' => $scenario,
                 'origin' => Constants::ORIGIN,

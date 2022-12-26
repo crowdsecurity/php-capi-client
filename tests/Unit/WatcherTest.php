@@ -1046,7 +1046,7 @@ final class WatcherTest extends AbstractClient
 
     private function getTestSignal(string $machineId): string
     {
-        return '{"scenario":"' . TestConstants::SCENARIOS[0] . '","scenario_hash":"","scenario_version":"","created_at":"XXX","machine_id":"' . $machineId . '","message":"","start_at":"XXX","stop_at":"XXX","scenario_trust":"manual","decisions":[{"duration":"24h0m0s","scenario":"' . TestConstants::SCENARIOS[0] . '","origin":"' . Constants::ORIGIN . '","scope":"' . Constants::SCOPE_IP . '","value":"1.2.3.4","type":"' . Constants::REMEDIATION_BAN . '","simulated":false}],"source":{"scope":"' . Constants::SCOPE_IP . '","value":"1.2.3.4"}}
+        return '{"scenario":"' . TestConstants::SCENARIOS[0] . '","scenario_hash":"","scenario_version":"","created_at":"XXX","machine_id":"' . $machineId . '","message":"","start_at":"XXX","stop_at":"XXX","scenario_trust":"manual","decisions":[{"id":0,"duration":"24h0m0s","scenario":"' . TestConstants::SCENARIOS[0] . '","origin":"' . Constants::ORIGIN . '","scope":"' . Constants::SCOPE_IP . '","value":"1.2.3.4","type":"' . Constants::REMEDIATION_BAN . '","simulated":false}],"source":{"scope":"' . Constants::SCOPE_IP . '","value":"1.2.3.4"}}
 ';
     }
 
