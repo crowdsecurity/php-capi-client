@@ -43,11 +43,7 @@ class Watcher implements ConfigurationInterface
             ->scalarNode('machine_id_prefix')
                 ->validate()
                 ->ifTrue(function (string $value) {
-                    if (!empty($value)) {
-                        return strlen($value) > 16 || 1 !== preg_match('#^[a-z0-9]+$#', $value);
-                    }
-
-                    return false;
+                    return 1 !== preg_match('#^[a-z0-9]{0,16}$#', $value);
                 })
                 ->thenInvalid('Invalid machine id prefix. Length must be <= 16. Allowed chars are a-z0-9')
                 ->end()
@@ -55,11 +51,7 @@ class Watcher implements ConfigurationInterface
             ->scalarNode('user_agent_suffix')
                 ->validate()
                 ->ifTrue(function (string $value) {
-                    if (!empty($value)) {
-                        return strlen($value) > 16 || 1 !== preg_match('#^[A-Za-z0-9]+$#', $value);
-                    }
-
-                    return false;
+                    return 1 !== preg_match('#^[A-Za-z0-9]{0,16}$#', $value);
                 })
                 ->thenInvalid('Invalid user agent suffix. Length must be <= 16. Allowed chars are A-Za-z0-9')
                 ->end()
@@ -68,7 +60,7 @@ class Watcher implements ConfigurationInterface
                 ->validate()
                 ->ifTrue(function (string $value) {
                     if (!empty($value)) {
-                        return 1 !== preg_match('#^v\d+\.\d+\.\d+$#', $value);
+                        return 1 !== preg_match('#^v\d{1,4}(\.\d{1,4}){2}$#', $value);
                     }
 
                     return true;
@@ -79,13 +71,24 @@ class Watcher implements ConfigurationInterface
             ->end()
             ->arrayNode('scenarios')->isRequired()->cannotBeEmpty()
                 ->validate()
-                ->ifArray()
-                ->then(function (array $value) {
-                    return array_values(array_unique($value));
-                })
+                    ->ifTrue(function (array $scenarios) {
+                        foreach ($scenarios as $scenario){
+                            if(1 !== preg_match('#^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$#', $scenario)){
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    })
+                    ->thenInvalid('Each scenario must match #^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$# regex')
                 ->end()
-                ->scalarPrototype()->cannotBeEmpty()
+                ->validate()
+                    ->ifArray()
+                    ->then(function (array $value) {
+                        return array_values(array_unique($value));
+                    })
                 ->end()
+                ->scalarPrototype()->cannotBeEmpty()->end()
             ->end()
             ->integerNode('api_timeout')->defaultValue(Constants::API_TIMEOUT)->end()
         ->end()
