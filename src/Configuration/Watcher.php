@@ -72,8 +72,8 @@ class Watcher implements ConfigurationInterface
             ->arrayNode('scenarios')->isRequired()->cannotBeEmpty()
                 ->validate()
                     ->ifTrue(function (array $scenarios) {
-                        foreach ($scenarios as $scenario){
-                            if(1 !== preg_match('#^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$#', $scenario)){
+                        foreach ($scenarios as $scenario) {
+                            if (1 !== preg_match('#^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$#', $scenario)) {
                                 return true;
                             }
                         }
