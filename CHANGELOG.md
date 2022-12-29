@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.7.0) - 2022-12-29
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.6.2...v0.7.0)
+
+### Changed
+
+- Update validation rules for `user_agent_version` and `scenarios` settings
+
+---
 
 ## [0.6.2](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.6.2) - 2022-12-26
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.6.1...v0.6.2)
