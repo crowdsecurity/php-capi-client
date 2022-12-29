@@ -25,6 +25,10 @@ class Signal implements ConfigurationInterface
 
     public const ISO8601_REGEX = '#^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(.\d{6})?Z$#';
 
+    /**
+     * @throws \RuntimeException
+     * @throws \InvalidArgumentException
+     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('signalConfig');

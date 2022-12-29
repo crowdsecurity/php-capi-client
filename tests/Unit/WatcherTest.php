@@ -439,6 +439,35 @@ final class WatcherTest extends AbstractClient
 
         $error = '';
         try {
+            new Watcher(['scenarios' => ['test-bad-name']], new FileStorage());
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Each scenario must match /',
+            $error,
+            'Each scenario respect some regex'
+        );
+
+        $error = '';
+        try {
+            new Watcher(['scenarios' => ['testtooloong/abcdefghijiklmnopqrstuvwxyzabcdefghijiklmnopqrstuvwxy']], new FileStorage());
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Each scenario must match /',
+            $error,
+            'Each scenario respect some regex'
+        );
+
+
+        $error = '';
+        try {
             new Watcher(['machine_id_prefix' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa'], new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();

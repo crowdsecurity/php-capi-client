@@ -116,6 +116,7 @@ class Watcher extends AbstractClient
      * Process an enroll call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
+     * @throws ClientException
      */
     public function enroll(string $name, bool $overwrite, string $enrollKey, array $tags = []): array
     {
@@ -135,6 +136,7 @@ class Watcher extends AbstractClient
      * Process a decisions stream call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
+     * @throws ClientException
      */
     public function getStreamDecisions(): array
     {
@@ -145,6 +147,7 @@ class Watcher extends AbstractClient
      * Process a signals call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
+     * @throws ClientException
      */
     public function pushSignals(array $signals): array
     {
@@ -161,6 +164,7 @@ class Watcher extends AbstractClient
 
     /**
      * Helper to create well formatted signal array.
+     * @throws \Exception
      */
     public function createSignal(
         string $scenario,
@@ -235,6 +239,7 @@ class Watcher extends AbstractClient
 
     /**
      * Ensure that machine is registered and that we have a token.
+     * @throws ClientException
      */
     private function ensureAuth(): void
     {
@@ -247,6 +252,7 @@ class Watcher extends AbstractClient
 
     /**
      * Ensure that machine credentials are ready tu use.
+     * @throws ClientException
      */
     private function ensureRegister(): void
     {
@@ -272,6 +278,7 @@ class Watcher extends AbstractClient
 
     /**
      * Generate a random machine_id.
+     * @throws ClientException
      */
     private function generateMachineId(array $configs = []): string
     {
@@ -285,6 +292,7 @@ class Watcher extends AbstractClient
 
     /**
      * Generate a random password.
+     * @throws ClientException
      */
     private function generatePassword(): string
     {
@@ -295,6 +303,7 @@ class Watcher extends AbstractClient
      * Generate a cryptographically secure random string.
      *
      * @throws ClientException
+     * @throws \Exception
      */
     private function generateRandomString(int $length, string $chars): string
     {
@@ -349,6 +358,7 @@ class Watcher extends AbstractClient
      * Process a login call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_login
+     * @throws ClientException
      */
     private function login(): array
     {
@@ -434,6 +444,7 @@ class Watcher extends AbstractClient
 
     /**
      * Generate and store new machine_id/password pair.
+     * @throws ClientException
      */
     private function refreshCredentials(): void
     {

@@ -226,8 +226,7 @@ This setting is not required.
 When you make your first call with a watcher, a `machine_id` will be generated and stored through your storage 
 implementation. This `machine_id` is a string of length 48 composed of characters matching the regular expression `#^[a-z0-9]+$#`.
 
-The `machine_id_prefix` setting allows to set a custom prefix to this `machine_id`. It must be a string with a length 
-less than or equal to 16 and matching the regular expression `#^[a-z0-9]+$#` too. 
+The `machine_id_prefix` setting allows to set a custom prefix to this `machine_id`. It must be a string matching the regular expression `#^[a-z0-9]{0,16}$#`. 
 
 The final generated `machine_id` will still have a length of 48.
 
@@ -249,8 +248,7 @@ This setting is not required.
 Sending a `User-Agent` header during a CAPI call is mandatory. By default, user agent will be `csphpcapi/vX.Y.Z` where 
 `vX.Y.Z` is the current release version of this library.
 
-You can add a custom suffix to this value by using the `user_agent_suffix` setting. It must be a string with a length
-less than or equal to 16 and matching the regular expression `#^[A-Za-z0-9]+$#`.
+You can add a custom suffix to this value by using the `user_agent_suffix` setting.  It must be a string matching the regular expression `#^[a-z0-9]{0,16}$#`.
 
 With the example setting above, result will be  `csphpcapi_MySuffix/vX.Y.Z`.
 
@@ -269,7 +267,7 @@ This setting is not required.
 As mentioned above, default user agent is `csphpcapi/vX.Y.Z` where `vX.Y.Z` is the current release version of this 
 library.
 
-You can add a custom version to this value by using the `user_agent_version` setting. It must be a string matching the regular expression `#^v\d+\.\d+\.\d+$#`.
+You can add a custom version to this value by using the `user_agent_version` setting. It must be a string matching the regular expression `#^v\d{1,4}(\.\d{1,4}){2}$#`.
 
 With the example setting above, result will be  `csphpcapi/v2.3.0`.
 
@@ -288,6 +286,10 @@ This `scenarios` setting is required.
 
 You have to pass an array of CrowdSec scenarios that will be used to log in your watcher. 
 You should find a list of available scenarios on the [CrowdSec hub collections page](https://hub.crowdsec.net/browse/).
+
+
+Each scenario must match the regular expression `#^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$#`.
+
 
 ### CAPI timeout
 

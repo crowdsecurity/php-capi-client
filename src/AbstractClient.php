@@ -108,6 +108,7 @@ abstract class AbstractClient
 
     /**
      * @codeCoverageIgnore
+     * @throws ClientException
      */
     private function sendRequest(Request $request): Response
     {
