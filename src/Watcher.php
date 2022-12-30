@@ -8,7 +8,6 @@ use CrowdSec\CapiClient\Configuration\Watcher as WatcherConfig;
 use CrowdSec\CapiClient\RequestHandler\RequestHandlerInterface;
 use CrowdSec\CapiClient\Storage\StorageInterface;
 use DateTime;
-use DateTimeInterface;
 use DateTimeZone;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Processor;
@@ -116,6 +115,7 @@ class Watcher extends AbstractClient
      * Process an enroll call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
+     *
      * @throws ClientException
      */
     public function enroll(string $name, bool $overwrite, string $enrollKey, array $tags = []): array
@@ -136,6 +136,7 @@ class Watcher extends AbstractClient
      * Process a decisions stream call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
+     *
      * @throws ClientException
      */
     public function getStreamDecisions(): array
@@ -147,6 +148,7 @@ class Watcher extends AbstractClient
      * Process a signals call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
+     *
      * @throws ClientException
      */
     public function pushSignals(array $signals): array
@@ -164,22 +166,30 @@ class Watcher extends AbstractClient
 
     /**
      * Helper to create well formatted signal array.
-     * @throws \Exception
+     *
+     * @throws ClientException
      */
     public function createSignal(
         string $scenario,
         string $sourceValue,
-        ?DateTimeInterface $startAt,
-        ?DateTimeInterface $stopAt,
+        ?\DateTimeInterface $startAt,
+        ?\DateTimeInterface $stopAt,
         string $message = '',
         string $sourceScope = Constants::SCOPE_IP,
         int $decisionDuration = Constants::DURATION,
         string $decisionType = Constants::REMEDIATION_BAN
     ): array {
-        $currentTime = new DateTime('now', new DateTimeZone('UTC'));
-        $createdAt = $currentTime->format(Constants::DATE_FORMAT);
-        $startAt = $startAt ? $startAt->format(Constants::DATE_FORMAT) : $createdAt;
-        $stopAt = $stopAt ? $stopAt->format(Constants::DATE_FORMAT) : $createdAt;
+        try {
+            $currentTime = new DateTime('now', new DateTimeZone('UTC'));
+            $createdAt = $currentTime->format(Constants::DATE_FORMAT);
+            $startAt = $startAt ? $startAt->format(Constants::DATE_FORMAT) : $createdAt;
+            $stopAt = $stopAt ? $stopAt->format(Constants::DATE_FORMAT) : $createdAt;
+            // @codeCoverageIgnoreStart
+        } catch (\Exception $e) {
+            throw new ClientException('Something went wrong with date during signal creation');
+            // @codeCoverageIgnoreEnd
+        }
+
         $machineId = $this->storage->retrieveMachineId();
         if (!$machineId) {
             $this->ensureRegister();
@@ -239,6 +249,7 @@ class Watcher extends AbstractClient
 
     /**
      * Ensure that machine is registered and that we have a token.
+     *
      * @throws ClientException
      */
     private function ensureAuth(): void
@@ -252,6 +263,7 @@ class Watcher extends AbstractClient
 
     /**
      * Ensure that machine credentials are ready tu use.
+     *
      * @throws ClientException
      */
     private function ensureRegister(): void
@@ -278,6 +290,7 @@ class Watcher extends AbstractClient
 
     /**
      * Generate a random machine_id.
+     *
      * @throws ClientException
      */
     private function generateMachineId(array $configs = []): string
@@ -292,6 +305,7 @@ class Watcher extends AbstractClient
 
     /**
      * Generate a random password.
+     *
      * @throws ClientException
      */
     private function generatePassword(): string
@@ -333,7 +347,13 @@ class Watcher extends AbstractClient
 
         $this->token = $loginResponse['token'] ?? null;
         if (!$this->token) {
-            throw new ClientException('Login response does not contain required token.', 401);
+            $message = 'Login response does not contain required token.';
+            $this->logger->error('', [
+                'type' => 'WATCHER_CLIENT_HANDLE_LOGIN',
+                'message' => $message,
+                'response' => $loginResponse,
+            ]);
+            throw new ClientException($message, 401);
         }
         $this->storage->storeToken($this->token);
         $configScenarios = $this->getConfig('scenarios');
@@ -348,6 +368,11 @@ class Watcher extends AbstractClient
     private function handleTokenHeader(): array
     {
         if (!$this->token) {
+            $message = 'Token is required.';
+            $this->logger->error('', [
+                'type' => 'WATCHER_CLIENT_HANDLE_TOKEN',
+                'message' => $message,
+            ]);
             throw new ClientException('Token is required.', 401);
         }
 
@@ -358,6 +383,7 @@ class Watcher extends AbstractClient
      * Process a login call to CAPI.
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_login
+     *
      * @throws ClientException
      */
     private function login(): array
@@ -384,7 +410,7 @@ class Watcher extends AbstractClient
         array $parameters = []
     ): array {
         $this->logger->debug('', [
-            'type' => 'WATCHER_CLIENT_REQUEST',
+            'type' => 'WATCHER_REQUEST',
             'method' => $method,
             'endpoint' => $endpoint,
             'parameters' => $parameters,
@@ -403,21 +429,37 @@ class Watcher extends AbstractClient
                 $headers = array_merge($this->headers, $this->handleTokenHeader());
                 $response = $this->request($method, $endpoint, $parameters, $headers);
             } catch (ClientException $e) {
+                $message = $e->getMessage();
+                $code = $e->getCode();
                 /**
                  * If there is an issue with credentials or token, CAPI returns a 401 error.
                  * In this case only, we try to log in again.
                  */
-                if (401 !== $e->getCode()) {
-                    throw new ClientException($e->getMessage(), $e->getCode());
+                if (401 !== $code) {
+                    $this->logger->error('', [
+                        'type' => 'WATCHER_REQUEST_ERROR',
+                        'message' => $message,
+                        'code' => $code,
+                    ]);
+                    throw new ClientException($message, $code);
                 }
+                $this->logger->warning('', [
+                    'type' => 'WATCHER_REQUEST_ERROR_401',
+                    'message' => $message,
+                    'code' => $code,
+                ]);
                 ++$loginRetry;
                 $retry = true;
                 $lastMessage = $e->getMessage();
             }
         } while ($retry && ($loginRetry <= self::LOGIN_RETRY));
         if ($loginRetry > self::LOGIN_RETRY) {
-            $message = "Could not login after $loginRetry attempts. Last error was: ";
-            throw new ClientException($message . $lastMessage);
+            $message = "Could not login after $loginRetry attempts. Last error was: $lastMessage";
+            $this->logger->error('', [
+                'type' => 'WATCHER_REQUEST_TOO_MANY_ATTEMPTS',
+                'message' => $message
+            ]);
+            throw new ClientException($message);
         }
 
         return $response;
@@ -432,10 +474,20 @@ class Watcher extends AbstractClient
     {
         foreach ($tags as $tag) {
             if (!is_string($tag)) {
-                throw new ClientException('Tag must be a string: ' . gettype($tag) . ' given.', 500);
+                $message = 'Tag must be a string: ' . gettype($tag) . ' given.';
+                $this->logger->error('', [
+                    'type' => 'WATCHER_NORMALIZE_TAGS',
+                    'message' => $message,
+                ]);
+                throw new ClientException($message, 500);
             }
             if (empty($tag)) {
-                throw new ClientException('Tag must not be empty', 500);
+                $message = 'Tag must not be empty';
+                $this->logger->error('', [
+                    'type' => 'WATCHER_NORMALIZE_TAGS',
+                    'message' => $message,
+                ]);
+                throw new ClientException($message, 500);
             }
         }
 
@@ -444,6 +496,7 @@ class Watcher extends AbstractClient
 
     /**
      * Generate and store new machine_id/password pair.
+     *
      * @throws ClientException
      */
     private function refreshCredentials(): void
@@ -481,21 +534,37 @@ class Watcher extends AbstractClient
                     $this->headers
                 );
             } catch (ClientException $e) {
+                $message = $e->getMessage();
+                $code = $e->getCode();
                 /**
                  * If the machine_id is already registered, CAPI returns a 500 error.
                  * In this case only, we try to register again with new credentials.
                  */
-                if (500 !== $e->getCode()) {
-                    throw new ClientException($e->getMessage(), $e->getCode());
+                if (500 !== $code) {
+                    $this->logger->error('', [
+                        'type' => 'WATCHER_REGISTER_ERROR',
+                        'message' => $message,
+                        'code' => $code,
+                    ]);
+                    throw new ClientException($message, $code);
                 }
+                $this->logger->warning('', [
+                    'type' => 'WATCHER_REGISTER_ERROR_500',
+                    'message' => $message,
+                    'code' => $code,
+                ]);
                 ++$registerRetry;
                 $retry = true;
                 $lastMessage = $e->getMessage();
             }
         } while ($retry && ($registerRetry <= self::REGISTER_RETRY));
         if ($registerRetry > self::REGISTER_RETRY) {
-            $message = "Could not register after $registerRetry attempts. Last error was: ";
-            throw new ClientException($message . $lastMessage);
+            $message = "Could not register after $registerRetry attempts. Last error was: $lastMessage";
+            $this->logger->error('', [
+                'type' => 'WATCHER_REGISTER_TOO_MANY_ATTEMPTS',
+                'message' => $message,
+            ]);
+            throw new ClientException($message);
         }
     }
 

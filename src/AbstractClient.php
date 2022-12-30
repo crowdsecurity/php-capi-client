@@ -96,7 +96,12 @@ abstract class AbstractClient
     ): array {
         $method = strtoupper($method);
         if (!in_array($method, $this->allowedMethods)) {
-            throw new ClientException("Method ($method) is not allowed.");
+            $message = "Method ($method) is not allowed.";
+            $this->logger->error('', [
+                'type' => 'WATCHER_CLIENT_REQUEST',
+                'message' => $message,
+            ]);
+            throw new ClientException($message);
         }
 
         $response = $this->sendRequest(
@@ -108,6 +113,7 @@ abstract class AbstractClient
 
     /**
      * @codeCoverageIgnore
+     *
      * @throws ClientException
      */
     private function sendRequest(Request $request): Response
@@ -136,6 +142,10 @@ abstract class AbstractClient
 
         if ($statusCode < 200 || $statusCode >= 300) {
             $message = "Unexpected response status code: $statusCode. Body was: " . str_replace("\n", '', $body);
+            $this->logger->error('', [
+                'type' => 'WATCHER_CLIENT_FORMAT_RESPONSE',
+                'message' => $message,
+            ]);
             throw new ClientException($message, $statusCode);
         }
 

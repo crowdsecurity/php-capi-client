@@ -465,7 +465,6 @@ final class WatcherTest extends AbstractClient
             'Each scenario respect some regex'
         );
 
-
         $error = '';
         try {
             new Watcher(['machine_id_prefix' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa'], new FileStorage());
@@ -503,7 +502,7 @@ final class WatcherTest extends AbstractClient
         );
 
         $this->assertTrue(
-            (int) $client->getConfig('api_timeout')  === Constants::API_TIMEOUT,
+            Constants::API_TIMEOUT === (int) $client->getConfig('api_timeout'),
             'api timeout should be default'
         );
 
@@ -557,14 +556,14 @@ final class WatcherTest extends AbstractClient
             'env should be dev or prod'
         );
 
-        $client =  new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => 0], new FileStorage());
+        $client = new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => 0], new FileStorage());
         $this->assertEquals(
             0,
             $client->getConfig('api_timeout'),
             'api timeout can be 0'
         );
 
-        $client =  new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => -1], new FileStorage());
+        $client = new Watcher(['scenarios' => TestConstants::SCENARIOS, 'api_timeout' => -1], new FileStorage());
         $this->assertEquals(
             -1,
             $client->getConfig('api_timeout'),
