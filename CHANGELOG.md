@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.8.0) - 2022-12-30
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.7.0...v0.8.0)
+
+### Added
+
+- Add some relevant debug and error logs
+
+### Changed
+
+- `createSignal` throws now a `ClientException` instead of a generic `Exception` during date manipulation 
+
+---
+
 ## [0.7.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.7.0) - 2022-12-29
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.6.2...v0.7.0)
 
