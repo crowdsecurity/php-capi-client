@@ -199,9 +199,9 @@ final class AbstractClientTest extends AbstractClient
         );
 
         $this->assertEquals(
-            ['message' => ''],
+            [],
             $decoded,
-            'An empty response body should not return some array'
+            'An empty response body should return empty array'
         );
 
         $response = new Response('', 500);
