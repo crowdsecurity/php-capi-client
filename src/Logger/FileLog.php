@@ -40,14 +40,14 @@ class FileLog extends Logger
         if (empty($configs['disable_prod_log'])) {
             $logPath = $logDir . '/' . self::PROD_FILE;
             $fileHandler = new RotatingFileHandler($logPath, 0, Logger::INFO);
-            $fileHandler->setFormatter(new LineFormatter("%datetime%|%level%|%context%\n"));
+            $fileHandler->setFormatter(new LineFormatter("%datetime%|%level%|%message%|%context%\n"));
             $this->pushHandler($fileHandler);
         }
 
         if (!empty($configs['debug_mode'])) {
             $debugLogPath = $logDir . '/' . self::DEBUG_FILE;
             $debugFileHandler = new RotatingFileHandler($debugLogPath, 0, Logger::DEBUG);
-            $debugFileHandler->setFormatter(new LineFormatter("%datetime%|%level%|%context%\n"));
+            $debugFileHandler->setFormatter(new LineFormatter("%datetime%|%level%|%message%|%context%\n"));
             $this->pushHandler($debugFileHandler);
         }
     }

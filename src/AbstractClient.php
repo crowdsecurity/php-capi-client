@@ -97,10 +97,7 @@ abstract class AbstractClient
         $method = strtoupper($method);
         if (!in_array($method, $this->allowedMethods)) {
             $message = "Method ($method) is not allowed.";
-            $this->logger->error('', [
-                'type' => 'WATCHER_CLIENT_REQUEST',
-                'message' => $message,
-            ]);
+            $this->logger->error($message, ['type' => 'CAPI_CLIENT_REQUEST']);
             throw new ClientException($message);
         }
 
@@ -131,22 +128,22 @@ abstract class AbstractClient
         $statusCode = $response->getStatusCode();
 
         $body = $response->getJsonBody();
-        $decoded = ['message' => ''];
-        if (!empty($body)) {
+        $decoded = [];
+        if (!empty($body) && 'null' !== $body) {
             $decoded = json_decode($response->getJsonBody(), true);
 
             if (null === $decoded) {
-                throw new ClientException('Body response is not a valid json');
+                $message = 'Body response is not a valid json';
+                $this->logger->error($message, ['type' => 'CAPI_CLIENT_FORMAT_RESPONSE']);
+                throw new ClientException($message);
             }
         }
 
         if ($statusCode < 200 || $statusCode >= 300) {
             $message = "Unexpected response status code: $statusCode. Body was: " . str_replace("\n", '', $body);
-            $this->logger->error('', [
-                'type' => 'WATCHER_CLIENT_FORMAT_RESPONSE',
-                'message' => $message,
-            ]);
-            throw new ClientException($message, $statusCode);
+            if ($statusCode !== 404) {
+                throw new ClientException($message, $statusCode);
+            }
         }
 
         return $decoded;

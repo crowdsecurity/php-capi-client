@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../../vendor/autoload.php';
 
 use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Watcher;
+use CrowdSec\CapiClient\Logger\FileLog;
 
 $scenarios = isset($argv[1]) ? json_decode($argv[1], true) : false;
 if (is_null($scenarios)) {
@@ -24,7 +25,7 @@ $configs = [
     'user_agent_suffix' => 'CapiClientTest',
     'scenarios' => $scenarios,
     ];
-$client = new Watcher($configs, new FileStorage());
+$client = new Watcher($configs, new FileStorage(), null, new FileLog(['debug_mode' => true]));
 echo 'Watcher instantiated' . \PHP_EOL;
 
 echo 'Calling ' . $client->getConfig('api_url') . ' for decisions stream ...' . \PHP_EOL;

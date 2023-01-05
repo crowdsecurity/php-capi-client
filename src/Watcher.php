@@ -348,10 +348,9 @@ class Watcher extends AbstractClient
         $this->token = $loginResponse['token'] ?? null;
         if (!$this->token) {
             $message = 'Login response does not contain required token.';
-            $this->logger->error('', [
+            $this->logger->error($message, [
                 'type' => 'WATCHER_CLIENT_HANDLE_LOGIN',
-                'message' => $message,
-                'response' => $loginResponse,
+                'response' => $loginResponse
             ]);
             throw new ClientException($message, 401);
         }
@@ -369,10 +368,7 @@ class Watcher extends AbstractClient
     {
         if (!$this->token) {
             $message = 'Token is required.';
-            $this->logger->error('', [
-                'type' => 'WATCHER_CLIENT_HANDLE_TOKEN',
-                'message' => $message,
-            ]);
+            $this->logger->error($message, ['type' => 'WATCHER_CLIENT_HANDLE_TOKEN']);
             throw new ClientException('Token is required.', 401);
         }
 
@@ -409,7 +405,7 @@ class Watcher extends AbstractClient
         string $endpoint,
         array $parameters = []
     ): array {
-        $this->logger->debug('', [
+        $this->logger->debug('Now processing a watcher request', [
             'type' => 'WATCHER_REQUEST',
             'method' => $method,
             'endpoint' => $endpoint,
@@ -436,17 +432,15 @@ class Watcher extends AbstractClient
                  * In this case only, we try to log in again.
                  */
                 if (401 !== $code) {
-                    $this->logger->error('', [
+                    $this->logger->error($message, [
                         'type' => 'WATCHER_REQUEST_ERROR',
-                        'message' => $message,
-                        'code' => $code,
+                        'code' => $code
                     ]);
                     throw new ClientException($message, $code);
                 }
-                $this->logger->warning('', [
-                    'type' => 'WATCHER_REQUEST_ERROR_401',
-                    'message' => $message,
-                    'code' => $code,
+                $this->logger->info($message, [
+                    'type' => 'WATCHER_REQUEST_LOGIN_RETRY',
+                    'code' => $code
                 ]);
                 ++$loginRetry;
                 $retry = true;
@@ -455,9 +449,8 @@ class Watcher extends AbstractClient
         } while ($retry && ($loginRetry <= self::LOGIN_RETRY));
         if ($loginRetry > self::LOGIN_RETRY) {
             $message = "Could not login after $loginRetry attempts. Last error was: $lastMessage";
-            $this->logger->error('', [
-                'type' => 'WATCHER_REQUEST_TOO_MANY_ATTEMPTS',
-                'message' => $message
+            $this->logger->error($message, [
+                'type' => 'WATCHER_REQUEST_TOO_MANY_ATTEMPTS'
             ]);
             throw new ClientException($message);
         }
@@ -475,18 +468,12 @@ class Watcher extends AbstractClient
         foreach ($tags as $tag) {
             if (!is_string($tag)) {
                 $message = 'Tag must be a string: ' . gettype($tag) . ' given.';
-                $this->logger->error('', [
-                    'type' => 'WATCHER_NORMALIZE_TAGS',
-                    'message' => $message,
-                ]);
+                $this->logger->error($message, ['type' => 'WATCHER_NORMALIZE_TAGS']);
                 throw new ClientException($message, 500);
             }
             if (empty($tag)) {
                 $message = 'Tag must not be empty';
-                $this->logger->error('', [
-                    'type' => 'WATCHER_NORMALIZE_TAGS',
-                    'message' => $message,
-                ]);
+                $this->logger->error($message, ['type' => 'WATCHER_NORMALIZE_TAGS']);
                 throw new ClientException($message, 500);
             }
         }
@@ -541,17 +528,15 @@ class Watcher extends AbstractClient
                  * In this case only, we try to register again with new credentials.
                  */
                 if (500 !== $code) {
-                    $this->logger->error('', [
+                    $this->logger->error($message, [
                         'type' => 'WATCHER_REGISTER_ERROR',
-                        'message' => $message,
-                        'code' => $code,
+                        'code' => $code
                     ]);
                     throw new ClientException($message, $code);
                 }
-                $this->logger->warning('', [
-                    'type' => 'WATCHER_REGISTER_ERROR_500',
-                    'message' => $message,
-                    'code' => $code,
+                $this->logger->info($message, [
+                    'type' => 'WATCHER_REGISTER_RETRY',
+                    'code' => $code
                 ]);
                 ++$registerRetry;
                 $retry = true;
@@ -560,10 +545,7 @@ class Watcher extends AbstractClient
         } while ($retry && ($registerRetry <= self::REGISTER_RETRY));
         if ($registerRetry > self::REGISTER_RETRY) {
             $message = "Could not register after $registerRetry attempts. Last error was: $lastMessage";
-            $this->logger->error('', [
-                'type' => 'WATCHER_REGISTER_TOO_MANY_ATTEMPTS',
-                'message' => $message,
-            ]);
+            $this->logger->error($message, ['type' => 'WATCHER_REGISTER_TOO_MANY_ATTEMPTS']);
             throw new ClientException($message);
         }
     }

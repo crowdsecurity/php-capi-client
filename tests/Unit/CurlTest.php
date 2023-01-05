@@ -250,6 +250,7 @@ final class CurlTest extends AbstractClient
             \CURLOPT_URL => $url,
             \CURLOPT_CUSTOMREQUEST => $method,
             \CURLOPT_TIMEOUT => TestConstants::API_TIMEOUT,
+            \CURLOPT_ENCODING => ''
         ];
 
         $this->assertEquals(
@@ -286,6 +287,7 @@ final class CurlTest extends AbstractClient
             \CURLOPT_URL => $url . '?foo=bar&crowd=sec',
             \CURLOPT_CUSTOMREQUEST => $method,
             \CURLOPT_TIMEOUT => TestConstants::API_TIMEOUT,
+            \CURLOPT_ENCODING => ''
         ];
 
         $this->assertEquals(
