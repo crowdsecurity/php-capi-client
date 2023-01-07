@@ -52,21 +52,23 @@ class Signal
     {
         $configuration = new SignalConfig();
         $processor = new Processor();
-        $this->properties = $processor->processConfiguration($configuration, [$properties]);
+        $this->properties = $processor->processConfiguration(
+            $configuration, [$configuration->cleanConfigs($properties)]
+        );
     }
 
     private function configureSource(array $source): void
     {
         $configuration = new SignalSourceConfig();
         $processor = new Processor();
-        $this->source = $processor->processConfiguration($configuration, [$source]);
+        $this->source = $processor->processConfiguration($configuration, [$configuration->cleanConfigs($source)]);
     }
 
-    private function configureDecisions(array $source): void
+    private function configureDecisions(array $decisions): void
     {
         $configuration = new SignalDecisionsConfig();
         $processor = new Processor();
-        $this->decisions = $processor->processConfiguration($configuration, [$source]);
+        $this->decisions = $processor->processConfiguration($configuration, [$configuration->cleanConfigs($decisions)]);
     }
 
     public function toArray(): array

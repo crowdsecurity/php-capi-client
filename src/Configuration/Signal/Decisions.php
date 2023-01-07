@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient\Configuration\Signal;
 
+use CrowdSec\CapiClient\Configuration\AbstractConfiguration;
 use CrowdSec\CapiClient\Configuration\Signal;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
  * The Signal decisions configuration.
@@ -19,8 +19,22 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class Decisions implements ConfigurationInterface
+class Decisions extends AbstractConfiguration
 {
+    /**
+     * @var string[]
+     */
+    protected $keys = [
+        'duration',
+        'scenario',
+        'origin',
+        'scope',
+        'simulated',
+        'id',
+        'type',
+        'value'
+    ];
+
     /**
      * @throws \InvalidArgumentException
      * @throws \RuntimeException

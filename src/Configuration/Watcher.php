@@ -7,7 +7,6 @@ namespace CrowdSec\CapiClient\Configuration;
 use CrowdSec\CapiClient\Constants;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
  * The Watcher configuration.
@@ -19,8 +18,19 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class Watcher implements ConfigurationInterface
+class Watcher extends AbstractConfiguration
 {
+    /**
+     * @var string[]
+     */
+    protected $keys = [
+        'env',
+        'machine_id_prefix',
+        'user_agent_suffix',
+        'user_agent_version',
+        'scenarios',
+        'api_timeout'
+    ];
     /**
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
