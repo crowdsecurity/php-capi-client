@@ -45,6 +45,7 @@ use CrowdSec\CapiClient\Watcher;
  * @uses \CrowdSec\CapiClient\Watcher::refreshCredentials
  * @uses \CrowdSec\CapiClient\Watcher::areEquals
  * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
+ * @uses \CrowdSec\CapiClient\Configuration\AbstractConfiguration::cleanConfigs
  *
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::handle
  * @covers \CrowdSec\CapiClient\RequestHandler\FileGetContents::createContextConfig

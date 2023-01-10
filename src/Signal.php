@@ -53,7 +53,8 @@ class Signal
         $configuration = new SignalConfig();
         $processor = new Processor();
         $this->properties = $processor->processConfiguration(
-            $configuration, [$configuration->cleanConfigs($properties)]
+            $configuration,
+            [$configuration->cleanConfigs($properties)]
         );
     }
 

@@ -36,6 +36,22 @@ class Decisions extends AbstractConfiguration
     ];
 
     /**
+     * Keep only necessary configs
+     * Override because $configs is an array of array (decision) and we want to clean each decision
+     * @param array $configs
+     * @return array
+     */
+    public function cleanConfigs(array $configs): array
+    {
+        $result = [];
+        foreach ($configs as $config) {
+            $result[] = array_intersect_key($config, array_flip($this->keys));;
+        }
+
+        return $result;
+    }
+
+    /**
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
