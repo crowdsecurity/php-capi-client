@@ -83,14 +83,14 @@ class Watcher extends AbstractConfiguration
                 ->validate()
                     ->ifTrue(function (array $scenarios) {
                         foreach ($scenarios as $scenario) {
-                            if (1 !== preg_match('#^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$#', $scenario)) {
+                            if (1 !== preg_match(Signal::SCENARIO_REGEX, $scenario)) {
                                 return true;
                             }
                         }
 
                         return false;
                     })
-                    ->thenInvalid('Each scenario must match #^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$# regex')
+                    ->thenInvalid('Each scenario must match ' . Signal::SCENARIO_REGEX . ' regex')
                 ->end()
                 ->validate()
                     ->ifArray()

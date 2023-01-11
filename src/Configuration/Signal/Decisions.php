@@ -46,7 +46,6 @@ class Decisions extends AbstractConfiguration
         $result = [];
         foreach ($configs as $config) {
             $result[] = array_intersect_key($config, array_flip($this->keys));
-            ;
         }
 
         return $result;
