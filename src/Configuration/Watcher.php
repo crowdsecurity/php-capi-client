@@ -7,7 +7,6 @@ namespace CrowdSec\CapiClient\Configuration;
 use CrowdSec\CapiClient\Constants;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
  * The Watcher configuration.
@@ -19,8 +18,19 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class Watcher implements ConfigurationInterface
+class Watcher extends AbstractConfiguration
 {
+    /**
+     * @var string[]
+     */
+    protected $keys = [
+        'env',
+        'machine_id_prefix',
+        'user_agent_suffix',
+        'user_agent_version',
+        'scenarios',
+        'api_timeout'
+    ];
     /**
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
@@ -73,14 +83,14 @@ class Watcher implements ConfigurationInterface
                 ->validate()
                     ->ifTrue(function (array $scenarios) {
                         foreach ($scenarios as $scenario) {
-                            if (1 !== preg_match('#^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$#', $scenario)) {
+                            if (1 !== preg_match(Signal::SCENARIO_REGEX, $scenario)) {
                                 return true;
                             }
                         }
 
                         return false;
                     })
-                    ->thenInvalid('Each scenario must match #^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$# regex')
+                    ->thenInvalid('Each scenario must match ' . Signal::SCENARIO_REGEX . ' regex')
                 ->end()
                 ->validate()
                     ->ifArray()

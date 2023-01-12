@@ -7,7 +7,6 @@ namespace CrowdSec\CapiClient\Configuration;
 use CrowdSec\CapiClient\Signal as SignalClass;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
  * The Signal configuration.
@@ -19,11 +18,26 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class Signal implements ConfigurationInterface
+class Signal extends AbstractConfiguration
 {
-    public const SCENARIO_REGEX = '#^([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)$#';
+    public const SCENARIO_REGEX = '#^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,32}$#';
 
     public const ISO8601_REGEX = '#^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(.\d{6})?Z$#';
+    /**
+     * @var string[]
+     */
+    protected $keys = [
+        'scenario_trust',
+        'scenario_hash',
+        'scenario',
+        'alert_id',
+        'created_at',
+        'machine_id',
+        'scenario_version',
+        'message',
+        'start_at',
+        'stop_at'
+    ];
 
     /**
      * @throws \RuntimeException

@@ -244,7 +244,7 @@ class Watcher extends AbstractClient
     {
         $configuration = new WatcherConfig();
         $processor = new Processor();
-        $this->configs = $processor->processConfiguration($configuration, [$configs]);
+        $this->configs = $processor->processConfiguration($configuration, [$configuration->cleanConfigs($configs)]);
     }
 
     /**

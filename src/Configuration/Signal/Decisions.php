@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient\Configuration\Signal;
 
+use CrowdSec\CapiClient\Configuration\AbstractConfiguration;
 use CrowdSec\CapiClient\Configuration\Signal;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
  * The Signal decisions configuration.
@@ -19,8 +19,38 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class Decisions implements ConfigurationInterface
+class Decisions extends AbstractConfiguration
 {
+    /**
+     * @var string[]
+     */
+    protected $keys = [
+        'duration',
+        'scenario',
+        'origin',
+        'scope',
+        'simulated',
+        'id',
+        'type',
+        'value'
+    ];
+
+    /**
+     * Keep only necessary configs
+     * Override because $configs is an array of array (decision) and we want to clean each decision
+     * @param array $configs
+     * @return array
+     */
+    public function cleanConfigs(array $configs): array
+    {
+        $result = [];
+        foreach ($configs as $config) {
+            $result[] = array_intersect_key($config, array_flip($this->keys));
+        }
+
+        return $result;
+    }
+
     /**
      * @throws \InvalidArgumentException
      * @throws \RuntimeException

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient\Configuration\Signal;
 
+use CrowdSec\CapiClient\Configuration\AbstractConfiguration;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
  * The Signal source configuration.
@@ -18,8 +18,21 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class Source implements ConfigurationInterface
+class Source extends AbstractConfiguration
 {
+    /**
+     * @var string[]
+     */
+    protected $keys = [
+        'scope',
+        'value',
+        'latitude',
+        'longitude',
+        'cn',
+        'as_name',
+        'as_number'
+    ];
+
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('signalSourceConfig');

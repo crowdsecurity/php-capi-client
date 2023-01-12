@@ -39,6 +39,8 @@ use org\bovigo\vfs\vfsStream;
  * @uses \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::__construct
  * @uses \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::getConfig
  *
+ * @covers \CrowdSec\CapiClient\Configuration\Signal\Decisions::cleanConfigs
+ * @covers \CrowdSec\CapiClient\Configuration\AbstractConfiguration::cleanConfigs
  * @covers \CrowdSec\CapiClient\Watcher::__construct
  * @covers \CrowdSec\CapiClient\Watcher::configure
  * @covers \CrowdSec\CapiClient\Watcher::login
@@ -385,6 +387,20 @@ final class WatcherTest extends AbstractClient
             TestConstants::SCENARIOS,
             $client->getConfig('scenarios'),
             'Scenarios should be array unique'
+        );
+
+        // Test unexpected config
+        $client = new Watcher(array_merge($this->configs,['unexpected' => true]), new FileStorage());
+
+        $this->assertEquals(
+            Constants::ENV_DEV,
+            $client->getConfig('env'),
+            'Env should be configured to dev by default'
+        );
+        $this->assertEquals(
+            null,
+            $client->getConfig('unexpected'),
+            'Unexpected config key should not be set with no thrown exception'
         );
 
         $client = new Watcher(['scenarios' => ['not-numeric-key' => TestConstants::SCENARIOS[0]]], new FileStorage());

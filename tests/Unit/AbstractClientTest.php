@@ -29,6 +29,7 @@ use CrowdSec\CapiClient\Watcher;
  * @uses \CrowdSec\CapiClient\Watcher::formatUserAgent
  * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
  * @uses \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::__construct
+ * @uses \CrowdSec\CapiClient\Configuration\AbstractConfiguration::cleanConfigs
  *
  * @covers \CrowdSec\CapiClient\AbstractClient::__construct
  * @covers \CrowdSec\CapiClient\AbstractClient::getConfig
