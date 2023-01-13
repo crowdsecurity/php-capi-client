@@ -32,14 +32,12 @@ class Decisions extends AbstractConfiguration
         'simulated',
         'id',
         'type',
-        'value'
+        'value',
     ];
 
     /**
      * Keep only necessary configs
-     * Override because $configs is an array of array (decision) and we want to clean each decision
-     * @param array $configs
-     * @return array
+     * Override because $configs is an array of array (decision) and we want to clean each decision.
      */
     public function cleanConfigs(array $configs): array
     {

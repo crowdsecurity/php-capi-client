@@ -30,7 +30,7 @@ class Source extends AbstractConfiguration
         'longitude',
         'cn',
         'as_name',
-        'as_number'
+        'as_number',
     ];
 
     public function getConfigTreeBuilder(): TreeBuilder

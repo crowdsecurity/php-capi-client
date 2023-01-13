@@ -124,44 +124,102 @@ $signals = ['...'];
 $client->pushSignals($signals);
 ```
 
+In order to quickly create a well formatted signal, we provide two helper methods: `buildSimpleSignalForIp` and 
+`buildSignal`:
 
-###### Signal builder 
 
-In order to quickly create a well formatted signal, we provide the `createSignal` helper method.
+###### Simple signal builder 
+
+The method `buildSimpleSignalForIp` will return a signal reflecting a ban type alert for the given IP.
 
 ```php
-$signal1 = $client->createSignal('crowdsecurity/http-bad-user-agent', '1.2.3.4', null, null);
-$signal2 = $client->createSignal(
-    'crowdsecurity/http-bad-user-agent', 
+$signal1 = $client->buildSimpleSignalForIp('1.2.3.4', 'crowdsecurity/http-bad-user-agent', null);
+$signal2 = $client->buildSimpleSignalForIp(
     '5.6.7.8', 
+    'crowdsecurity/http-bad-user-agent', 
     new \DateTime('2022-12-24 14:55:30'),
-    new \DateTime('2022-12-24 14:56:00'),
     '6 events over 30s',
-    'ip',
-    86400,
-    'captcha'
+    86400
 );
 $client->pushSignals([$signal1, $signal2]);
 ```
 
 Available parameters for this method are: 
 
+- `$ip` : The IP associated to the alert. This is required.
+
 - `$scenario` : The scenario that triggered the alert. This is required.
 
-- `$sourceValue` : It depends on the scope : it could be an IP (if scope is `ip`), a range (if scope is `range`) or 
-  any value that matches with the current scope. This is required
-
-- `$startAt`: The first event for alert. This is required : could be a DateTimeInterface or null.
-
-- `$stopAt`: The last event for alert. This is required : could be a DateTimeInterface or null.
+- `$createdAt`: The creation date of the alert. This is required : must implement DateTimeInterface or be null. If
+  null, the current time will be used.
 
 - `$message` : A human-readable message to add context for the alert. This is not required. Default to an empty message.
 
-- `$sourceScope`: The scope of the alert : `ip`, `range`, etc. This is not required. Default to `ip`.
+- `$duration`: The time to live (in seconds) of the decision. This is not required. Default to 86400.
 
-- `$decisionDuration`: The time to live (in seconds) of the decision. This is not required. Default to 86400.
 
-- `$decisionDuration`: The decision type: `ban`, `captcha`, etc. This is not required. Default to `ban`.
+###### Advanced signal builder
+
+If you want to create a signal with more detailed data, you could use the `buildSignal` method.
+
+```php
+$properties = [
+  'scenario' => 'crowdsecurity/http-bad-user-agent'
+  'created_at' => new \DateTime('2023-01-03 12:56:36', new \DateTimeZone('UTC'));
+  'message' => '6 events over 30s',
+  'start_at' => new \DateTime('2023-01-03 12:56:05', new \DateTimeZone('UTC'));
+  'stop_at' => new \DateTime('2023-01-03 12:56:35', new \DateTimeZone('UTC'));
+];
+
+$source = [
+  'scope' => 'range'
+  'value' =>  '1.2.3.4/24'
+];
+
+$decisions = [
+  [
+  'id' => 0
+  'duration' => 3600
+  'scenario' => 'crowdsecurity/http-bad-user-agent'
+  'origin' => 'crowdsec'
+  'scope' => 'range'
+  'value' => '1.2.3.4/24'
+  'type' => 'ban'
+  ]
+];
+
+$signal = $client->buildSignal($properties, $source, $decisions);
+
+$client->pushSignals([$signal]);
+```
+
+You have to pass 3 arrays as parameters for this method: 
+
+
+- An array `$properties` with the following available keys: 
+  - `scenario`: The scenario that triggered the alert. This is required.
+  - `created_at`: The creation date of the alert. This is required : must implement DateTimeInterface or be null. If 
+    null, the current time will be used.
+  - `message`: A human-readable message to add context for the alert. This is not required. Default to an empty message.
+  - `start_at`: First event date for alert. This is not required. Default to `created_at` value.
+  - `stop_at`: Last event date for alert. This is not required. Default to `created_at` value.
+
+
+- An array `$source` with the following available keys:
+  - `scope`: The scope of the alert : `ip`, `range`, etc. This is not required. Default to `ip`.
+  - `value`: It depends on the scope : it could be an IP (if scope is `ip`), a range (if scope is `range`) or
+    any value that matches with the current scope. This is required.
+
+
+- An array `$decisions` that could be empty or contains decision arrays with the 
+  following available keys:
+  - `id`: The decision id (integer) if known, 0 otherwise. This is not required. Default to 0.
+  - `duration`: The time to live (in seconds) of the decision. This is not required. Default to 86400.
+  - `scenario`: This is not required. Default to the `$properties` `scenario` value.
+  - `origin`: Origin of the decision. This is not required. Default to "crowdsec".
+  - `scope`: This is not required. Default to the `$source` `scope` value.
+  - `value` => This is not required. Default to the `$source` `value` value.
+  - `type` => Decision type: `ban`, `captcha` or any custom remediation. This is not required. Default to `ban`.
 
 
 ##### Get Decisions stream list

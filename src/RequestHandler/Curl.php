@@ -100,7 +100,7 @@ class Curl extends AbstractRequestHandler implements RequestHandlerInterface
             \CURLOPT_HEADER => false,
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_USERAGENT => $headers['User-Agent'],
-            \CURLOPT_ENCODING => ''
+            \CURLOPT_ENCODING => '',
         ];
         // We need to keep keys indexes
         $options += $this->handleConfigs();

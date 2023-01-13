@@ -73,6 +73,11 @@ use org\bovigo\vfs\vfsStream;
  * @covers \CrowdSec\CapiClient\Signal::toArray
  * @covers \CrowdSec\CapiClient\Watcher::convertSecondsToDuration
  * @covers \CrowdSec\CapiClient\Watcher::createSignal
+ * @covers \CrowdSec\CapiClient\Watcher::buildSignal
+ * @covers \CrowdSec\CapiClient\Watcher::buildSimpleSignalForIp
+ * @covers \CrowdSec\CapiClient\Watcher::formatDate
+ * @covers \CrowdSec\CapiClient\Watcher::formatDecisions
+ * @covers \CrowdSec\CapiClient\Watcher::validateDateInput
  */
 final class WatcherTest extends AbstractClient
 {
@@ -390,7 +395,7 @@ final class WatcherTest extends AbstractClient
         );
 
         // Test unexpected config
-        $client = new Watcher(array_merge($this->configs,['unexpected' => true]), new FileStorage());
+        $client = new Watcher(array_merge($this->configs, ['unexpected' => true]), new FileStorage());
 
         $this->assertEquals(
             Constants::ENV_DEV,
@@ -1264,6 +1269,454 @@ final class WatcherTest extends AbstractClient
             '/Invalid scenario/',
             $error,
             'Should throw an error for bad scenario'
+        );
+    }
+
+    public function testBuildSimpleSignal()
+    {
+        $mockFileStorage = $this->getFileStorageMock();
+        $machineId = TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID;
+
+        $mockFileStorage->method('retrieveMachineId')->will(
+            $this->onConsecutiveCalls(
+                $machineId, // Test 1 : machine id is already in storage
+                null, // Test 2 : machine id is not in storage
+                $machineId . 'test2', // Test 2 : machine id is now in storage (freshly created)
+                $machineId . 'test2', // Test 2 : machine id is now in storage
+                $machineId . 'test3', // Test 3 : machine id is already in storage
+                $machineId . 'test4' // Test 4 : machine id is already in storage
+            )
+        );
+
+        $mockFileStorage->method('retrievePassword')->will(
+            $this->onConsecutiveCalls(
+                TestConstants::PASSWORD // Test 2 : machine id is not already in storage
+            )
+        );
+
+        $client = new Watcher($this->configs, $mockFileStorage);
+
+        $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
+        // Test 1
+        $signal = $client->createSignal(TestConstants::SCENARIOS[0], '1.2.3.4', null, null);
+        $signalCreated = new \DateTime($signal['created_at']);
+        $signalCreatedTimestamp = $signalCreated->getTimestamp();
+        $signalStart = new \DateTime($signal['start_at']);
+        $signalStartTimestamp = $signalStart->getTimestamp();
+        $signalStop = new \DateTime($signal['stop_at']);
+        $signalStopTimestamp = $signalStop->getTimestamp();
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['created_at'],
+            'created_at should be well formatted'
+        );
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['stop_at'],
+            'stop_at should be well formatted'
+        );
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['start_at'],
+            'start_at should be well formatted'
+        );
+        // Test Only non date field (hard to test with milliseconds)
+        $signal['created_at'] = 'XXX';
+        $signal['start_at'] = 'XXX';
+        $signal['stop_at'] = 'XXX';
+
+        $this->assertEquals(
+            $signal,
+            json_decode($this->getTestSignal($machineId), true),
+            'Signal should be well formatted'
+        );
+
+        $this->assertEquals(
+            $signalCreatedTimestamp,
+            $currentTime->getTimestamp(),
+            'Signal created_at should be current time'
+        );
+        $this->assertEquals(
+            $signalStartTimestamp,
+            $currentTime->getTimestamp(),
+            'Signal start_at should be current time'
+        );
+        $this->assertEquals(
+            $signalStopTimestamp,
+            $currentTime->getTimestamp(),
+            'Signal stop_at should be current time'
+        );
+
+        $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
+        // Test 2
+        $signal = $client->buildSimpleSignalForIp('1.2.3.4', TestConstants::SCENARIOS[0], null);
+        $signalCreated = new \DateTime($signal['created_at']);
+        $signalCreatedTimestamp = $signalCreated->getTimestamp();
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['created_at'],
+            'created_at should be well formatted'
+        );
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['stop_at'],
+            'stop_at should be well formatted'
+        );
+        PHPUnitUtil::assertRegExp(
+            $this,
+            Signal::ISO8601_REGEX,
+            $signal['start_at'],
+            'start_at should be well formatted'
+        );
+        // Test Only non date field (hard to test with milliseconds)
+        $signal['created_at'] = 'XXX';
+        $signal['start_at'] = 'XXX';
+        $signal['stop_at'] = 'XXX';
+
+        $this->assertEquals(
+            $signal,
+            json_decode($this->getTestSignal($machineId . 'test2'), true),
+            'Signal should be well formatted if watcher not registered at first'
+        );
+
+        $this->assertEquals(
+            $signalCreatedTimestamp,
+            $currentTime->getTimestamp(),
+            'Signal created_at should be current time'
+        );
+
+        // Test 3
+        $startTime = new \DateTime('1979-03-06 10:55:28');
+        $signal = $client->buildSimpleSignalForIp('1.2.3.4', TestConstants::SCENARIOS[0], $startTime);
+        $signalCreated = new \DateTime($signal['created_at']);
+        $signalCreatedTimestamp = $signalCreated->getTimestamp();
+        $signalStart = new \DateTime($signal['start_at']);
+        $signalStartTimestamp = $signalStart->getTimestamp();
+
+        $this->assertEquals(
+            $signalCreatedTimestamp,
+            $startTime->getTimestamp(),
+            'Signal created_at should be configured time'
+        );
+        $this->assertEquals(
+            $signalStartTimestamp,
+            $startTime->getTimestamp(),
+            'Signal start_at should be configured time'
+        );
+        // Test Only non date field (hard to test with milliseconds)
+        $signal['created_at'] = 'XXX';
+        $signal['start_at'] = 'XXX';
+        $signal['stop_at'] = 'XXX';
+        $this->assertEquals(
+            $signal,
+            json_decode($this->getTestSignal($machineId . 'test3'), true),
+            'Signal should be well formatted if watcher not registered at first'
+        );
+
+        // Test 4 : errors
+        $error = '';
+        try {
+            $client->buildSimpleSignalForIp('1.2.3.4', 'hello-world-bad-scenario', null);
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Invalid scenario/',
+            $error,
+            'Should throw an error for bad scenario'
+        );
+    }
+
+    public function testBuildSignal()
+    {
+        $mockFileStorage = $this->getFileStorageMock();
+        $machineId = TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID;
+
+        $mockFileStorage->method('retrieveMachineId')->will(
+            $this->onConsecutiveCalls(
+                $machineId . 'test1', // Test 1 : machine id is already in storage
+                $machineId . 'test3', // Test 3 : machine id is already in storage (Test 2 throws error before)
+                $machineId . 'test4', // Test 4 : machine id is already in storage
+                $machineId . 'test5', // Test 5 : machine id is already in storage,
+                $machineId . 'test6', // Test 6 : machine id is already in storage
+                $machineId . 'test7' // Test 7 : machine id is already in storage
+            )
+        );
+
+        $client = new Watcher($this->configs, $mockFileStorage);
+
+        // Test 1 : can build a signal with custom values
+        $properties = [
+            'scenario' => TestConstants::SCENARIOS[0],
+            'scenario_trust' => 'certified',
+            'scenario_version' => 'v1.2.0',
+            'scenario_hash' => 'azertyuiop',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
+            'message' => 'This is a test message',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
+        ];
+
+        $sourceScope = Constants::SCOPE_IP;
+        $sourceValue = '1.2.3.4';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = [
+            [
+                'id' => 1979,
+                'duration' => 3600,
+                'origin' => 'crowdsec-unit-test',
+                'scope' => $sourceScope,
+                'value' => $sourceValue,
+                'type' => 'custom',
+                'simulated' => true,
+            ],
+        ];
+
+        $signal = $client->buildSignal($properties, $source, $decisions);
+        $expected = json_decode('{"scenario":"test\/scenario","scenario_hash":"azertyuiop","scenario_version":"v1.2.0","scenario_trust":"certified","created_at":"2023-01-13T01:34:56.778054Z","machine_id":"capiclienttesttest-machine-idtest1","message":"This is a test message","start_at":"2023-01-12T23:48:45.123456Z","stop_at":"2022-01-13T01:34:55.432150Z","decisions":[{"id":1979,"duration":"1h0m0s","scenario":"test\/scenario","origin":"crowdsec-unit-test","scope":"ip","value":"1.2.3.4","type":"custom","simulated":true}],"source":{"scope":"ip","value":"1.2.3.4"}}', true);
+
+        $this->assertEquals(
+            $expected, $signal,
+            'Signal should be well formatted'
+        );
+
+        // Test 2 : error with date
+        $properties = [
+            'scenario' => TestConstants::SCENARIOS[0],
+            'scenario_trust' => 'certified',
+            'scenario_version' => 'v1.2.0',
+            'scenario_hash' => 'azertyuiop',
+            'created_at' => '2023-01-13',
+            'message' => 'This is a test message',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
+        ];
+
+        $sourceScope = Constants::SCOPE_IP;
+        $sourceValue = '1.2.3.4';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = [
+            [
+                'id' => 1979,
+                'duration' => 3600,
+                'origin' => 'crowdsec-unit-test',
+                'scope' => $sourceScope,
+                'value' => $sourceValue,
+                'type' => 'custom',
+                'simulated' => true,
+            ],
+        ];
+        $error = '';
+        try {
+            $client->buildSignal($properties, $source, $decisions);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Date input must be null or implement DateTimeInterface/',
+            $error,
+            'Should throw an error for bad created_at'
+        );
+        // Test 3 : non integer duration throws an exception
+        $properties = [
+            'scenario' => TestConstants::SCENARIOS[0],
+            'scenario_trust' => 'certified',
+            'scenario_version' => 'v1.2.0',
+            'scenario_hash' => 'azertyuiop',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
+            'message' => 'This is a test message',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
+        ];
+
+        $sourceScope = Constants::SCOPE_IP;
+        $sourceValue = '1.2.3.4';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = [
+            [
+                'id' => 1979,
+                'duration' => '24h53m',
+                'origin' => 'crowdsec-unit-test',
+                'scope' => $sourceScope,
+                'value' => $sourceValue,
+                'type' => 'custom',
+                'simulated' => true,
+            ],
+        ];
+
+        $error = '';
+        try {
+            $client->buildSignal($properties, $source, $decisions);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Decision duration must be an integer/',
+            $error,
+            'Should throw an error for non integer duration'
+        );
+        // Test 4 : non array decision
+
+        $sourceScope = Constants::SCOPE_IP;
+        $sourceValue = '1.2.3.4';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = [
+            'this-is-not-an-array',
+        ];
+
+        $error = '';
+        try {
+            $client->buildSignal($properties, $source, $decisions);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/Decision must be an array/',
+            $error,
+            'Should throw an error if no scenario'
+        );
+
+        // Test 5 : no scenario
+        $properties = [
+            'scenario' => '',
+            'scenario_trust' => 'certified',
+            'scenario_version' => 'v1.2.0',
+            'scenario_hash' => 'azertyuiop',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
+            'message' => 'This is a test message',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
+        ];
+
+        $sourceScope = Constants::SCOPE_IP;
+        $sourceValue = '1.2.3.4';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = [
+            [
+                'id' => 1979,
+                'duration' => 3600,
+                'origin' => 'crowdsec-unit-test',
+                'scope' => $sourceScope,
+                'value' => $sourceValue,
+                'type' => 'custom',
+                'simulated' => true,
+            ],
+        ];
+
+        $error = '';
+        try {
+            $client->buildSignal($properties, $source, $decisions);
+        } catch (ClientException $e) {
+            $error = $e->getMessage();
+        }
+
+        PHPUnitUtil::assertRegExp(
+            $this,
+            '/The path "signalConfig.scenario" cannot contain an empty value/',
+            $error,
+            'Should throw an error for non array decision'
+        );
+        // Test 6 : Empty decisions OK
+        $properties = [
+            'scenario' => TestConstants::SCENARIOS[0],
+            'scenario_trust' => 'certified',
+            'scenario_version' => 'v1.2.0',
+            'scenario_hash' => 'azertyuiop',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
+            'message' => 'This is a test message',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
+        ];
+
+        $sourceScope = Constants::SCOPE_IP;
+        $sourceValue = '1.2.3.4';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = [];
+
+        $signal = $client->buildSignal($properties, $source, $decisions);
+
+        $this->assertEquals([], $signal['decisions'], 'Should be able to send empty decisions array');
+        // Test 7 start and stop should be populated with created at if not set
+        $properties = [
+            'scenario' => TestConstants::SCENARIOS[0],
+            'scenario_trust' => 'certified',
+            'scenario_version' => 'v1.2.0',
+            'scenario_hash' => 'azertyuiop',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
+            'message' => 'This is a test message',
+        ];
+
+        $sourceScope = Constants::SCOPE_IP;
+        $sourceValue = '1.2.3.4';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = [
+            [
+                'id' => 1979,
+                'duration' => 3600,
+                'origin' => 'crowdsec-unit-test',
+                'scope' => $sourceScope,
+                'value' => $sourceValue,
+                'type' => 'custom',
+                'simulated' => true,
+            ],
+        ];
+
+        $signal = $client->buildSignal($properties, $source, $decisions);
+        $expected = json_decode('{"scenario":"test\/scenario","scenario_hash":"azertyuiop","scenario_version":"v1.2.0","scenario_trust":"certified","created_at":"2023-01-13T01:34:56.778054Z","machine_id":"capiclienttesttest-machine-idtest7","message":"This is a test message","start_at":"2023-01-13T01:34:56.778054Z","stop_at":"2023-01-13T01:34:56.778054Z","decisions":[{"id":1979,"duration":"1h0m0s","scenario":"test\/scenario","origin":"crowdsec-unit-test","scope":"ip","value":"1.2.3.4","type":"custom","simulated":true}],"source":{"scope":"ip","value":"1.2.3.4"}}', true);
+
+        $this->assertEquals(
+            $expected, $signal,
+            'start_at and stop_at should be populated with created at if not set'
         );
     }
 }
