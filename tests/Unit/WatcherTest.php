@@ -77,6 +77,7 @@ use org\bovigo\vfs\vfsStream;
  * @covers \CrowdSec\CapiClient\Watcher::buildSimpleSignalForIp
  * @covers \CrowdSec\CapiClient\Watcher::formatDate
  * @covers \CrowdSec\CapiClient\Watcher::formatDecisions
+ * @covers \CrowdSec\CapiClient\Watcher::validateDateInput
  */
 final class WatcherTest extends AbstractClient
 {
@@ -1443,10 +1444,11 @@ final class WatcherTest extends AbstractClient
         $mockFileStorage->method('retrieveMachineId')->will(
             $this->onConsecutiveCalls(
                 $machineId . 'test1', // Test 1 : machine id is already in storage
-                $machineId . 'test2', // Test 2 : machine id is already in storage
-                $machineId . 'test3', // Test 3 : machine id is already in storage
+                $machineId . 'test3', // Test 3 : machine id is already in storage (Test 2 throws error before)
                 $machineId . 'test4', // Test 4 : machine id is already in storage
-                $machineId . 'test5' // Test 5 : machine id is already in storage
+                $machineId . 'test5', // Test 5 : machine id is already in storage,
+                $machineId . 'test6', // Test 6 : machine id is already in storage
+                $machineId . 'test7' // Test 7 : machine id is already in storage
             )
         );
 
@@ -1458,10 +1460,10 @@ final class WatcherTest extends AbstractClient
             'scenario_trust' => 'certified',
             'scenario_version' => 'v1.2.0',
             'scenario_hash' => 'azertyuiop',
-            'created_at' => '2023-01-13T01:34:56.778054Z',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
             'message' => 'This is a test message',
-            'start_at' => '2023-01-12T23:48:45.123456Z',
-            'stop_at' => '2022-01-13T01:34:55.432150Z',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
         ];
 
         $sourceScope = Constants::SCOPE_IP;
@@ -1500,8 +1502,8 @@ final class WatcherTest extends AbstractClient
             'scenario_hash' => 'azertyuiop',
             'created_at' => '2023-01-13',
             'message' => 'This is a test message',
-            'start_at' => '2023-01-12T23:48:45.123456Z',
-            'stop_at' => '2022-01-13T01:34:55.432150Z',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
         ];
 
         $sourceScope = Constants::SCOPE_IP;
@@ -1532,7 +1534,7 @@ final class WatcherTest extends AbstractClient
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/Invalid created_at. Must match with/',
+            '/Date input must be null or implement DateTimeInterface/',
             $error,
             'Should throw an error for bad created_at'
         );
@@ -1542,10 +1544,10 @@ final class WatcherTest extends AbstractClient
             'scenario_trust' => 'certified',
             'scenario_version' => 'v1.2.0',
             'scenario_hash' => 'azertyuiop',
-            'created_at' => '2023-01-13T23:48:45.123456Z',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
             'message' => 'This is a test message',
-            'start_at' => '2023-01-12T23:48:45.123456Z',
-            'stop_at' => '2022-01-13T01:34:55.432150Z',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
         ];
 
         $sourceScope = Constants::SCOPE_IP;
@@ -1582,16 +1584,6 @@ final class WatcherTest extends AbstractClient
             'Should throw an error for non integer duration'
         );
         // Test 4 : non array decision
-        $properties = [
-            'scenario' => TestConstants::SCENARIOS[0],
-            'scenario_trust' => 'certified',
-            'scenario_version' => 'v1.2.0',
-            'scenario_hash' => 'azertyuiop',
-            'created_at' => '2023-01-13T23:48:45.123456Z',
-            'message' => 'This is a test message',
-            'start_at' => '2023-01-12T23:48:45.123456Z',
-            'stop_at' => '2022-01-13T01:34:55.432150Z',
-        ];
 
         $sourceScope = Constants::SCOPE_IP;
         $sourceValue = '1.2.3.4';
@@ -1625,10 +1617,10 @@ final class WatcherTest extends AbstractClient
             'scenario_trust' => 'certified',
             'scenario_version' => 'v1.2.0',
             'scenario_hash' => 'azertyuiop',
-            'created_at' => '2023-01-13T23:48:45.123456Z',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
             'message' => 'This is a test message',
-            'start_at' => '2023-01-12T23:48:45.123456Z',
-            'stop_at' => '2022-01-13T01:34:55.432150Z',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
         ];
 
         $sourceScope = Constants::SCOPE_IP;
@@ -1663,6 +1655,68 @@ final class WatcherTest extends AbstractClient
             '/The path "signalConfig.scenario" cannot contain an empty value/',
             $error,
             'Should throw an error for non array decision'
+        );
+        // Test 6 : Empty decisions OK
+        $properties = [
+            'scenario' => TestConstants::SCENARIOS[0],
+            'scenario_trust' => 'certified',
+            'scenario_version' => 'v1.2.0',
+            'scenario_hash' => 'azertyuiop',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
+            'message' => 'This is a test message',
+            'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
+            'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
+        ];
+
+        $sourceScope = Constants::SCOPE_IP;
+        $sourceValue = '1.2.3.4';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = [];
+
+        $signal = $client->buildSignal($properties, $source, $decisions);
+
+        $this->assertEquals([], $signal['decisions'], 'Should be able to send empty decisions array');
+        // Test 7 start and stop should be populated with created at if not set
+        $properties = [
+            'scenario' => TestConstants::SCENARIOS[0],
+            'scenario_trust' => 'certified',
+            'scenario_version' => 'v1.2.0',
+            'scenario_hash' => 'azertyuiop',
+            'created_at' => new \DateTime('2023-01-13T01:34:56.778054Z'),
+            'message' => 'This is a test message',
+        ];
+
+        $sourceScope = Constants::SCOPE_IP;
+        $sourceValue = '1.2.3.4';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = [
+            [
+                'id' => 1979,
+                'duration' => 3600,
+                'origin' => 'crowdsec-unit-test',
+                'scope' => $sourceScope,
+                'value' => $sourceValue,
+                'type' => 'custom',
+                'simulated' => true,
+            ],
+        ];
+
+        $signal = $client->buildSignal($properties, $source, $decisions);
+        $expected = json_decode('{"scenario":"test\/scenario","scenario_hash":"azertyuiop","scenario_version":"v1.2.0","scenario_trust":"certified","created_at":"2023-01-13T01:34:56.778054Z","machine_id":"capiclienttesttest-machine-idtest7","message":"This is a test message","start_at":"2023-01-13T01:34:56.778054Z","stop_at":"2023-01-13T01:34:56.778054Z","decisions":[{"id":1979,"duration":"1h0m0s","scenario":"test\/scenario","origin":"crowdsec-unit-test","scope":"ip","value":"1.2.3.4","type":"custom","simulated":true}],"source":{"scope":"ip","value":"1.2.3.4"}}', true);
+
+        $this->assertEquals(
+            $expected, $signal,
+            'start_at and stop_at should be populated with created at if not set'
         );
     }
 }

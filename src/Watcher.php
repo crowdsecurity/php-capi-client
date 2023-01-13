@@ -163,7 +163,7 @@ class Watcher extends AbstractClient
     }
 
     /**
-     * Build a generic "ban" signal for some IP
+     * Helper to build a generic "ban" signal for some IP
      * To create a more advanced signal structure, use the buildSignal method instead.
      *
      * @throws ClientException
@@ -178,7 +178,7 @@ class Watcher extends AbstractClient
         return $this->buildSignal(
             [
                 'scenario' => $scenario,
-                'created_at' => $this->formatDate($createdAt),
+                'created_at' => $createdAt,
                 'message' => $message,
             ],
             [
@@ -253,10 +253,10 @@ class Watcher extends AbstractClient
      *                            Array containing signal properties
      *                            $properties = [
      *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
-     *                            'created_at' => (string)  Date of the alert creation with Y-m-d\TH:i:s.u\Z format
+     *                            'created_at' => (DateTimeInterface) Date of the alert creation
      *                            'message' => (string) Details of the alert,
-     *                            'start_at' => (string) First event date for alert with Y-m-d\TH:i:s.u\Z format
-     *                            'stop_at' => (string) Last event date for alert with Y-m-d\TH:i:s.u\Z format
+     *                            'start_at' => (DateTimeInterface) First event date for alert
+     *                            'stop_at' => (DateTimeInterface) Last event date for alert
      *                            ];
      * @param array   $source
      *                            Array containing source data
@@ -269,7 +269,7 @@ class Watcher extends AbstractClient
      *                            $decisions = [
      *                            [
      *                            'id' => (int) The decision id if known, 0 otherwise
-     *                            'duration' => (string) TTL of the decision with format XhYmZs (145h,1h10m35s, etc.)
+     *                            'duration' => (int) Time to live of the decision in seconds
      *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
      *                            'origin' => (string) Origin of the decision (default to "crowdsec")
      *                            'scope' => (string) ip, range, country or any known scope
@@ -283,9 +283,13 @@ class Watcher extends AbstractClient
      */
     public function buildSignal(array $properties, array $source, array $decisions = [[]]): array
     {
-        $createdAt = $properties['created_at'] ?? $this->formatDate(null);
-        $startAt = $properties['start_at'] ?? $createdAt;
-        $stopAt = $properties['stop_at'] ?? $createdAt;
+        $createdAt = $this->formatDate($this->validateDateInput($properties['created_at'] ?? null));
+        $startAt = isset($properties['start_at']) ?
+            $this->formatDate($this->validateDateInput($properties['start_at'])) :
+            $createdAt;
+        $stopAt = isset($properties['stop_at']) ?
+            $this->formatDate($this->validateDateInput($properties['stop_at'])) :
+            $createdAt;
         $machineId = $this->storage->retrieveMachineId();
         if (!$machineId) {
             $this->ensureRegister();
@@ -322,10 +326,27 @@ class Watcher extends AbstractClient
         try {
             $signal = new Signal($properties, $source, $decisions);
         } catch (\Exception $e) {
-            throw new ClientException('Something went wrong while creating signal: ' . $e->getMessage(), $e->getCode());
+            throw new ClientException('Something went wrong while creating signal: ' . $e->getMessage());
         }
 
         return $signal->toArray();
+    }
+
+    /**
+     * @throws ClientException
+     */
+    private function validateDateInput($input): ?\DateTimeInterface
+    {
+        if (!\is_null($input) && !($input instanceof \DateTimeInterface)) {
+            $message = 'Date input must be null or implement DateTimeInterface';
+            $this->logger->error($message, [
+                'type' => 'WATCHER_CLIENT_VALIDATE_DATE',
+            ]);
+
+            throw new ClientException($message);
+        }
+
+        return $input;
     }
 
     /**
