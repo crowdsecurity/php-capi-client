@@ -29,8 +29,9 @@ class Watcher extends AbstractConfiguration
         'user_agent_suffix',
         'user_agent_version',
         'scenarios',
-        'api_timeout'
+        'api_timeout',
     ];
+
     /**
      * @throws \InvalidArgumentException
      * @throws \RuntimeException

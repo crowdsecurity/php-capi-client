@@ -36,7 +36,7 @@ class Signal extends AbstractConfiguration
         'scenario_version',
         'message',
         'start_at',
-        'stop_at'
+        'stop_at',
     ];
 
     /**

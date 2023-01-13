@@ -24,9 +24,7 @@ abstract class AbstractConfiguration implements ConfigurationInterface
     protected $keys = [];
 
     /**
-     * Keep only necessary configs
-     * @param array $configs
-     * @return array
+     * Keep only necessary configs.
      */
     public function cleanConfigs(array $configs): array
     {

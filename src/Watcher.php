@@ -7,8 +7,6 @@ namespace CrowdSec\CapiClient;
 use CrowdSec\CapiClient\Configuration\Watcher as WatcherConfig;
 use CrowdSec\CapiClient\RequestHandler\RequestHandlerInterface;
 use CrowdSec\CapiClient\Storage\StorageInterface;
-use DateTime;
-use DateTimeZone;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Processor;
 
@@ -165,9 +163,177 @@ class Watcher extends AbstractClient
     }
 
     /**
+     * Build a generic "ban" signal for some IP
+     * To create a more advanced signal structure, use the buildSignal method instead.
+     *
+     * @throws ClientException
+     */
+    public function buildSimpleSignalForIp(
+        string $ip,
+        string $scenario,
+        ?\DateTimeInterface $createdAt,
+        string $message = '',
+        int $duration = Constants::DURATION
+    ): array {
+        return $this->buildSignal(
+            [
+                'scenario' => $scenario,
+                'created_at' => $this->formatDate($createdAt),
+                'message' => $message,
+            ],
+            [
+                'value' => $ip,
+            ],
+            [
+                [
+                    'duration' => $duration,
+                ],
+            ]
+        );
+    }
+
+    /**
+     * @throws ClientException
+     */
+    private function formatDate(?\DateTimeInterface $date): string
+    {
+        try {
+            $date = $date ?: new \DateTime('now', new \DateTimeZone('UTC'));
+
+            return $date->format(Constants::DATE_FORMAT);
+            // @codeCoverageIgnoreStart
+        } catch (\Exception $e) {
+            throw new ClientException('Something went wrong while formatting date');
+            // @codeCoverageIgnoreEnd
+        }
+    }
+
+    /**
+     * @throws ClientException
+     */
+    private function formatDecisions(array $decisions, string $scenario, string $scope, string $value): array
+    {
+        $result = [];
+        foreach ($decisions as $decision) {
+            if (!\is_array($decision)) {
+                $message = 'Decision must be an array';
+                $this->logger->error($message, [
+                    'type' => 'WATCHER_CLIENT_FORMAT_DECISIONS',
+                ]);
+                throw new ClientException($message);
+            }
+            $duration = $decision['duration'] ?? Constants::DURATION;
+            if (!\is_int($duration)) {
+                $message = 'Decision duration must be an integer';
+                $this->logger->error($message, [
+                    'type' => 'WATCHER_CLIENT_FORMAT_DECISIONS',
+                ]);
+                throw new ClientException($message);
+            }
+
+            $result[] = [
+                'id' => $decision['id'] ?? 0,
+                'duration' => $this->convertSecondsToDuration($duration),
+                'scenario' => $decision['scenario'] ?? $scenario,
+                'origin' => $decision['origin'] ?? Constants::ORIGIN,
+                'scope' => $decision['scope'] ?? $scope,
+                'value' => $decision['value'] ?? $value,
+                'type' => $decision['type'] ?? Constants::REMEDIATION_BAN,
+                'simulated' => $decision['simulated'] ?? false,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Helper to create well formatted signal array.
+     *
+     * @param array   $properties
+     *                            Array containing signal properties
+     *                            $properties = [
+     *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
+     *                            'created_at' => (string)  Date of the alert creation with Y-m-d\TH:i:s.u\Z format
+     *                            'message' => (string) Details of the alert,
+     *                            'start_at' => (string) First event date for alert with Y-m-d\TH:i:s.u\Z format
+     *                            'stop_at' => (string) Last event date for alert with Y-m-d\TH:i:s.u\Z format
+     *                            ];
+     * @param array   $source
+     *                            Array containing source data
+     *                            $source = [
+     *                            'scope' => (string) ip, range, country or any known scope
+     *                            'value' => (string) depends on the scope (could be an ip, a range, etc.)
+     *                            ];
+     * @param array[] $decisions
+     *                            Array of decisions. Each decision is an array too.
+     *                            $decisions = [
+     *                            [
+     *                            'id' => (int) The decision id if known, 0 otherwise
+     *                            'duration' => (string) TTL of the decision with format XhYmZs (145h,1h10m35s, etc.)
+     *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
+     *                            'origin' => (string) Origin of the decision (default to "crowdsec")
+     *                            'scope' => (string) ip, range, country or any known scope
+     *                            'value' => (string) depends on the scope (could be an ip, a range, etc.)
+     *                            'type' => (string) Decision type: ban, captcha or any custom remediation
+     *                            ],
+     *                            ...
+     *                            ]
+     *
+     * @throws ClientException
+     */
+    public function buildSignal(array $properties, array $source, array $decisions = [[]]): array
+    {
+        $createdAt = $properties['created_at'] ?? $this->formatDate(null);
+        $startAt = $properties['start_at'] ?? $createdAt;
+        $stopAt = $properties['stop_at'] ?? $createdAt;
+        $machineId = $this->storage->retrieveMachineId();
+        if (!$machineId) {
+            $this->ensureRegister();
+            $machineId = $this->storage->retrieveMachineId();
+        }
+        $scenario = $properties['scenario'] ?? '';
+        $scenarioTrust = $properties['scenario_trust'] ?? Signal::TRUST_MANUAL;
+        $scenarioHash = $properties['scenario_hash'] ?? '';
+        $scenarioVersion = $properties['scenario_version'] ?? '';
+        $message = $properties['message'] ?? '';
+
+        $properties = [
+            'scenario' => $scenario,
+            'scenario_hash' => $scenarioHash,
+            'scenario_version' => $scenarioVersion,
+            'scenario_trust' => $scenarioTrust,
+            'created_at' => $createdAt,
+            'machine_id' => $machineId,
+            'message' => $message,
+            'start_at' => $startAt,
+            'stop_at' => $stopAt,
+        ];
+
+        $sourceScope = $source['scope'] ?? Constants::SCOPE_IP;
+        $sourceValue = $source['value'] ?? '';
+
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
+
+        $decisions = $this->formatDecisions($decisions, $scenario, $sourceScope, $sourceValue);
+
+        try {
+            $signal = new Signal($properties, $source, $decisions);
+        } catch (\Exception $e) {
+            throw new ClientException('Something went wrong while creating signal: ' . $e->getMessage(), $e->getCode());
+        }
+
+        return $signal->toArray();
+    }
+
+    /**
      * Helper to create well formatted signal array.
      *
      * @throws ClientException
+     *
+     * @deprecated since 0.11.0: use buildSignal() or BuildSimpleSignalForIp() methods instead.
      */
     public function createSignal(
         string $scenario,
@@ -180,7 +346,7 @@ class Watcher extends AbstractClient
         string $decisionType = Constants::REMEDIATION_BAN
     ): array {
         try {
-            $currentTime = new DateTime('now', new DateTimeZone('UTC'));
+            $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
             $createdAt = $currentTime->format(Constants::DATE_FORMAT);
             $startAt = $startAt ? $startAt->format(Constants::DATE_FORMAT) : $createdAt;
             $stopAt = $stopAt ? $stopAt->format(Constants::DATE_FORMAT) : $createdAt;
@@ -350,7 +516,7 @@ class Watcher extends AbstractClient
             $message = 'Login response does not contain required token.';
             $this->logger->error($message, [
                 'type' => 'WATCHER_CLIENT_HANDLE_LOGIN',
-                'response' => $loginResponse
+                'response' => $loginResponse,
             ]);
             throw new ClientException($message, 401);
         }
@@ -434,13 +600,13 @@ class Watcher extends AbstractClient
                 if (401 !== $code) {
                     $this->logger->error($message, [
                         'type' => 'WATCHER_REQUEST_ERROR',
-                        'code' => $code
+                        'code' => $code,
                     ]);
                     throw new ClientException($message, $code);
                 }
                 $this->logger->info($message, [
                     'type' => 'WATCHER_REQUEST_LOGIN_RETRY',
-                    'code' => $code
+                    'code' => $code,
                 ]);
                 ++$loginRetry;
                 $retry = true;
@@ -450,7 +616,7 @@ class Watcher extends AbstractClient
         if ($loginRetry > self::LOGIN_RETRY) {
             $message = "Could not login after $loginRetry attempts. Last error was: $lastMessage";
             $this->logger->error($message, [
-                'type' => 'WATCHER_REQUEST_TOO_MANY_ATTEMPTS'
+                'type' => 'WATCHER_REQUEST_TOO_MANY_ATTEMPTS',
             ]);
             throw new ClientException($message);
         }
@@ -530,13 +696,13 @@ class Watcher extends AbstractClient
                 if (500 !== $code) {
                     $this->logger->error($message, [
                         'type' => 'WATCHER_REGISTER_ERROR',
-                        'code' => $code
+                        'code' => $code,
                     ]);
                     throw new ClientException($message, $code);
                 }
                 $this->logger->info($message, [
                     'type' => 'WATCHER_REGISTER_RETRY',
-                    'code' => $code
+                    'code' => $code,
                 ]);
                 ++$registerRetry;
                 $retry = true;

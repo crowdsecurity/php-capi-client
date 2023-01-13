@@ -141,7 +141,7 @@ abstract class AbstractClient
 
         if ($statusCode < 200 || $statusCode >= 300) {
             $message = "Unexpected response status code: $statusCode. Body was: " . str_replace("\n", '', $body);
-            if ($statusCode !== 404) {
+            if (404 !== $statusCode) {
                 throw new ClientException($message, $statusCode);
             }
         }
