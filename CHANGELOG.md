@@ -5,6 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.11.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.11.0) - 2023-01-13
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.10.0...v0.11.0)
+
+
+### Added
+
+- Add two signal builder helper methods: `buildSimpleSignalForIp` and `buildSignal`
+
+
+### Deprecated
+
+- Deprecate the `createSignal` method
+
+---
+
+
+
 ## [0.10.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v0.10.0) - 2023-01-12
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v0.9.0...v0.10.0)
 
