@@ -24,7 +24,7 @@ The public API of this library consists of all public or protected methods, prop
     - `HttpMessage`
     - `Logger`
     - `RequestHanlder`
-    - `AbstractClient`
+    - `AbstractClient.php`
 
   - *Breaking change*: If not null, the third param of `Watcher` constructor must be of type
     `CrowdSec\Common\Client\RequestHandler\AbstractRequestHandler`

@@ -455,7 +455,7 @@ handler. To use it, you should instantiate it and pass the created object as a p
 
 ```php
 use CrowdSec\CapiClient\Watcher;
-use CrowdSec\CapiClient\RequestHandler\FileGetContents;
+use CrowdSec\Common\Client\RequestHandler\FileGetContents;
 
 $requestHandler = new FileGetContents($configs);
 
