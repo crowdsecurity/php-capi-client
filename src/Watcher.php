@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient;
 
 use CrowdSec\CapiClient\Configuration\Watcher as WatcherConfig;
-use CrowdSec\CapiClient\RequestHandler\RequestHandlerInterface;
 use CrowdSec\CapiClient\Storage\StorageInterface;
+use CrowdSec\Common\Client\AbstractClient;
+use CrowdSec\Common\Client\ClientException as CommonClientException;
+use CrowdSec\Common\Client\RequestHandler\AbstractRequestHandler;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Processor;
 
@@ -23,49 +25,13 @@ use Symfony\Component\Config\Definition\Processor;
 class Watcher extends AbstractClient
 {
     /**
-     * @var string The decisions stream endpoint
-     */
-    public const DECISIONS_STREAM_ENDPOINT = '/decisions/stream';
-    /**
      * @var string The list of available digits
      */
     private const DIGITS = '0123456789';
     /**
-     * @var string The watchers enroll endpoint
-     */
-    public const ENROLL_ENDPOINT = '/watchers/enroll';
-    /**
-     * @var string The watchers login endpoint
-     */
-    public const LOGIN_ENDPOINT = '/watchers/login';
-    /**
-     * @var int The number of login retry attempts in case of 401
-     */
-    public const LOGIN_RETRY = 1;
-    /**
      * @var string The list of available lowercase letters
      */
     private const LOWERS = 'abcdefghijklmnopqrstuvwxyz';
-    /**
-     * @var int The machine_id length
-     */
-    public const MACHINE_ID_LENGTH = 48;
-    /**
-     * @var int The password length
-     */
-    public const PASSWORD_LENGTH = 32;
-    /**
-     * @var string The watchers register endpoint
-     */
-    public const REGISTER_ENDPOINT = '/watchers';
-    /**
-     * @var int The number of register retry attempts in case of 500
-     */
-    public const REGISTER_RETRY = 1;
-    /**
-     * @var string The signals push endpoint
-     */
-    public const SIGNALS_ENDPOINT = '/signals';
     /**
      * @var string The list of available uppercase letters
      */
@@ -98,7 +64,7 @@ class Watcher extends AbstractClient
     public function __construct(
         array $configs,
         StorageInterface $storage,
-        RequestHandlerInterface $requestHandler = null,
+        AbstractRequestHandler $requestHandler = null,
         LoggerInterface $logger = null
     ) {
         $this->configure($configs);
@@ -110,56 +76,89 @@ class Watcher extends AbstractClient
     }
 
     /**
-     * Process an enroll call to CAPI.
+     * Helper to create well formatted signal array.
      *
-     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
+     * @param array   $properties
+     *                            Array containing signal properties
+     *                            $properties = [
+     *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
+     *                            'created_at' => (DateTimeInterface) Date of the alert creation
+     *                            'message' => (string) Details of the alert,
+     *                            'start_at' => (DateTimeInterface) First event date for alert
+     *                            'stop_at' => (DateTimeInterface) Last event date for alert
+     *                            ];
+     * @param array   $source
+     *                            Array containing source data
+     *                            $source = [
+     *                            'scope' => (string) ip, range, country or any known scope
+     *                            'value' => (string) depends on the scope (could be an ip, a range, etc.)
+     *                            ];
+     * @param array[] $decisions
+     *                            Array of decisions. Each decision is an array too.
+     *                            $decisions = [
+     *                            [
+     *                            'id' => (int) The decision id if known, 0 otherwise
+     *                            'duration' => (int) Time to live of the decision in seconds
+     *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
+     *                            'origin' => (string) Origin of the decision (default to "crowdsec")
+     *                            'scope' => (string) ip, range, country or any known scope
+     *                            'value' => (string) depends on the scope (could be an ip, a range, etc.)
+     *                            'type' => (string) Decision type: ban, captcha or any custom remediation
+     *                            ],
+     *                            ...
+     *                            ]
      *
      * @throws ClientException
      */
-    public function enroll(string $name, bool $overwrite, string $enrollKey, array $tags = []): array
+    public function buildSignal(array $properties, array $source, array $decisions = [[]]): array
     {
-        $tags = $this->normalizeTags($tags);
+        $createdAt = $this->formatDate($this->validateDateInput($properties['created_at'] ?? null));
+        $startAt = isset($properties['start_at']) ?
+            $this->formatDate($this->validateDateInput($properties['start_at'])) :
+            $createdAt;
+        $stopAt = isset($properties['stop_at']) ?
+            $this->formatDate($this->validateDateInput($properties['stop_at'])) :
+            $createdAt;
+        $machineId = $this->storage->retrieveMachineId();
+        if (!$machineId) {
+            $this->ensureRegister();
+            $machineId = $this->storage->retrieveMachineId();
+        }
+        $scenario = $properties['scenario'] ?? '';
+        $scenarioTrust = $properties['scenario_trust'] ?? Constants::TRUST_MANUAL;
+        $scenarioHash = $properties['scenario_hash'] ?? '';
+        $scenarioVersion = $properties['scenario_version'] ?? '';
+        $message = $properties['message'] ?? '';
 
-        $params = [
-            'name' => $name,
-            'overwrite' => $overwrite,
-            'attachment_key' => $enrollKey,
-            'tags' => $tags,
+        $properties = [
+            'scenario' => $scenario,
+            'scenario_hash' => $scenarioHash,
+            'scenario_version' => $scenarioVersion,
+            'scenario_trust' => $scenarioTrust,
+            'created_at' => $createdAt,
+            'machine_id' => $machineId,
+            'message' => $message,
+            'start_at' => $startAt,
+            'stop_at' => $stopAt,
         ];
 
-        return $this->manageRequest('POST', self::ENROLL_ENDPOINT, $params);
-    }
+        $sourceScope = $source['scope'] ?? Constants::SCOPE_IP;
+        $sourceValue = $source['value'] ?? '';
 
-    /**
-     * Process a decisions stream call to CAPI.
-     *
-     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
-     *
-     * @throws ClientException
-     */
-    public function getStreamDecisions(): array
-    {
-        return $this->manageRequest('GET', self::DECISIONS_STREAM_ENDPOINT);
-    }
+        $source = [
+            'scope' => $sourceScope,
+            'value' => $sourceValue,
+        ];
 
-    /**
-     * Process a signals call to CAPI.
-     *
-     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
-     *
-     * @throws ClientException
-     */
-    public function pushSignals(array $signals): array
-    {
-        return $this->manageRequest('POST', self::SIGNALS_ENDPOINT, $signals);
-    }
+        $decisions = $this->formatDecisions($decisions, $scenario, $sourceScope, $sourceValue);
 
-    /**
-     * Convert seconds into duration format : XhYmZs (example 86400 => 24h0m0s).
-     */
-    private function convertSecondsToDuration(int $seconds): string
-    {
-        return sprintf('%dh%dm%ds', intval($seconds / 3600), intval($seconds / 60) % 60, $seconds % 60);
+        try {
+            $signal = new Signal($properties, $source, $decisions);
+        } catch (\Exception $e) {
+            throw new ClientException('Something went wrong while creating signal: ' . $e->getMessage());
+        }
+
+        return $signal->toArray();
     }
 
     /**
@@ -190,6 +189,108 @@ class Watcher extends AbstractClient
                 ],
             ]
         );
+    }
+
+    /**
+     * Process an enroll call to CAPI.
+     *
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers_enroll
+     *
+     * @throws ClientException
+     */
+    public function enroll(string $name, bool $overwrite, string $enrollKey, array $tags = []): array
+    {
+        $tags = $this->normalizeTags($tags);
+
+        $params = [
+            'name' => $name,
+            'overwrite' => $overwrite,
+            'attachment_key' => $enrollKey,
+            'tags' => $tags,
+        ];
+
+        return $this->manageRequest('POST', Constants::ENROLL_ENDPOINT, $params);
+    }
+
+    /**
+     * Process a decisions stream call to CAPI.
+     *
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/get_decisions_stream
+     *
+     * @throws ClientException
+     */
+    public function getStreamDecisions(): array
+    {
+        return $this->manageRequest('GET', Constants::DECISIONS_STREAM_ENDPOINT);
+    }
+
+    /**
+     * Process a signals call to CAPI.
+     *
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
+     *
+     * @throws ClientException
+     */
+    public function pushSignals(array $signals): array
+    {
+        return $this->manageRequest('POST', Constants::SIGNALS_ENDPOINT, $signals);
+    }
+
+    /**
+     * Check if two indexed arrays are equals.
+     */
+    private function areEquals(array $arrayOne, array $arrayTwo): bool
+    {
+        $countOne = count($arrayOne);
+
+        return $countOne === count($arrayTwo) && $countOne === count(array_intersect($arrayOne, $arrayTwo));
+    }
+
+    /**
+     * Process and validate input configurations.
+     */
+    private function configure(array $configs): void
+    {
+        $configuration = new WatcherConfig();
+        $processor = new Processor();
+        $this->configs = $processor->processConfiguration($configuration, [$configuration->cleanConfigs($configs)]);
+    }
+
+    /**
+     * Convert seconds into duration format : XhYmZs (example 86400 => 24h0m0s).
+     */
+    private function convertSecondsToDuration(int $seconds): string
+    {
+        return sprintf('%dh%dm%ds', intval($seconds / 3600), intval($seconds / 60) % 60, $seconds % 60);
+    }
+
+    /**
+     * Ensure that machine is registered and that we have a token.
+     *
+     * @throws ClientException
+     */
+    private function ensureAuth(): void
+    {
+        $this->ensureRegister();
+        $this->token = $this->storage->retrieveToken();
+        if ($this->shouldLogin()) {
+            $this->handleLogin();
+        }
+    }
+
+    /**
+     * Ensure that machine credentials are ready tu use.
+     *
+     * @throws ClientException
+     */
+    private function ensureRegister(): void
+    {
+        $this->machineId = $this->storage->retrieveMachineId();
+        $this->password = $this->storage->retrievePassword();
+        if ($this->shouldRefreshCredentials($this->machineId, $this->password, $this->configs)) {
+            $this->refreshCredentials();
+            $this->register();
+        }
     }
 
     /**
@@ -247,223 +348,6 @@ class Watcher extends AbstractClient
     }
 
     /**
-     * Helper to create well formatted signal array.
-     *
-     * @param array   $properties
-     *                            Array containing signal properties
-     *                            $properties = [
-     *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
-     *                            'created_at' => (DateTimeInterface) Date of the alert creation
-     *                            'message' => (string) Details of the alert,
-     *                            'start_at' => (DateTimeInterface) First event date for alert
-     *                            'stop_at' => (DateTimeInterface) Last event date for alert
-     *                            ];
-     * @param array   $source
-     *                            Array containing source data
-     *                            $source = [
-     *                            'scope' => (string) ip, range, country or any known scope
-     *                            'value' => (string) depends on the scope (could be an ip, a range, etc.)
-     *                            ];
-     * @param array[] $decisions
-     *                            Array of decisions. Each decision is an array too.
-     *                            $decisions = [
-     *                            [
-     *                            'id' => (int) The decision id if known, 0 otherwise
-     *                            'duration' => (int) Time to live of the decision in seconds
-     *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
-     *                            'origin' => (string) Origin of the decision (default to "crowdsec")
-     *                            'scope' => (string) ip, range, country or any known scope
-     *                            'value' => (string) depends on the scope (could be an ip, a range, etc.)
-     *                            'type' => (string) Decision type: ban, captcha or any custom remediation
-     *                            ],
-     *                            ...
-     *                            ]
-     *
-     * @throws ClientException
-     */
-    public function buildSignal(array $properties, array $source, array $decisions = [[]]): array
-    {
-        $createdAt = $this->formatDate($this->validateDateInput($properties['created_at'] ?? null));
-        $startAt = isset($properties['start_at']) ?
-            $this->formatDate($this->validateDateInput($properties['start_at'])) :
-            $createdAt;
-        $stopAt = isset($properties['stop_at']) ?
-            $this->formatDate($this->validateDateInput($properties['stop_at'])) :
-            $createdAt;
-        $machineId = $this->storage->retrieveMachineId();
-        if (!$machineId) {
-            $this->ensureRegister();
-            $machineId = $this->storage->retrieveMachineId();
-        }
-        $scenario = $properties['scenario'] ?? '';
-        $scenarioTrust = $properties['scenario_trust'] ?? Signal::TRUST_MANUAL;
-        $scenarioHash = $properties['scenario_hash'] ?? '';
-        $scenarioVersion = $properties['scenario_version'] ?? '';
-        $message = $properties['message'] ?? '';
-
-        $properties = [
-            'scenario' => $scenario,
-            'scenario_hash' => $scenarioHash,
-            'scenario_version' => $scenarioVersion,
-            'scenario_trust' => $scenarioTrust,
-            'created_at' => $createdAt,
-            'machine_id' => $machineId,
-            'message' => $message,
-            'start_at' => $startAt,
-            'stop_at' => $stopAt,
-        ];
-
-        $sourceScope = $source['scope'] ?? Constants::SCOPE_IP;
-        $sourceValue = $source['value'] ?? '';
-
-        $source = [
-            'scope' => $sourceScope,
-            'value' => $sourceValue,
-        ];
-
-        $decisions = $this->formatDecisions($decisions, $scenario, $sourceScope, $sourceValue);
-
-        try {
-            $signal = new Signal($properties, $source, $decisions);
-        } catch (\Exception $e) {
-            throw new ClientException('Something went wrong while creating signal: ' . $e->getMessage());
-        }
-
-        return $signal->toArray();
-    }
-
-    /**
-     * @throws ClientException
-     */
-    private function validateDateInput($input): ?\DateTimeInterface
-    {
-        if (!\is_null($input) && !($input instanceof \DateTimeInterface)) {
-            $message = 'Date input must be null or implement DateTimeInterface';
-            $this->logger->error($message, [
-                'type' => 'WATCHER_CLIENT_VALIDATE_DATE',
-            ]);
-
-            throw new ClientException($message);
-        }
-
-        return $input;
-    }
-
-    /**
-     * Helper to create well formatted signal array.
-     *
-     * @throws ClientException
-     *
-     * @deprecated since 0.11.0: use buildSignal() or BuildSimpleSignalForIp() methods instead.
-     */
-    public function createSignal(
-        string $scenario,
-        string $sourceValue,
-        ?\DateTimeInterface $startAt,
-        ?\DateTimeInterface $stopAt,
-        string $message = '',
-        string $sourceScope = Constants::SCOPE_IP,
-        int $decisionDuration = Constants::DURATION,
-        string $decisionType = Constants::REMEDIATION_BAN
-    ): array {
-        try {
-            $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
-            $createdAt = $currentTime->format(Constants::DATE_FORMAT);
-            $startAt = $startAt ? $startAt->format(Constants::DATE_FORMAT) : $createdAt;
-            $stopAt = $stopAt ? $stopAt->format(Constants::DATE_FORMAT) : $createdAt;
-            // @codeCoverageIgnoreStart
-        } catch (\Exception $e) {
-            throw new ClientException('Something went wrong with date during signal creation');
-            // @codeCoverageIgnoreEnd
-        }
-
-        $machineId = $this->storage->retrieveMachineId();
-        if (!$machineId) {
-            $this->ensureRegister();
-            $machineId = $this->storage->retrieveMachineId();
-        }
-
-        $properties = [
-            'scenario' => $scenario,
-            'scenario_hash' => '',
-            'scenario_version' => '',
-            'created_at' => $createdAt,
-            'machine_id' => $machineId,
-            'message' => $message,
-            'start_at' => $startAt,
-            'stop_at' => $stopAt,
-        ];
-        $source = [
-            'scope' => $sourceScope,
-            'value' => $sourceValue,
-        ];
-        $decisions = [
-            [
-                'id' => 0,
-                'duration' => $this->convertSecondsToDuration($decisionDuration),
-                'scenario' => $scenario,
-                'origin' => Constants::ORIGIN,
-                'scope' => $sourceScope,
-                'value' => $sourceValue,
-                'type' => $decisionType,
-            ],
-        ];
-
-        $signal = new Signal($properties, $source, $decisions);
-
-        return $signal->toArray();
-    }
-
-    /**
-     * Check if two indexed arrays are equals.
-     */
-    private function areEquals(array $arrayOne, array $arrayTwo): bool
-    {
-        $countOne = count($arrayOne);
-
-        return $countOne === count($arrayTwo) && $countOne === count(array_intersect($arrayOne, $arrayTwo));
-    }
-
-    /**
-     * Process and validate input configurations.
-     */
-    private function configure(array $configs): void
-    {
-        $configuration = new WatcherConfig();
-        $processor = new Processor();
-        $this->configs = $processor->processConfiguration($configuration, [$configuration->cleanConfigs($configs)]);
-    }
-
-    /**
-     * Ensure that machine is registered and that we have a token.
-     *
-     * @throws ClientException
-     */
-    private function ensureAuth(): void
-    {
-        $this->ensureRegister();
-        $this->token = $this->storage->retrieveToken();
-        if ($this->shouldLogin()) {
-            $this->handleLogin();
-        }
-    }
-
-    /**
-     * Ensure that machine credentials are ready tu use.
-     *
-     * @throws ClientException
-     */
-    private function ensureRegister(): void
-    {
-        $this->machineId = $this->storage->retrieveMachineId();
-        $this->password = $this->storage->retrievePassword();
-        if ($this->shouldRefreshCredentials($this->machineId, $this->password, $this->configs)) {
-            $this->refreshCredentials();
-            $this->register();
-        }
-    }
-
-    /**
      * Format User-Agent header. <PHP CAPI client prefix>_<custom suffix>/<vX.Y.Z>.
      */
     private function formatUserAgent(array $configs = []): string
@@ -485,7 +369,7 @@ class Watcher extends AbstractClient
         $prefix = !empty($configs['machine_id_prefix']) ? $configs['machine_id_prefix'] : '';
 
         return $prefix . $this->generateRandomString(
-            self::MACHINE_ID_LENGTH - strlen($prefix),
+            Constants::MACHINE_ID_LENGTH - strlen($prefix),
             self::LOWERS . self::DIGITS
         );
     }
@@ -497,7 +381,7 @@ class Watcher extends AbstractClient
      */
     private function generatePassword(): string
     {
-        return $this->generateRandomString(self::PASSWORD_LENGTH, self::UPPERS . self::LOWERS . self::DIGITS);
+        return $this->generateRandomString(Constants::PASSWORD_LENGTH, self::UPPERS . self::LOWERS . self::DIGITS);
     }
 
     /**
@@ -571,15 +455,19 @@ class Watcher extends AbstractClient
      */
     private function login(): array
     {
-        return $this->request(
-            'POST',
-            self::LOGIN_ENDPOINT,
-            [
-                'password' => $this->password,
-                'machine_id' => $this->machineId,
-                'scenarios' => $this->getConfig('scenarios'), ],
-            $this->headers
-        );
+        try {
+            return $this->request(
+                'POST',
+                Constants::LOGIN_ENDPOINT,
+                [
+                    'password' => $this->password,
+                    'machine_id' => $this->machineId,
+                    'scenarios' => $this->getConfig('scenarios'), ],
+                $this->headers
+            );
+        } catch (CommonClientException $e) {
+            throw new ClientException('Error during login: ' . $e->getMessage(), $e->getCode(), $e);
+        }
     }
 
     /**
@@ -611,7 +499,7 @@ class Watcher extends AbstractClient
                 }
                 $headers = array_merge($this->headers, $this->handleTokenHeader());
                 $response = $this->request($method, $endpoint, $parameters, $headers);
-            } catch (ClientException $e) {
+            } catch (CommonClientException $e) {
                 $message = $e->getMessage();
                 $code = $e->getCode();
                 /**
@@ -623,7 +511,7 @@ class Watcher extends AbstractClient
                         'type' => 'WATCHER_REQUEST_ERROR',
                         'code' => $code,
                     ]);
-                    throw new ClientException($message, $code);
+                    throw new ClientException('Error during request: ' . $message, $code, $e);
                 }
                 $this->logger->info($message, [
                     'type' => 'WATCHER_REQUEST_LOGIN_RETRY',
@@ -633,8 +521,8 @@ class Watcher extends AbstractClient
                 $retry = true;
                 $lastMessage = $e->getMessage();
             }
-        } while ($retry && ($loginRetry <= self::LOGIN_RETRY));
-        if ($loginRetry > self::LOGIN_RETRY) {
+        } while ($retry && ($loginRetry <= Constants::LOGIN_RETRY));
+        if ($loginRetry > Constants::LOGIN_RETRY) {
             $message = "Could not login after $loginRetry attempts. Last error was: $lastMessage";
             $this->logger->error($message, [
                 'type' => 'WATCHER_REQUEST_TOO_MANY_ATTEMPTS',
@@ -701,13 +589,13 @@ class Watcher extends AbstractClient
                 }
                 $this->request(
                     'POST',
-                    self::REGISTER_ENDPOINT,
+                    Constants::REGISTER_ENDPOINT,
                     [
                         'password' => $this->password,
                         'machine_id' => $this->machineId, ],
                     $this->headers
                 );
-            } catch (ClientException $e) {
+            } catch (CommonClientException $e) {
                 $message = $e->getMessage();
                 $code = $e->getCode();
                 /**
@@ -719,7 +607,7 @@ class Watcher extends AbstractClient
                         'type' => 'WATCHER_REGISTER_ERROR',
                         'code' => $code,
                     ]);
-                    throw new ClientException($message, $code);
+                    throw new ClientException('Error during register: ' . $message, $code, $e);
                 }
                 $this->logger->info($message, [
                     'type' => 'WATCHER_REGISTER_RETRY',
@@ -729,8 +617,8 @@ class Watcher extends AbstractClient
                 $retry = true;
                 $lastMessage = $e->getMessage();
             }
-        } while ($retry && ($registerRetry <= self::REGISTER_RETRY));
-        if ($registerRetry > self::REGISTER_RETRY) {
+        } while ($retry && ($registerRetry <= Constants::REGISTER_RETRY));
+        if ($registerRetry > Constants::REGISTER_RETRY) {
             $message = "Could not register after $registerRetry attempts. Last error was: $lastMessage";
             $this->logger->error($message, ['type' => 'WATCHER_REGISTER_TOO_MANY_ATTEMPTS']);
             throw new ClientException($message);
@@ -771,5 +659,22 @@ class Watcher extends AbstractClient
         }
 
         return false;
+    }
+
+    /**
+     * @throws ClientException
+     */
+    private function validateDateInput($input): ?\DateTimeInterface
+    {
+        if (!\is_null($input) && !($input instanceof \DateTimeInterface)) {
+            $message = 'Date input must be null or implement DateTimeInterface';
+            $this->logger->error($message, [
+                'type' => 'WATCHER_CLIENT_VALIDATE_DATE',
+            ]);
+
+            throw new ClientException($message);
+        }
+
+        return $input;
     }
 }

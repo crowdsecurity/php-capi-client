@@ -16,31 +16,22 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  */
 
 use CrowdSec\CapiClient\ClientException;
-use Crowdsec\CapiClient\Configuration\Signal;
 use CrowdSec\CapiClient\Constants;
-use CrowdSec\CapiClient\HttpMessage\Response;
 use CrowdSec\CapiClient\Storage\FileStorage;
 use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
+use CrowdSec\Common\Client\ClientException as CommonClientException;
+use CrowdSec\Common\Client\HttpMessage\Response;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Util\Test;
 
 /**
- * @uses \CrowdSec\CapiClient\AbstractClient
  * @uses \CrowdSec\CapiClient\Storage\FileStorage
  * @uses \CrowdSec\CapiClient\Watcher::shouldLogin
- * @uses \CrowdSec\CapiClient\HttpMessage\Response
- * @uses \CrowdSec\CapiClient\HttpMessage\Request
- * @uses \CrowdSec\CapiClient\HttpMessage\AbstractMessage::getHeaders
- * @uses \CrowdSec\CapiClient\RequestHandler\Curl::createOptions
- * @uses \CrowdSec\CapiClient\RequestHandler\Curl::handle
- * @uses \CrowdSec\CapiClient\RequestHandler\Curl::handleConfigs
- * @uses \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::__construct
- * @uses \CrowdSec\CapiClient\RequestHandler\AbstractRequestHandler::getConfig
  *
  * @covers \CrowdSec\CapiClient\Configuration\Signal\Decisions::cleanConfigs
- * @covers \CrowdSec\CapiClient\Configuration\AbstractConfiguration::cleanConfigs
  * @covers \CrowdSec\CapiClient\Watcher::__construct
  * @covers \CrowdSec\CapiClient\Watcher::configure
  * @covers \CrowdSec\CapiClient\Watcher::login
@@ -51,10 +42,8 @@ use org\bovigo\vfs\vfsStream;
  * @covers \CrowdSec\CapiClient\Watcher::getStreamDecisions
  * @covers \CrowdSec\CapiClient\Watcher::pushSignals
  * @covers \CrowdSec\CapiClient\Watcher::enroll
- * @covers \CrowdSec\CapiClient\AbstractClient::request
  * @covers \CrowdSec\CapiClient\Watcher::handleTokenHeader
  * @covers \CrowdSec\CapiClient\Watcher::formatUserAgent
- * @covers \CrowdSec\CapiClient\Watcher::areEquals
  * @covers \CrowdSec\CapiClient\Watcher::generatePassword
  * @covers \CrowdSec\CapiClient\Watcher::generateRandomString
  * @covers \CrowdSec\CapiClient\Watcher::generateMachineId
@@ -72,12 +61,12 @@ use org\bovigo\vfs\vfsStream;
  * @covers \CrowdSec\CapiClient\Signal::configureSource
  * @covers \CrowdSec\CapiClient\Signal::toArray
  * @covers \CrowdSec\CapiClient\Watcher::convertSecondsToDuration
- * @covers \CrowdSec\CapiClient\Watcher::createSignal
  * @covers \CrowdSec\CapiClient\Watcher::buildSignal
  * @covers \CrowdSec\CapiClient\Watcher::buildSimpleSignalForIp
  * @covers \CrowdSec\CapiClient\Watcher::formatDate
  * @covers \CrowdSec\CapiClient\Watcher::formatDecisions
  * @covers \CrowdSec\CapiClient\Watcher::validateDateInput
+ * @covers \CrowdSec\CapiClient\Watcher::areEquals
  */
 final class WatcherTest extends AbstractClient
 {
@@ -97,13 +86,13 @@ final class WatcherTest extends AbstractClient
         $mockClient->expects($this->exactly(1))->method('request')
             ->with(
                 'POST',
-                Watcher::REGISTER_ENDPOINT,
+                Constants::REGISTER_ENDPOINT,
                 self::callback(function ($params): bool {
                     return 2 === count($params) &&
                            !empty($params['password']) &&
-                           Watcher::PASSWORD_LENGTH === strlen($params['password']) &&
+                           Constants::PASSWORD_LENGTH === strlen($params['password']) &&
                            !empty($params['machine_id']) &&
-                           Watcher::MACHINE_ID_LENGTH === strlen($params['machine_id']) &&
+                           Constants::MACHINE_ID_LENGTH === strlen($params['machine_id']) &&
                            0 === substr_compare(
                                $params['machine_id'],
                                TestConstants::MACHINE_ID_PREFIX,
@@ -143,7 +132,7 @@ final class WatcherTest extends AbstractClient
         $mockClient->expects($this->exactly(1))->method('request')
             ->with(
                 'POST',
-                Watcher::LOGIN_ENDPOINT,
+                Constants::LOGIN_ENDPOINT,
                 [
                     'password' => TestConstants::PASSWORD,
                     'machine_id' => TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID,
@@ -198,7 +187,7 @@ final class WatcherTest extends AbstractClient
             ->withConsecutive(
                 [
                     'POST',
-                    Watcher::SIGNALS_ENDPOINT,
+                    Constants::SIGNALS_ENDPOINT,
                     $signals,
                     [
                         'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
@@ -235,7 +224,7 @@ final class WatcherTest extends AbstractClient
             ->withConsecutive(
                 [
                     'GET',
-                    Watcher::DECISIONS_STREAM_ENDPOINT,
+                    Constants::DECISIONS_STREAM_ENDPOINT,
                     [],
                     [
                         'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
@@ -282,7 +271,7 @@ final class WatcherTest extends AbstractClient
             ->withConsecutive(
                 [
                     'POST',
-                    Watcher::ENROLL_ENDPOINT,
+                    Constants::ENROLL_ENDPOINT,
                     $params,
                     [
                         'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
@@ -334,7 +323,7 @@ final class WatcherTest extends AbstractClient
                 'request',
                 ['PUT', '', [], []]
             );
-        } catch (ClientException $e) {
+        } catch (CommonClientException $e) {
             $error = $e->getMessage();
         }
 
@@ -741,7 +730,7 @@ final class WatcherTest extends AbstractClient
         );
 
         $this->assertEquals(
-            Watcher::PASSWORD_LENGTH,
+            Constants::PASSWORD_LENGTH,
             strlen($result),
             'Password should have right length'
         );
@@ -761,7 +750,7 @@ final class WatcherTest extends AbstractClient
         );
 
         $this->assertEquals(
-            Watcher::MACHINE_ID_LENGTH,
+            Constants::MACHINE_ID_LENGTH,
             strlen($result),
             'Machine id should have right length'
         );
@@ -780,7 +769,7 @@ final class WatcherTest extends AbstractClient
         );
 
         $this->assertEquals(
-            Watcher::MACHINE_ID_LENGTH,
+            Constants::MACHINE_ID_LENGTH,
             strlen($result),
             'Machine id should have right length'
         );
@@ -975,7 +964,7 @@ final class WatcherTest extends AbstractClient
         $machineId = $storage->retrieveMachineId();
 
         $this->assertEquals(
-            Watcher::MACHINE_ID_LENGTH,
+            Constants::MACHINE_ID_LENGTH,
             strlen($machineId),
             'Machine id should have right length'
         );
@@ -1099,179 +1088,6 @@ final class WatcherTest extends AbstractClient
 ';
     }
 
-    public function testCreateSignal()
-    {
-        $mockFileStorage = $this->getFileStorageMock();
-        $machineId = TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID;
-
-        $mockFileStorage->method('retrieveMachineId')->will(
-            $this->onConsecutiveCalls(
-                $machineId, // Test 1 : machine id is already in storage
-                null, // Test 2 : machine id is not in storage
-                $machineId . 'test2', // Test 2 : machine id is now in storage (freshly created)
-                $machineId . 'test2', // Test 2 : machine id is now in storage
-                $machineId . 'test3', // Test 3 : machine id is already in storage
-                $machineId . 'test4' // Test 4 : machine id is already in storage
-            )
-        );
-
-        $mockFileStorage->method('retrievePassword')->will(
-            $this->onConsecutiveCalls(
-                TestConstants::PASSWORD // Test 2 : machine id is not already in storage
-            )
-        );
-
-        $client = new Watcher($this->configs, $mockFileStorage);
-
-        $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
-        // Test 1
-        $signal = $client->createSignal(TestConstants::SCENARIOS[0], '1.2.3.4', null, null);
-        $signalCreated = new \DateTime($signal['created_at']);
-        $signalCreatedTimestamp = $signalCreated->getTimestamp();
-        $signalStart = new \DateTime($signal['start_at']);
-        $signalStartTimestamp = $signalStart->getTimestamp();
-        $signalStop = new \DateTime($signal['stop_at']);
-        $signalStopTimestamp = $signalStop->getTimestamp();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            Signal::ISO8601_REGEX,
-            $signal['created_at'],
-            'created_at should be well formatted'
-        );
-        PHPUnitUtil::assertRegExp(
-            $this,
-            Signal::ISO8601_REGEX,
-            $signal['stop_at'],
-            'stop_at should be well formatted'
-        );
-        PHPUnitUtil::assertRegExp(
-            $this,
-            Signal::ISO8601_REGEX,
-            $signal['start_at'],
-            'start_at should be well formatted'
-        );
-        // Test Only non date field (hard to test with milliseconds)
-        $signal['created_at'] = 'XXX';
-        $signal['start_at'] = 'XXX';
-        $signal['stop_at'] = 'XXX';
-
-        $this->assertEquals(
-            $signal,
-            json_decode($this->getTestSignal($machineId), true),
-            'Signal should be well formatted'
-        );
-
-        $this->assertEquals(
-            $signalCreatedTimestamp,
-            $currentTime->getTimestamp(),
-            'Signal created_at should be current time'
-        );
-        $this->assertEquals(
-            $signalStartTimestamp,
-            $currentTime->getTimestamp(),
-            'Signal start_at should be current time'
-        );
-        $this->assertEquals(
-            $signalStopTimestamp,
-            $currentTime->getTimestamp(),
-            'Signal stop_at should be current time'
-        );
-
-        $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
-        // Test 2
-        $signal = $client->createSignal(TestConstants::SCENARIOS[0], '1.2.3.4', null, null);
-        $signalCreated = new \DateTime($signal['created_at']);
-        $signalCreatedTimestamp = $signalCreated->getTimestamp();
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            Signal::ISO8601_REGEX,
-            $signal['created_at'],
-            'created_at should be well formatted'
-        );
-        PHPUnitUtil::assertRegExp(
-            $this,
-            Signal::ISO8601_REGEX,
-            $signal['stop_at'],
-            'stop_at should be well formatted'
-        );
-        PHPUnitUtil::assertRegExp(
-            $this,
-            Signal::ISO8601_REGEX,
-            $signal['start_at'],
-            'start_at should be well formatted'
-        );
-        // Test Only non date field (hard to test with milliseconds)
-        $signal['created_at'] = 'XXX';
-        $signal['start_at'] = 'XXX';
-        $signal['stop_at'] = 'XXX';
-
-        $this->assertEquals(
-            $signal,
-            json_decode($this->getTestSignal($machineId . 'test2'), true),
-            'Signal should be well formatted if watcher not registered at first'
-        );
-
-        $this->assertEquals(
-            $signalCreatedTimestamp,
-            $currentTime->getTimestamp(),
-            'Signal created_at should be current time'
-        );
-
-        // Test 3
-        $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
-        $startTime = new \DateTime('1979-03-06 10:55:28');
-        $endTime = new \DateTime('2079-03-06 10:55:28');
-        $signal = $client->createSignal(TestConstants::SCENARIOS[0], '1.2.3.4', $startTime, $endTime);
-        $signalCreated = new \DateTime($signal['created_at']);
-        $signalCreatedTimestamp = $signalCreated->getTimestamp();
-        $signalStart = new \DateTime($signal['start_at']);
-        $signalStartTimestamp = $signalStart->getTimestamp();
-        $signalStop = new \DateTime($signal['stop_at']);
-        $signalStopTimestamp = $signalStop->getTimestamp();
-
-        $this->assertEquals(
-            $signalCreatedTimestamp,
-            $currentTime->getTimestamp(),
-            'Signal created_at should be current time'
-        );
-        $this->assertEquals(
-            $signalStartTimestamp,
-            $startTime->getTimestamp(),
-            'Signal start_at should be current time'
-        );
-        $this->assertEquals(
-            $signalStopTimestamp,
-            $endTime->getTimestamp(),
-            'Signal stop_at should be current time'
-        );
-        // Test Only non date field (hard to test with milliseconds)
-        $signal['created_at'] = 'XXX';
-        $signal['start_at'] = 'XXX';
-        $signal['stop_at'] = 'XXX';
-        $this->assertEquals(
-            $signal,
-            json_decode($this->getTestSignal($machineId . 'test3'), true),
-            'Signal should be well formatted if watcher not registered at first'
-        );
-
-        // Test 4 : errors
-        $error = '';
-        try {
-            $client->createSignal('hello-world-bad-scenario', '1.2.3.4', null, null);
-        } catch (\Exception $e) {
-            $error = $e->getMessage();
-        }
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/Invalid scenario/',
-            $error,
-            'Should throw an error for bad scenario'
-        );
-    }
-
     public function testBuildSimpleSignal()
     {
         $mockFileStorage = $this->getFileStorageMock();
@@ -1298,7 +1114,7 @@ final class WatcherTest extends AbstractClient
 
         $currentTime = new \DateTime('now', new \DateTimeZone('UTC'));
         // Test 1
-        $signal = $client->createSignal(TestConstants::SCENARIOS[0], '1.2.3.4', null, null);
+        $signal = $client->buildSimpleSignalForIp('1.2.3.4', TestConstants::SCENARIOS[0], null);
         $signalCreated = new \DateTime($signal['created_at']);
         $signalCreatedTimestamp = $signalCreated->getTimestamp();
         $signalStart = new \DateTime($signal['start_at']);
@@ -1308,19 +1124,19 @@ final class WatcherTest extends AbstractClient
 
         PHPUnitUtil::assertRegExp(
             $this,
-            Signal::ISO8601_REGEX,
+            '#^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(.\d{6})?Z$#',
             $signal['created_at'],
             'created_at should be well formatted'
         );
         PHPUnitUtil::assertRegExp(
             $this,
-            Signal::ISO8601_REGEX,
+            '#^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(.\d{6})?Z$#',
             $signal['stop_at'],
             'stop_at should be well formatted'
         );
         PHPUnitUtil::assertRegExp(
             $this,
-            Signal::ISO8601_REGEX,
+            '#^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(.\d{6})?Z$#',
             $signal['start_at'],
             'start_at should be well formatted'
         );
@@ -1359,19 +1175,19 @@ final class WatcherTest extends AbstractClient
 
         PHPUnitUtil::assertRegExp(
             $this,
-            Signal::ISO8601_REGEX,
+            '#^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(.\d{6})?Z$#',
             $signal['created_at'],
             'created_at should be well formatted'
         );
         PHPUnitUtil::assertRegExp(
             $this,
-            Signal::ISO8601_REGEX,
+            '#^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(.\d{6})?Z$#',
             $signal['stop_at'],
             'stop_at should be well formatted'
         );
         PHPUnitUtil::assertRegExp(
             $this,
-            Signal::ISO8601_REGEX,
+            '#^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(.\d{6})?Z$#',
             $signal['start_at'],
             'start_at should be well formatted'
         );
@@ -1467,7 +1283,7 @@ final class WatcherTest extends AbstractClient
         ];
 
         $sourceScope = Constants::SCOPE_IP;
-        $sourceValue = '1.2.3.4';
+        $sourceValue = TestConstants::IP;
 
         $source = [
             'scope' => $sourceScope,
@@ -1487,7 +1303,7 @@ final class WatcherTest extends AbstractClient
         ];
 
         $signal = $client->buildSignal($properties, $source, $decisions);
-        $expected = json_decode('{"scenario":"test\/scenario","scenario_hash":"azertyuiop","scenario_version":"v1.2.0","scenario_trust":"certified","created_at":"2023-01-13T01:34:56.778054Z","machine_id":"capiclienttesttest-machine-idtest1","message":"This is a test message","start_at":"2023-01-12T23:48:45.123456Z","stop_at":"2022-01-13T01:34:55.432150Z","decisions":[{"id":1979,"duration":"1h0m0s","scenario":"test\/scenario","origin":"crowdsec-unit-test","scope":"ip","value":"1.2.3.4","type":"custom","simulated":true}],"source":{"scope":"ip","value":"1.2.3.4"}}', true);
+        $expected = json_decode('{"scenario":"test\/scenario","scenario_hash":"azertyuiop","scenario_version":"v1.2.0","scenario_trust":"certified","created_at":"2023-01-13T01:34:56.778054Z","machine_id":"capiclienttesttest-machine-idtest1","message":"This is a test message","start_at":"2023-01-12T23:48:45.123456Z","stop_at":"2022-01-13T01:34:55.432150Z","decisions":[{"id":1979,"duration":"1h0m0s","scenario":"test\/scenario","origin":"crowdsec-unit-test","scope":"ip","value":"' . TestConstants::IP . '","type":"custom","simulated":true}],"source":{"scope":"ip","value":"' . TestConstants::IP . '"}}', true);
 
         $this->assertEquals(
             $expected, $signal,
