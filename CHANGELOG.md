@@ -28,7 +28,7 @@ The public API of this library consists of all public or protected methods, prop
 
   - *Breaking change*: If not null, the third param of `Watcher` constructor must be of type
     `CrowdSec\Common\Client\RequestHandler\AbstractRequestHandler`
-  - *Breaking change*: Move `Watcher` and `Configuration\Signal` constants in `Constants`
+  - *Breaking change*: Move `Watcher`, `Signal` and `Configuration\Signal` constants in `Constants`
 - *Breaking change*: Remove deprecated `Watcher::createSignal` method
 
 
