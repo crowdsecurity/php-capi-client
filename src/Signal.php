@@ -24,15 +24,6 @@ use Symfony\Component\Config\Definition\Processor;
 class Signal
 {
     /**
-     * @var string The signal manual trust
-     *
-     * @deprecated since v1.1.0: use Constants::TRUST_MANUAL instead
-     *
-     * @todo remove in 2.0.0
-     */
-    public const TRUST_MANUAL = 'manual';
-
-    /**
      * @var array
      */
     private $properties;
