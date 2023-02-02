@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient\Configuration;
 
 use CrowdSec\CapiClient\Constants;
+use CrowdSec\Common\Configuration\AbstractConfiguration;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 
@@ -84,14 +85,14 @@ class Watcher extends AbstractConfiguration
                 ->validate()
                     ->ifTrue(function (array $scenarios) {
                         foreach ($scenarios as $scenario) {
-                            if (1 !== preg_match(Signal::SCENARIO_REGEX, $scenario)) {
+                            if (1 !== preg_match(Constants::SCENARIO_REGEX, $scenario)) {
                                 return true;
                             }
                         }
 
                         return false;
                     })
-                    ->thenInvalid('Each scenario must match ' . Signal::SCENARIO_REGEX . ' regex')
+                    ->thenInvalid('Each scenario must match ' . Constants::SCENARIO_REGEX . ' regex')
                 ->end()
                 ->validate()
                     ->ifArray()

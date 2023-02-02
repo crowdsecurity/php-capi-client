@@ -80,13 +80,12 @@ To instantiate a watcher, you have to:
   use a basic `FileStorage` implementation, but we advise you to develop a more secured class as we are storing sensitive data.
 
 
-- Optionally, you can pass an implementation of the `RequestHandlerInterface` as a third 
-  parameter. By default, a 
-  `Curl` request handler will be used.
+- Optionally, you can pass an implementation of the `AbstractRequestHandler` (from the `crowdsec/common` dependency package) as a third parameter. By default, a `Curl` request handler will be used.
 
 
-- Optionally, to log some information, you can pass an implementation of the `Psr\Log\LoggerInterface` as a fourth 
-  parameter. You will find an example of such implementation with the provided `Logger\FileLog` class.
+- Optionally, to log some information, you can pass an implementation of the `Psr\Log\LoggerInterface` as a fourth
+  parameter. You will find an example of such implementation with the provided `Logger\FileLog` class of the
+  `crowdsec/common` dependency package.
 
 ```php
 use CrowdSec\CapiClient\Watcher;
@@ -406,18 +405,17 @@ By default, the `Watcher` object will do curl requests to call the CAPI. If for 
 use curl then you can create your own request handler class and pass it as a second parameter of the `Watcher` 
 constructor. 
 
-Your custom request handler class must implement the `RequestHandlerInterface` interface, and you will have to 
-explicitly 
-write an `handle` method:
+Your custom request handler class must extend the `AbstractRequestHandler` class of the `crowdsec/common` dependency,
+and you will have to explicitly write an `handle` method:
 
 ```php
 <?php
 
-use CrowdSec\CapiClient\HttpMessage\Request;
-use CrowdSec\CapiClient\HttpMessage\Response;
-use CrowdSec\CapiClient\RequestHandler\RequestHandlerInterface;
+use CrowdSec\Common\Client\HttpMessage\Request;
+use CrowdSec\Common\Client\HttpMessage\Response;
+use CrowdSec\Common\Client\RequestHandler\AbstractRequestHandler;
 
-class CustomRequestHandler implements RequestHandlerInterface
+class CustomRequestHandler extends AbstractRequestHandler
 {
     /**
      * Performs an HTTP request and returns a response.
@@ -457,7 +455,7 @@ handler. To use it, you should instantiate it and pass the created object as a p
 
 ```php
 use CrowdSec\CapiClient\Watcher;
-use CrowdSec\CapiClient\RequestHandler\FileGetContents;
+use CrowdSec\Common\Client\RequestHandler\FileGetContents;
 
 $requestHandler = new FileGetContents($configs);
 
