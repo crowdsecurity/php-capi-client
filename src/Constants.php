@@ -47,6 +47,10 @@ class Constants extends CommonConstants
      */
     public const MACHINE_ID_LENGTH = 48;
     /**
+     * @var string The watchers login endpoint
+     */
+    public const METRICS_ENDPOINT = '/metrics';
+    /**
      * @var int The password length
      */
     public const PASSWORD_LENGTH = 32;
