@@ -139,9 +139,24 @@ class Watcher extends AbstractConfiguration
                                 )
                                 ->end()
                             ->end()
-                            ->scalarNode('custom_name')->cannotBeEmpty()->end()
-                            ->scalarNode('name')->cannotBeEmpty()->end()
-                            ->scalarNode('version')->cannotBeEmpty()->end()
+                            ->scalarNode('custom_name')->cannotBeEmpty()
+                                ->validate()
+                                ->ifTrue(function (string $value) {
+                                    return 1 !== preg_match('#^[A-Za-z0-9]{1,32}$#', $value);
+                                })
+                                ->thenInvalid(
+                                    'Invalid bouncer custom name. Length must be <= 32. Allowed chars are A-Za-z0-9'
+                                )
+                                ->end()
+                            ->end()
+                            ->scalarNode('version')->cannotBeEmpty()
+                                ->validate()
+                                ->ifTrue(function (string $value) {
+                                    return 1 !== preg_match('#^v\d{1,4}(\.\d{1,4}){2}$#', $value);
+                                })
+                                ->thenInvalid('Invalid bouncer version. Must match vX.Y.Z format')
+                                ->end()
+                            ->end()
                         ->end()
                     ->end()
                     ->arrayNode('machine')
@@ -157,7 +172,14 @@ class Watcher extends AbstractConfiguration
                                 )
                                 ->end()
                             ->end()
-                            ->scalarNode('name')->cannotBeEmpty()->end()
+                            ->scalarNode('name')->cannotBeEmpty()
+                                ->validate()
+                                ->ifTrue(function (string $value) {
+                                    return 1 !== preg_match('#^[A-Za-z0-9]{1,32}$#', $value);
+                                })
+                                ->thenInvalid('Invalid machine name. Length must be <= 32. Allowed chars are A-Za-z0-9')
+                                ->end()
+                            ->end()
                             ->scalarNode('last_push')
                                 ->cannotBeEmpty()
                                 ->validate()
@@ -165,11 +187,18 @@ class Watcher extends AbstractConfiguration
                                     return 1 !== preg_match(Constants::ISO8601_REGEX, $value);
                                 })
                                 ->thenInvalid(
-                                    'Invalid metrics_machine_last_update. Must match with ' . Constants::ISO8601_REGEX
+                                    'Invalid metrics_machine_last_push. Must match with ' . Constants::ISO8601_REGEX
                                 )
                                 ->end()
                             ->end()
-                            ->scalarNode('version')->cannotBeEmpty()->end()
+                            ->scalarNode('version')->cannotBeEmpty()
+                                ->validate()
+                                ->ifTrue(function (string $value) {
+                                    return 1 !== preg_match('#^v\d{1,4}(\.\d{1,4}){2}$#', $value);
+                                })
+                                ->thenInvalid('Invalid machine version. Must match vX.Y.Z format')
+                                ->end()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()

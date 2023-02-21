@@ -267,7 +267,7 @@ class Watcher extends AbstractClient
                 [
                     'last_pull' => $metrics['bouncer']['last_pull'] ?? $this->formatDate(null),
                     'custom_name' => $metrics['bouncer']['custom_name'] ?? $userAgentPart[0],
-                    'name' => $metrics['bouncer']['name'] ?? self::BOUNCER_NAME,
+                    'name' => self::BOUNCER_NAME,
                     'version' => $metrics['bouncer']['version'] ?? $userAgentPart[1],
                 ],
             ],
@@ -613,7 +613,8 @@ class Watcher extends AbstractClient
     private function pushMetrics(): void
     {
         $metrics = $this->buildSimpleMetrics();
-        $result = $this->manageRequest('POST', Constants::METRICS_ENDPOINT, $metrics);
+        $headers = array_merge($this->headers, $this->handleTokenHeader());
+        $result = $this->request('POST', Constants::METRICS_ENDPOINT, $metrics, $headers);
 
         $this->logger->debug(
             'Push metrics result.',
