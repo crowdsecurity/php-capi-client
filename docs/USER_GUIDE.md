@@ -390,7 +390,13 @@ $configs = [
 
 This setting is not required.
 
-Each time the watcher has to log in, it will send some metrics to CAPI using the [POST metrics](https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_metrics) endpoint.
+Metrics will give information about the system sending the signals. 
+
+Metrics data will be displayed in the console when the user enroll his instance.
+
+Via the Metrics you can pass information about the version of your security module and the platform hosting your module (As for the example above).
+
+Each time the watcher has to log in, it will send metrics to CAPI using the [POST metrics](https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_metrics) endpoint.
 
 You can pass a `metrics` array as configuration to customize those metrics.
 
