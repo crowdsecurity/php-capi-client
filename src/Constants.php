@@ -73,11 +73,11 @@ class Constants extends CommonConstants
     /**
      * @var string The Development URL of the CrowdSec CAPI
      */
-    public const URL_DEV = 'https://api.dev.crowdsec.net/v2/';
+    public const URL_DEV = 'https://api.dev.crowdsec.net/v3/';
     /**
      * @var string The Production URL of the CrowdSec CAPI
      */
-    public const URL_PROD = 'https://api.crowdsec.net/v2/';
+    public const URL_PROD = 'https://api.crowdsec.net/v3/';
     /**
      * @var string The user agent prefix used to send request to CAPI
      */

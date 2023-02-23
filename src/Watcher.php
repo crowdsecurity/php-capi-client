@@ -609,6 +609,7 @@ class Watcher extends AbstractClient
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_metrics
      *
      * @throws ClientException
+     * @throws CommonClientException
      */
     private function pushMetrics(): void
     {

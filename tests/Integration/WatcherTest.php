@@ -163,7 +163,8 @@ final class WatcherTest extends TestCase
             'Signals should be pushed'
         );
 
-        unset($signals[0]['source']);
+        // With CAPI v3, there is no error even if signal is incomplete
+        /*unset($signals[0]['source']);
         $error = '';
         $code = 0;
         try {
@@ -179,7 +180,7 @@ final class WatcherTest extends TestCase
             '/missing required properties/',
             $error,
             'Should throw an error for bad formatted signal'
-        );
+        );*/
 
         // Build Simple Signal
         $signal = $client->buildSimpleSignalForIp(TestConstants::IP, $this->configs['scenarios'][0], null);
