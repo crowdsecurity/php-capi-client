@@ -364,7 +364,56 @@ This setting is not required.
 This is the maximum number of seconds allowed to execute a CAPI request.
 
 It must be an integer. If you don't set any value, default value is 120. If you set a negative value, timeout is 
-unlimited. 
+unlimited.
+
+### Metrics
+
+```php
+$configs = [
+        ... 
+        'metrics' => [
+            'bouncer' => [
+                'custom_name' => 'DrupalCrowdSec',
+                'version' => 'v1.0.0',
+                'last_pull' => '2023-02-21T14:39:59Z',
+            ],
+            'machine' => [
+                'name' => 'Drupal',
+                'version' => 'v10.0.0',
+                'last_update' => '2023-01-01T14:35:36Z',
+                'last_push' => '2023-02-21T14:35:36Z',        
+            ]
+        ]
+        ...
+];
+```
+
+This setting is not required.
+
+Metrics will give information about the system sending the signals. 
+
+Metrics data will be displayed in the console when the user enroll his instance.
+
+Via the Metrics you can pass information about the version of your security module and the platform hosting your module (As for the example above).
+
+Each time the watcher has to log in, it will send metrics to CAPI using the [POST metrics](https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_metrics) endpoint.
+
+You can pass a `metrics` array as configuration to customize those metrics.
+
+#### Bouncer metrics
+
+- `metrics[bouncer][custom_name]`: Bouncer name. Default to the first part of User Agent. Must match with `#^[A-Za-z0-9]{1,32}$#` regular expression.
+- `metrics[bouncer][version]`: Bouncer version. Default to the User Agent version. Must match with `#^v\d{1,4}(\.\d{1,4}
+  ){2}$#` regular expression.
+- `metrics[bouncer][last_pull]` : Last bouncer pull date. Current date if not set. Must respect ISO8601 format `Y-m-dTH:i:sZ`.
+
+#### Machine metrics
+
+- `metrics[machine][name]`: Agent name. Default to the first part of User Agent. Must match with `#^[A-Za-z0-9]{1,32}$#` regular expression.
+- `metrics[machine][version]`: Agent version. Default to the User Agent version. Must match with `#^v\d{1,4}(\.\d{1,4}
+  ){2}$#` regular expression.
+- `metrics[machine][last_update]` : Last agent update date. Current date if not set. Must respect ISO8601 format `Y-m-dTH:i:sZ`.
+- `metrics[machine][last_push]` : Last agent signals push date. Current date if not set. Must respect ISO8601 format `Y-m-dTH:i:sZ`.
 
 
 ## Storage implementation
@@ -462,17 +511,15 @@ $requestHandler = new FileGetContents($configs);
 $client = new Watcher($configs, $storage, $requestHandler);
 ```
 
-**N.B.**: Please note that you should pass a `$configs` param if you want to use some configuration value as 
-`api_timeout`. 
+**N.B.**: Please note that you should pass a `$configs` param if you want to use some configuration value as `api_timeout`. 
 
 
 ## Example scripts
 
 
-You will find some ready-to-use php scripts in the `tests/scripts` folder. These scripts could be useful to better 
-understand what you can do with this client. 
+You will find some ready-to-use PHP scripts in the `tests/scripts` folder. These scripts could be useful to better understand what you can do with this client. 
 
-As Watcher methods need at least an array as parameter, we use a json format in command line.
+As Watcher methods need at least an array as parameter, we use a JSON format in command line.
 
 
 ### Get decisions stream

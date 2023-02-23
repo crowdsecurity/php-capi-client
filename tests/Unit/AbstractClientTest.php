@@ -28,6 +28,7 @@ use CrowdSec\Common\Client\HttpMessage\Response;
  * @uses \CrowdSec\CapiClient\Configuration\Watcher::getConfigTreeBuilder
  * @uses \CrowdSec\CapiClient\Watcher::formatUserAgent
  * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
+ * @uses \CrowdSec\CapiClient\Configuration\Watcher::addMetricsNodes
  *
  * @covers \CrowdSec\CapiClient\Watcher::__construct
  * @covers \CrowdSec\CapiClient\Watcher::configure

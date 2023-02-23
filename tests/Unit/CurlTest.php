@@ -39,6 +39,10 @@ use CrowdSec\Common\Client\RequestHandler\Curl;
  * @uses \CrowdSec\CapiClient\Watcher::refreshCredentials
  * @uses \CrowdSec\CapiClient\Watcher::areEquals
  * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
+ * @uses \CrowdSec\CapiClient\Configuration\Watcher::addMetricsNodes
+ * @uses \CrowdSec\CapiClient\Watcher::buildSimpleMetrics
+ * @uses \CrowdSec\CapiClient\Watcher::formatDate
+ * @uses \CrowdSec\CapiClient\Watcher::pushMetrics
  *
  * @covers \CrowdSec\CapiClient\Watcher::login
  * @covers \CrowdSec\CapiClient\Watcher::handleTokenHeader

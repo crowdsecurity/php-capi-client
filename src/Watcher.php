@@ -25,6 +25,10 @@ use Symfony\Component\Config\Definition\Processor;
 class Watcher extends AbstractClient
 {
     /**
+     * @var string The bouncer name for metrics
+     */
+    private const BOUNCER_NAME = 'php';
+    /**
      * @var string The list of available digits
      */
     private const DIGITS = '0123456789';
@@ -247,6 +251,38 @@ class Watcher extends AbstractClient
     }
 
     /**
+     * Create a simple metrics array.
+     *
+     * @return array[]
+     *
+     * @throws ClientException
+     */
+    private function buildSimpleMetrics(): array
+    {
+        $userAgentPart = explode('/', $this->headers['User-Agent'], 2);
+        $metrics = $this->getConfig('metrics');
+
+        return [
+            'bouncers' => [
+                [
+                    'last_pull' => $metrics['bouncer']['last_pull'] ?? $this->formatDate(null),
+                    'custom_name' => $metrics['bouncer']['custom_name'] ?? $userAgentPart[0],
+                    'name' => self::BOUNCER_NAME,
+                    'version' => $metrics['bouncer']['version'] ?? $userAgentPart[1],
+                ],
+            ],
+            'machines' => [
+                [
+                    'last_update' => $metrics['machine']['last_update'] ?? $this->formatDate(null),
+                    'name' => $metrics['machine']['name'] ?? $userAgentPart[0],
+                    'last_push' => $metrics['machine']['last_push'] ?? $this->formatDate(null),
+                    'version' => $metrics['machine']['version'] ?? $userAgentPart[1],
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Process and validate input configurations.
      */
     private function configure(array $configs): void
@@ -428,6 +464,17 @@ class Watcher extends AbstractClient
         $this->storage->storeToken($this->token);
         $configScenarios = $this->getConfig('scenarios');
         $this->storage->storeScenarios($configScenarios ?: []);
+        try {
+            $this->pushMetrics();
+        } catch (\Exception $e) {
+            $this->logger->info(
+                'Push metrics failed. Will try again on next login.',
+                [
+                    'type' => 'WATCHER_CLIENT_PUSH_METRICS_FAILED',
+                    'error' => $e->getMessage(),
+                ]
+            );
+        }
     }
 
     /**
@@ -554,6 +601,28 @@ class Watcher extends AbstractClient
         }
 
         return array_values(array_unique($tags));
+    }
+
+    /**
+     * Push metrics about enrolled machines and bouncers.
+     *
+     * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_metrics
+     *
+     * @throws ClientException
+     */
+    private function pushMetrics(): void
+    {
+        $metrics = $this->buildSimpleMetrics();
+        $headers = array_merge($this->headers, $this->handleTokenHeader());
+        $result = $this->request('POST', Constants::METRICS_ENDPOINT, $metrics, $headers);
+
+        $this->logger->debug(
+            'Push metrics result.',
+            [
+                'type' => 'WATCHER_CLIENT_PUSH_METRICS_RESULT',
+                'result' => $result,
+            ]
+        );
     }
 
     /**
