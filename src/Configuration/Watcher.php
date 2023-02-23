@@ -74,7 +74,7 @@ class Watcher extends AbstractConfiguration
                 ->validate()
                 ->ifTrue(function (string $value) {
                     if (!empty($value)) {
-                        return 1 !== preg_match('#^v\d{1,4}(\.\d{1,4}){2}$#', $value);
+                        return 1 !== preg_match(Constants::VERSION_REGEX, $value);
                     }
 
                     return true;
@@ -152,7 +152,7 @@ class Watcher extends AbstractConfiguration
                             ->scalarNode('version')->cannotBeEmpty()
                                 ->validate()
                                 ->ifTrue(function (string $value) {
-                                    return 1 !== preg_match('#^v\d{1,4}(\.\d{1,4}){2}$#', $value);
+                                    return 1 !== preg_match(Constants::VERSION_REGEX, $value);
                                 })
                                 ->thenInvalid('Invalid bouncer version. Must match vX.Y.Z format')
                                 ->end()
@@ -194,7 +194,7 @@ class Watcher extends AbstractConfiguration
                             ->scalarNode('version')->cannotBeEmpty()
                                 ->validate()
                                 ->ifTrue(function (string $value) {
-                                    return 1 !== preg_match('#^v\d{1,4}(\.\d{1,4}){2}$#', $value);
+                                    return 1 !== preg_match(Constants::VERSION_REGEX, $value);
                                 })
                                 ->thenInvalid('Invalid machine version. Must match vX.Y.Z format')
                                 ->end()
