@@ -12,6 +12,15 @@ The public API of this library consists of all public or protected methods, prop
 
 ---
 
+## [2.1.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v2.1.0) - 2023-02-24
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v2.0.0...v2.1.0)
+
+### Added
+
+- Add `metrics` in signals
+
+
+---
 
 ## [2.0.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v2.0.0) - 2023-02-02
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v1.0.1...v2.0.0)
