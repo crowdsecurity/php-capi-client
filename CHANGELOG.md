@@ -12,6 +12,19 @@ The public API of this library consists of all public or protected methods, prop
 
 ---
 
+## [3.0.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v3.0.0) - 2023-??-??
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v2.1.0...v3.0.0)
+
+### Changed
+
+- *Breaking change*: Use CAPI V3 endpoints instead of V2
+- *Breaking change*: If not null, the third param of the `Watcher::__contruct` method must implement 
+  `CrowdSec\CapiClient\Client\ListHandler\ListHandlerInterface`
+
+---
+
+
+
 ## [2.1.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v2.1.0) - 2023-02-24
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v2.0.0...v2.1.0)
 
