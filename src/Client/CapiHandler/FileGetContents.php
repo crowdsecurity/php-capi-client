@@ -36,11 +36,6 @@ class FileGetContents extends CommonFileGetContents implements CapiHandlerInterf
         return $status === 200 ? (string)$response : "";
     }
 
-    protected function exec(string $url, $context): array
-    {
-        return ['response' => file_get_contents($url, false, $context), 'header' => $http_response_header];
-    }
-
     private function createLinkContextConfig(array $headers = []): array
     {
         $header = $this->convertHeadersToString($headers);
