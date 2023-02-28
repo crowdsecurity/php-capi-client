@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CrowdSec\CapiClient\Client\ListHandler;
+namespace CrowdSec\CapiClient\Client\CapiHandler;
 
 use CrowdSec\Common\Constants;
 use CrowdSec\Common\Client\RequestHandler\FileGetContents as CommonFileGetContents;
@@ -17,8 +17,11 @@ use CrowdSec\Common\Client\RequestHandler\FileGetContents as CommonFileGetConten
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class FileGetContents extends CommonFileGetContents implements ListHandlerInterface
+class FileGetContents extends CommonFileGetContents implements CapiHandlerInterface
 {
+    /**
+     * {@inheritdoc}
+     */
     public function getListDecisions(string $url, array $headers = []): string
     {
         $config = $this->createLinkContextConfig($headers);

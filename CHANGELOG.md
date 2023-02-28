@@ -23,6 +23,12 @@ The public API of this library consists of all public or protected methods, prop
 
 ---
 
+### Added
+
+- Add `symfony/uid` dependency to handle UUID in signals data
+
+---
+
 
 
 ## [2.1.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v2.1.0) - 2023-02-24

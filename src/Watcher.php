@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CrowdSec\CapiClient;
 
 use CrowdSec\CapiClient\Client\AbstractClient;
-use CrowdSec\CapiClient\Client\ListHandler\ListHandlerInterface;
+use CrowdSec\CapiClient\Client\CapiHandler\CapiHandlerInterface;
 use CrowdSec\CapiClient\Configuration\Watcher as WatcherConfig;
 use CrowdSec\CapiClient\Storage\StorageInterface;
 use CrowdSec\Common\Client\ClientException as CommonClientException;
@@ -68,7 +68,7 @@ class Watcher extends AbstractClient
     public function __construct(
         array $configs,
         StorageInterface $storage,
-        ListHandlerInterface $listHandler = null,
+        CapiHandlerInterface $capiHandler = null,
         LoggerInterface $logger = null
     ) {
         $this->configure($configs);
@@ -76,7 +76,7 @@ class Watcher extends AbstractClient
         $this->storage = $storage;
         $this->configs['api_url'] =
             Constants::ENV_PROD === $this->getConfig('env') ? Constants::URL_PROD : Constants::URL_DEV;
-        parent::__construct($this->configs, $listHandler, $logger);
+        parent::__construct($this->configs, $capiHandler, $logger);
     }
 
     /**

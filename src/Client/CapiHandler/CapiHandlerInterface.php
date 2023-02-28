@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CrowdSec\CapiClient\Client\ListHandler;
+namespace CrowdSec\CapiClient\Client\CapiHandler;
 
 use CrowdSec\Common\Client\RequestHandler\RequestHandlerInterface;
 
@@ -17,9 +17,11 @@ use CrowdSec\Common\Client\RequestHandler\RequestHandlerInterface;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-interface ListHandlerInterface extends RequestHandlerInterface
+interface CapiHandlerInterface extends RequestHandlerInterface
 {
     /**
+     * Retrieve decisions list from a blocklist url
+     *
      * @param string $url
      * @param array $headers
      * @return string

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient\Client;
 
-use CrowdSec\CapiClient\Client\ListHandler\ListHandlerInterface;
-use CrowdSec\CapiClient\Client\ListHandler\Curl;
+use CrowdSec\CapiClient\Client\CapiHandler\CapiHandlerInterface;
+use CrowdSec\CapiClient\Client\CapiHandler\Curl;
 use Psr\Log\LoggerInterface;
 use CrowdSec\Common\Client\AbstractClient as CommonAbstractClient;
 
@@ -21,23 +21,23 @@ use CrowdSec\Common\Client\AbstractClient as CommonAbstractClient;
  */
 abstract class AbstractClient extends CommonAbstractClient
 {
-    private $listHandler;
+    private $capiHandler;
 
     public function __construct(
         array $configs,
-        ListHandlerInterface $listHandler = null,
+        CapiHandlerInterface $listHandler = null,
         LoggerInterface $logger = null
     ) {
         $this->configs = $configs;
-        $this->listHandler = ($listHandler) ?: new Curl($this->configs);
-        parent::__construct($configs, $this->listHandler, $logger);
+        $this->capiHandler = ($listHandler) ?: new Curl($this->configs);
+        parent::__construct($configs, $this->capiHandler, $logger);
     }
 
     /**
-     * @return ListHandlerInterface
+     * @return CapiHandlerInterface
      */
-    public function getListHandler(): ListHandlerInterface
+    public function getCapiHandler(): CapiHandlerInterface
     {
-        return $this->listHandler;
+        return $this->capiHandler;
     }
 }

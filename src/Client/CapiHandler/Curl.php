@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CrowdSec\CapiClient\Client\ListHandler;
+namespace CrowdSec\CapiClient\Client\CapiHandler;
 
 use CrowdSec\Common\Client\RequestHandler\Curl as CommonCurl;
 use CrowdSec\Common\Constants;
@@ -17,8 +17,11 @@ use CrowdSec\Common\Constants;
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */
-class Curl extends CommonCurl implements ListHandlerInterface
+class Curl extends CommonCurl implements CapiHandlerInterface
 {
+    /**
+     * {@inheritdoc}
+     */
     public function getListDecisions(string $url, array $headers = []): string
     {
         $handle = curl_init();
