@@ -23,7 +23,7 @@ use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use CrowdSec\Common\Client\HttpMessage\Request;
-use CrowdSec\Common\Client\RequestHandler\Curl;
+use CrowdSec\CapiClient\Client\CapiHandler\Curl;
 
 /**
  * @uses \CrowdSec\CapiClient\Configuration\Watcher::getConfigTreeBuilder
@@ -43,6 +43,7 @@ use CrowdSec\Common\Client\RequestHandler\Curl;
  * @uses \CrowdSec\CapiClient\Watcher::buildSimpleMetrics
  * @uses \CrowdSec\CapiClient\Watcher::formatDate
  * @uses \CrowdSec\CapiClient\Watcher::pushMetrics
+ * @uses \CrowdSec\CapiClient\Client\AbstractClient::__construct
  *
  * @covers \CrowdSec\CapiClient\Watcher::login
  * @covers \CrowdSec\CapiClient\Watcher::handleTokenHeader

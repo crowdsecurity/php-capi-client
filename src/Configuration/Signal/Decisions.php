@@ -33,6 +33,7 @@ class Decisions extends AbstractConfiguration
         'id',
         'type',
         'value',
+        'uuid',
     ];
 
     /**

@@ -16,8 +16,8 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  */
 
 use CrowdSec\CapiClient\Tests\Constants as TestConstants;
-use CrowdSec\Common\Client\RequestHandler\Curl;
-use CrowdSec\Common\Client\RequestHandler\FileGetContents;
+use CrowdSec\CapiClient\Client\CapiHandler\Curl;
+use CrowdSec\CapiClient\Client\CapiHandler\FileGetContents;
 use PHPUnit\Framework\TestCase;
 
 abstract class AbstractClient extends TestCase

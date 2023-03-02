@@ -6,8 +6,8 @@ namespace CrowdSec\CapiClient\Client;
 
 use CrowdSec\CapiClient\Client\CapiHandler\CapiHandlerInterface;
 use CrowdSec\CapiClient\Client\CapiHandler\Curl;
-use Psr\Log\LoggerInterface;
 use CrowdSec\Common\Client\AbstractClient as CommonAbstractClient;
+use Psr\Log\LoggerInterface;
 
 /**
  * The low level CrowdSec CAPI Client.
@@ -33,9 +33,6 @@ abstract class AbstractClient extends CommonAbstractClient
         parent::__construct($configs, $this->capiHandler, $logger);
     }
 
-    /**
-     * @return CapiHandlerInterface
-     */
     public function getCapiHandler(): CapiHandlerInterface
     {
         return $this->capiHandler;

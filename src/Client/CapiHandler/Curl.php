@@ -8,7 +8,7 @@ use CrowdSec\Common\Client\RequestHandler\Curl as CommonCurl;
 use CrowdSec\Common\Constants;
 
 /**
- * Curl list handler to get CAPI linked decisions (blocklists)
+ * Curl list handler to get CAPI linked decisions (blocklists).
  *
  * @author    CrowdSec team
  *
@@ -26,7 +26,7 @@ class Curl extends CommonCurl implements CapiHandlerInterface
     {
         $handle = curl_init();
 
-        $curlOptions = $this->createLinkOptions($url, $headers);
+        $curlOptions = $this->createListOptions($url, $headers);
         curl_setopt_array($handle, $curlOptions);
 
         $response = $this->exec($handle);
@@ -34,24 +34,24 @@ class Curl extends CommonCurl implements CapiHandlerInterface
         $statusCode = $this->getResponseHttpCode($handle);
 
         curl_close($handle);
-        return $statusCode === 200 ? (string)$response : "";
+
+        return 200 === $statusCode ? (string) $response : '';
     }
 
     /**
      * Retrieve Curl options.
-     *
      */
-    private function createLinkOptions(string $url, array $headers = []): array
+    private function createListOptions(string $url, array $headers = []): array
     {
         $options = [
             \CURLOPT_HEADER => false,
             \CURLOPT_RETURNTRANSFER => true,
             \CURLOPT_ENCODING => '',
             \CURLOPT_TIMEOUT => Constants::API_TIMEOUT,
-            \CURLOPT_POST  =>  false,
-            \CURLOPT_CUSTOMREQUEST  =>  'GET',
-            \CURLOPT_HTTPGET  => true,
-            \CURLOPT_URL => $url
+            \CURLOPT_POST => false,
+            \CURLOPT_CUSTOMREQUEST => 'GET',
+            \CURLOPT_HTTPGET => true,
+            \CURLOPT_URL => $url,
         ];
         $options[\CURLOPT_HTTPHEADER] = [];
         foreach ($headers as $key => $values) {

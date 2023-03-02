@@ -6,7 +6,6 @@ namespace CrowdSec\CapiClient\Client\CapiHandler;
 
 use CrowdSec\Common\Client\RequestHandler\RequestHandlerInterface;
 
-
 /**
  * List handler interface to get CAPI linked decisions (blocklists).
  *
@@ -20,11 +19,7 @@ use CrowdSec\Common\Client\RequestHandler\RequestHandlerInterface;
 interface CapiHandlerInterface extends RequestHandlerInterface
 {
     /**
-     * Retrieve decisions list from a blocklist url
-     *
-     * @param string $url
-     * @param array $headers
-     * @return string
+     * Retrieve decisions list from a blocklist url.
      */
     public function getListDecisions(string $url, array $headers = []): string;
 }
