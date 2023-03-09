@@ -25,7 +25,7 @@
   - [Scenarios](#scenarios)
   - [CAPI timeout](#capi-timeout)
 - [Storage implementation](#storage-implementation)
-- [Override the curl request handler](#override-the-curl-request-handler)
+- [Override the curl list handler](#override-the-curl-list-handler)
   - [Custom implementation](#custom-implementation)
   - [Ready to use `file_get_contents` implementation](#ready-to-use-file_get_contents-implementation)
 - [Example scripts](#example-scripts)
@@ -80,7 +80,8 @@ To instantiate a watcher, you have to:
   use a basic `FileStorage` implementation, but we advise you to develop a more secured class as we are storing sensitive data.
 
 
-- Optionally, you can pass an implementation of the `AbstractRequestHandler` (from the `crowdsec/common` dependency package) as a third parameter. By default, a `Curl` request handler will be used.
+- Optionally, you can pass an implementation of the `CapiHandlerInterface` as a third parameter. By default, a 
+  `Curl` list handler will be used.
 
 
 - Optionally, to log some information, you can pass an implementation of the `Psr\Log\LoggerInterface` as a fourth
@@ -446,25 +447,26 @@ Beware that this example is not secure enough as we are talking here about sensi
 and `machine_id`.
 
 
-## Override the curl request handler
+## Override the curl list handler
 
 ### Custom implementation
 
 By default, the `Watcher` object will do curl requests to call the CAPI. If for some reason, you don't want to 
-use curl then you can create your own request handler class and pass it as a second parameter of the `Watcher` 
+use curl then you can create your own handler class and pass it as a third parameter of the `Watcher` 
 constructor. 
 
-Your custom request handler class must extend the `AbstractRequestHandler` class of the `crowdsec/common` dependency,
-and you will have to explicitly write an `handle` method:
+Your custom list handler class must implement the `CapiHandlerInterface` interface, and you will have to explicitly 
+write 
+an `handle` and a `getListDecisions` methods:
 
 ```php
 <?php
 
 use CrowdSec\Common\Client\HttpMessage\Request;
 use CrowdSec\Common\Client\HttpMessage\Response;
-use CrowdSec\Common\Client\RequestHandler\AbstractRequestHandler;
+use CrowdSec\CapiClient\Client\CapiHandler\CapiHandlerInterface;
 
-class CustomRequestHandler extends AbstractRequestHandler
+class CustomCapiHandler extends CapiHandlerInterface
 {
     /**
      * Performs an HTTP request and returns a response.
@@ -472,7 +474,7 @@ class CustomRequestHandler extends AbstractRequestHandler
      * @param Request $request
      * @return Response
      */
-    public function handle(Request $request)
+    public function handle(Request $request): Response
     {
         /**
         * Make your own implementation of an HTTP request process.
@@ -480,18 +482,30 @@ class CustomRequestHandler extends AbstractRequestHandler
         * Response object contains a json body, a status code and headers (optional).
         */
     }
+    
+    /**
+     * @param string $url
+     * @param array $headers
+     * @return string
+     */
+    public function getListDecisions(string $url, array $headers = []): string
+    {
+        /**
+        * Make your own implementation that retrieves decisions list from a block list url
+        */
+    }
 }
 ```
 
-Once you have your custom request handler, you can instantiate the watcher that will use it:
+Once you have your custom handler, you can instantiate the watcher that will use it:
 
 ```php
 use CrowdSec\CapiClient\Watcher;
-use CustomRequestHandler;
+use CustomCapiHandler;
 
-$requestHandler = new CustomRequestHandler();
+$capiHandler = new CustomCapiHandler();
 
-$client = new Watcher($configs, $storage, $requestHandler);
+$client = new Watcher($configs, $storage, $capiHandler);
 ```
 
 Then, you can make any of the CAPI calls that we have seen above.
@@ -504,11 +518,11 @@ handler. To use it, you should instantiate it and pass the created object as a p
 
 ```php
 use CrowdSec\CapiClient\Watcher;
-use CrowdSec\Common\Client\RequestHandler\FileGetContents;
+use CrowdSec\CapiClient\Client\CapiHandler\FileGetContents;
 
-$requestHandler = new FileGetContents($configs);
+$capiHandler = new FileGetContents($configs);
 
-$client = new Watcher($configs, $storage, $requestHandler);
+$client = new Watcher($configs, $storage, $capiHandler);
 ```
 
 **N.B.**: Please note that you should pass a `$configs` param if you want to use some configuration value as `api_timeout`. 

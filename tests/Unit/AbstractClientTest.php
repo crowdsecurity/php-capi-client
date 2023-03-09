@@ -30,8 +30,10 @@ use CrowdSec\Common\Client\HttpMessage\Response;
  * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
  * @uses \CrowdSec\CapiClient\Configuration\Watcher::addMetricsNodes
  *
+ * @covers \CrowdSec\CapiClient\Client\AbstractClient::__construct
  * @covers \CrowdSec\CapiClient\Watcher::__construct
  * @covers \CrowdSec\CapiClient\Watcher::configure
+ * @covers \CrowdSec\CapiClient\Client\AbstractClient::getCapiHandler
  */
 final class AbstractClientTest extends AbstractClient
 {
@@ -53,9 +55,15 @@ final class AbstractClientTest extends AbstractClient
 
         $requestHandler = $client->getRequestHandler();
         $this->assertEquals(
-            'CrowdSec\Common\Client\RequestHandler\Curl',
+            'CrowdSec\CapiClient\Client\CapiHandler\Curl',
             get_class($requestHandler),
             'Request handler must be curl by default'
+        );
+
+        $this->assertEquals(
+            $client->getCapiHandler(),
+            $requestHandler,
+            'Request handler must be the CapiHandler'
         );
 
         $client = new Watcher(array_merge($this->configs, ['env' => Constants::ENV_PROD]), new FileStorage());
@@ -80,7 +88,7 @@ final class AbstractClientTest extends AbstractClient
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/must .*RequestHandler/',
+            '/must .*CapiHandler/',
             $error,
             'Bad request handler should throw an error'
         );

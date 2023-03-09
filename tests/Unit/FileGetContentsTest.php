@@ -17,6 +17,7 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  * @license   MIT License
  */
 
+use CrowdSec\CapiClient\Client\CapiHandler\FileGetContents;
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\Storage\FileStorage;
@@ -26,7 +27,6 @@ use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use CrowdSec\Common\Client\ClientException as CommonClientException;
 use CrowdSec\Common\Client\HttpMessage\Request;
-use CrowdSec\Common\Client\RequestHandler\FileGetContents;
 
 /**
  * @uses \CrowdSec\CapiClient\Configuration\Watcher::getConfigTreeBuilder
@@ -47,6 +47,7 @@ use CrowdSec\Common\Client\RequestHandler\FileGetContents;
  * @uses \CrowdSec\CapiClient\Watcher::buildSimpleMetrics
  * @uses \CrowdSec\CapiClient\Watcher::formatDate
  * @uses \CrowdSec\CapiClient\Watcher::pushMetrics
+ * @uses \CrowdSec\CapiClient\Client\AbstractClient::__construct
  *
  * @covers \CrowdSec\CapiClient\Watcher::login
  * @covers \CrowdSec\CapiClient\Watcher::handleTokenHeader

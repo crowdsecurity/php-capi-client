@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace CrowdSec\CapiClient;
 
+use CrowdSec\CapiClient\Client\AbstractClient;
+use CrowdSec\CapiClient\Client\CapiHandler\CapiHandlerInterface;
 use CrowdSec\CapiClient\Configuration\Watcher as WatcherConfig;
 use CrowdSec\CapiClient\Storage\StorageInterface;
-use CrowdSec\Common\Client\AbstractClient;
 use CrowdSec\Common\Client\ClientException as CommonClientException;
-use CrowdSec\Common\Client\RequestHandler\AbstractRequestHandler;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * The Watcher Client.
@@ -68,7 +69,7 @@ class Watcher extends AbstractClient
     public function __construct(
         array $configs,
         StorageInterface $storage,
-        AbstractRequestHandler $requestHandler = null,
+        CapiHandlerInterface $capiHandler = null,
         LoggerInterface $logger = null
     ) {
         $this->configure($configs);
@@ -76,7 +77,7 @@ class Watcher extends AbstractClient
         $this->storage = $storage;
         $this->configs['api_url'] =
             Constants::ENV_PROD === $this->getConfig('env') ? Constants::URL_PROD : Constants::URL_DEV;
-        parent::__construct($this->configs, $requestHandler, $logger);
+        parent::__construct($this->configs, $capiHandler, $logger);
     }
 
     /**
@@ -133,6 +134,7 @@ class Watcher extends AbstractClient
         $scenarioHash = $properties['scenario_hash'] ?? '';
         $scenarioVersion = $properties['scenario_version'] ?? '';
         $message = $properties['message'] ?? '';
+        $uuid = $properties['uuid'] ?? Uuid::v4()->toRfc4122();
 
         $properties = [
             'scenario' => $scenario,
@@ -144,6 +146,7 @@ class Watcher extends AbstractClient
             'message' => $message,
             'start_at' => $startAt,
             'stop_at' => $stopAt,
+            'uuid' => $uuid,
         ];
 
         $sourceScope = $source['scope'] ?? Constants::SCOPE_IP;
@@ -154,7 +157,7 @@ class Watcher extends AbstractClient
             'value' => $sourceValue,
         ];
 
-        $decisions = $this->formatDecisions($decisions, $scenario, $sourceScope, $sourceValue);
+        $decisions = $this->formatDecisions($decisions, $scenario, $sourceScope, $sourceValue, $uuid);
 
         try {
             $signal = new Signal($properties, $source, $decisions);
@@ -348,8 +351,13 @@ class Watcher extends AbstractClient
     /**
      * @throws ClientException
      */
-    private function formatDecisions(array $decisions, string $scenario, string $scope, string $value): array
-    {
+    private function formatDecisions(
+        array $decisions,
+        string $scenario,
+        string $scope,
+        string $value,
+        string $uuid
+    ): array {
         $result = [];
         foreach ($decisions as $decision) {
             if (!\is_array($decision)) {
@@ -370,6 +378,7 @@ class Watcher extends AbstractClient
 
             $result[] = [
                 'id' => $decision['id'] ?? 0,
+                'uuid' => $decision['uuid'] ?? $uuid,
                 'duration' => $this->convertSecondsToDuration($duration),
                 'scenario' => $decision['scenario'] ?? $scenario,
                 'origin' => $decision['origin'] ?? Constants::ORIGIN,
@@ -609,6 +618,7 @@ class Watcher extends AbstractClient
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_metrics
      *
      * @throws ClientException
+     * @throws CommonClientException
      */
     private function pushMetrics(): void
     {

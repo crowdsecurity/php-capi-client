@@ -13,6 +13,8 @@ namespace CrowdSec\CapiClient\Tests\Integration;
  * @license   MIT License
  */
 
+use CrowdSec\CapiClient\Client\CapiHandler\Curl;
+use CrowdSec\CapiClient\Client\CapiHandler\FileGetContents;
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\Storage\FileStorage;
@@ -20,8 +22,6 @@ use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use CrowdSec\Common\Client\AbstractClient;
-use CrowdSec\Common\Client\RequestHandler\Curl;
-use CrowdSec\Common\Client\RequestHandler\FileGetContents;
 use CrowdSec\Common\Logger\FileLog;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
@@ -77,6 +77,7 @@ use PHPUnit\Util\Exception;
  * @uses \CrowdSec\CapiClient\Watcher::pushSignals
  * @uses \CrowdSec\CapiClient\Watcher::shouldRefreshCredentials
  * @uses \CrowdSec\CapiClient\Watcher::validateDateInput
+ * @uses \CrowdSec\CapiClient\Client\AbstractClient::__construct
  */
 final class WatcherTest extends TestCase
 {
@@ -138,6 +139,8 @@ final class WatcherTest extends TestCase
 
         $this->assertArrayHasKey('new', $response, 'Response should have a "new" key');
         $this->assertArrayHasKey('deleted', $response, 'Response should have a "deleted" key');
+        $this->assertArrayHasKey('links', $response, 'Response should have a "links" key');
+        $this->assertArrayHasKey('blocklists', $response['links'], 'Response links should have a "blocklists" key');
         PHPUnitUtil::assertRegExp(
             $this,
             '/.*100.*"type":"WATCHER_CLIENT_PUSH_METRICS_RESULT.*metrics updated successfully"/',
@@ -163,7 +166,8 @@ final class WatcherTest extends TestCase
             'Signals should be pushed'
         );
 
-        unset($signals[0]['source']);
+        // With CAPI v3, there is no error even if signal is incomplete
+        /*unset($signals[0]['source']);
         $error = '';
         $code = 0;
         try {
@@ -179,7 +183,7 @@ final class WatcherTest extends TestCase
             '/missing required properties/',
             $error,
             'Should throw an error for bad formatted signal'
-        );
+        );*/
 
         // Build Simple Signal
         $signal = $client->buildSimpleSignalForIp(TestConstants::IP, $this->configs['scenarios'][0], null);
