@@ -21,6 +21,9 @@ use Psr\Log\LoggerInterface;
  */
 abstract class AbstractClient extends CommonAbstractClient
 {
+    /**
+     * @var CapiHandlerInterface
+     */
     private $capiHandler;
 
     public function __construct(

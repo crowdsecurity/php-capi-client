@@ -13,23 +13,21 @@ namespace CrowdSec\CapiClient\Tests\Integration;
  * @license   MIT License
  */
 
-use PHPUnit\Framework\TestCase;
 use CrowdSec\CapiClient\Client\CapiHandler\Curl;
 use CrowdSec\CapiClient\Client\CapiHandler\FileGetContents;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \CrowdSec\CapiClient\Client\CapiHandler\Curl::getListDecisions
  * @covers \CrowdSec\CapiClient\Client\CapiHandler\Curl::createListOptions
  * @covers \CrowdSec\CapiClient\Client\CapiHandler\FileGetContents::getListDecisions
  * @covers \CrowdSec\CapiClient\Client\CapiHandler\FileGetContents::createListContextConfig
- *
  */
-
 final class CapiListHandlerTest extends TestCase
 {
     private $urls = [
         '404' => 'https://github.com/crowdsecurity/php-capi-client/test.txt',
-        '200' => 'https://gist.githubusercontent.com/julienloizelet/8aaa7557c07fe83435303a9f3b412d00/raw/751f6867f775f0aec88b34a86032ea19e6dceb3c/cs-list-test.txt'
+        '200' => 'https://gist.githubusercontent.com/julienloizelet/8aaa7557c07fe83435303a9f3b412d00/raw/751f6867f775f0aec88b34a86032ea19e6dceb3c/cs-list-test.txt',
     ];
 
     public function capiHandlerProvider(): array
@@ -48,7 +46,7 @@ final class CapiListHandlerTest extends TestCase
         // test 1 : file does not exist
         $list = $capiHandler->getListDecisions($this->urls['404']);
 
-        $this->assertEquals("", $list);
+        $this->assertEquals('', $list);
 
         // test 2 : file exist and contains 2 IPS
         $list = $capiHandler->getListDecisions($this->urls['200']);
@@ -58,11 +56,6 @@ final class CapiListHandlerTest extends TestCase
         // test 2 : file exist but has not been modified since 2115
         $list = $capiHandler->getListDecisions($this->urls['200'], ['If-Modified-Since' => 'Wed, 23 Oct 2115 07:28:00 GMT']);
 
-        $this->assertEquals("", $list);
-
-
+        $this->assertEquals('', $list);
     }
-
-
-
 }

@@ -15,6 +15,7 @@ namespace CrowdSec\CapiClient\Tests\Unit;
  * @license   MIT License
  */
 
+use CrowdSec\CapiClient\Client\CapiHandler\Curl;
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\Storage\FileStorage;
@@ -23,7 +24,6 @@ use CrowdSec\CapiClient\Tests\MockedData;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use CrowdSec\Common\Client\HttpMessage\Request;
-use CrowdSec\CapiClient\Client\CapiHandler\Curl;
 
 /**
  * @uses \CrowdSec\CapiClient\Configuration\Watcher::getConfigTreeBuilder

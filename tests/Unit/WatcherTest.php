@@ -1353,7 +1353,7 @@ final class WatcherTest extends AbstractClient
         $signal['stop_at'] = 'XXX';
         // Do not test uuid value too
         $signal['uuid'] = 'XXX';
-        $signal['decisions'][0]['uuid']='XXX';
+        $signal['decisions'][0]['uuid'] = 'XXX';
 
         $this->assertEquals(
             $signal,
@@ -1407,7 +1407,7 @@ final class WatcherTest extends AbstractClient
         $signal['stop_at'] = 'XXX';
         // Do not test uuid value too
         $signal['uuid'] = 'XXX';
-        $signal['decisions'][0]['uuid']='XXX';
+        $signal['decisions'][0]['uuid'] = 'XXX';
 
         $this->assertEquals(
             $signal,
@@ -1445,7 +1445,7 @@ final class WatcherTest extends AbstractClient
         $signal['stop_at'] = 'XXX';
         // Do not test uuid value too
         $signal['uuid'] = 'XXX';
-        $signal['decisions'][0]['uuid']='XXX';
+        $signal['decisions'][0]['uuid'] = 'XXX';
         $this->assertEquals(
             $signal,
             json_decode($this->getTestSignal($machineId . 'test3'), true),
@@ -1521,7 +1521,7 @@ final class WatcherTest extends AbstractClient
         $signal = $client->buildSignal($properties, $source, $decisions);
         // Do not test uuid value
         $signal['uuid'] = 'XXX';
-        $signal['decisions'][0]['uuid']='XXX';
+        $signal['decisions'][0]['uuid'] = 'XXX';
         $expected = json_decode('{"scenario":"test\/scenario","scenario_hash":"azertyuiop","scenario_version":"v1.2.0","scenario_trust":"certified","created_at":"2023-01-13T01:34:56.778054Z","machine_id":"capiclienttesttest-machine-idtest1","message":"This is a test message","start_at":"2023-01-12T23:48:45.123456Z","stop_at":"2022-01-13T01:34:55.432150Z","uuid":"XXX","decisions":[{"id":1979,"uuid":"XXX","duration":"1h0m0s","scenario":"test\/scenario","origin":"crowdsec-unit-test","scope":"ip","value":"' . TestConstants::IP . '","type":"custom","simulated":true}],"source":{"scope":"ip","value":"' . TestConstants::IP . '"}}', true);
 
         $this->assertEquals(
@@ -1749,7 +1749,7 @@ final class WatcherTest extends AbstractClient
         $signal = $client->buildSignal($properties, $source, $decisions);
         // Do not test uuid value
         $signal['uuid'] = 'XXX';
-        $signal['decisions'][0]['uuid']='XXX';
+        $signal['decisions'][0]['uuid'] = 'XXX';
         $expected = json_decode('{"scenario":"test\/scenario","scenario_hash":"azertyuiop","scenario_version":"v1.2.0","scenario_trust":"certified","created_at":"2023-01-13T01:34:56.778054Z","machine_id":"capiclienttesttest-machine-idtest7","message":"This is a test message","start_at":"2023-01-13T01:34:56.778054Z","stop_at":"2023-01-13T01:34:56.778054Z","uuid":"XXX","decisions":[{"id":1979,"uuid":"XXX","duration":"1h0m0s","scenario":"test\/scenario","origin":"crowdsec-unit-test","scope":"ip","value":"1.2.3.4","type":"custom","simulated":true}],"source":{"scope":"ip","value":"1.2.3.4"}}', true);
 
         $this->assertEquals(

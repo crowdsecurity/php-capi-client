@@ -29,8 +29,8 @@ use CrowdSec\Common\Client\HttpMessage\Response;
  * @uses \CrowdSec\CapiClient\Watcher::formatUserAgent
  * @uses \CrowdSec\CapiClient\Storage\FileStorage::__construct
  * @uses \CrowdSec\CapiClient\Configuration\Watcher::addMetricsNodes
- * @covers \CrowdSec\CapiClient\Client\AbstractClient::__construct
  *
+ * @covers \CrowdSec\CapiClient\Client\AbstractClient::__construct
  * @covers \CrowdSec\CapiClient\Watcher::__construct
  * @covers \CrowdSec\CapiClient\Watcher::configure
  * @covers \CrowdSec\CapiClient\Client\AbstractClient::getCapiHandler

@@ -13,6 +13,8 @@ namespace CrowdSec\CapiClient\Tests\Integration;
  * @license   MIT License
  */
 
+use CrowdSec\CapiClient\Client\CapiHandler\Curl;
+use CrowdSec\CapiClient\Client\CapiHandler\FileGetContents;
 use CrowdSec\CapiClient\ClientException;
 use CrowdSec\CapiClient\Constants;
 use CrowdSec\CapiClient\Storage\FileStorage;
@@ -20,8 +22,6 @@ use CrowdSec\CapiClient\Tests\Constants as TestConstants;
 use CrowdSec\CapiClient\Tests\PHPUnitUtil;
 use CrowdSec\CapiClient\Watcher;
 use CrowdSec\Common\Client\AbstractClient;
-use CrowdSec\CapiClient\Client\CapiHandler\Curl;
-use CrowdSec\CapiClient\Client\CapiHandler\FileGetContents;
 use CrowdSec\Common\Logger\FileLog;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
@@ -78,7 +78,6 @@ use PHPUnit\Util\Exception;
  * @uses \CrowdSec\CapiClient\Watcher::shouldRefreshCredentials
  * @uses \CrowdSec\CapiClient\Watcher::validateDateInput
  * @uses \CrowdSec\CapiClient\Client\AbstractClient::__construct
- *
  */
 final class WatcherTest extends TestCase
 {
