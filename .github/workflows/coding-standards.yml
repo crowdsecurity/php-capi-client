@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, 'chore(') }}
     env:
-      EXTENSION_PATH: "my-own-modules/capi-client"
+      EXTENSION_PATH: "my-code/capi-client"
 
     steps:
       - name: Clone DDEV files
