@@ -622,7 +622,7 @@ final class WatcherTest extends AbstractClient
 
         $error = '';
         try {
-            new Watcher(['scenarios' => ['testtooloong/abcdefghijiklmnopqrstuvwxyzabcdefghijiklmnopqrstuvwxy']], new FileStorage());
+            new Watcher(['scenarios' => ['testtooloong/abcdefghijiklmnopqrstuvwxyzabcdefghijiklmnopqrstuvwxyaaaaaaaaaaaaaa']], new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
         }
