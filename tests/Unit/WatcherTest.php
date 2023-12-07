@@ -91,12 +91,12 @@ final class WatcherTest extends AbstractClient
                 'POST',
                 Constants::REGISTER_ENDPOINT,
                 self::callback(function ($params): bool {
-                    return 2 === count($params) &&
-                           !empty($params['password']) &&
-                           Constants::PASSWORD_LENGTH === strlen($params['password']) &&
-                           !empty($params['machine_id']) &&
-                           Constants::MACHINE_ID_LENGTH === strlen($params['machine_id']) &&
-                           0 === substr_compare(
+                    return 2 === count($params)
+                           && !empty($params['password'])
+                           && Constants::PASSWORD_LENGTH === strlen($params['password'])
+                           && !empty($params['machine_id'])
+                           && Constants::MACHINE_ID_LENGTH === strlen($params['machine_id'])
+                           && 0 === substr_compare(
                                $params['machine_id'],
                                TestConstants::MACHINE_ID_PREFIX,
                                0,
