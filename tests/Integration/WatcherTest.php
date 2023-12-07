@@ -245,7 +245,7 @@ final class WatcherTest extends TestCase
     public function testEnroll($requestHandler)
     {
         $enrollmentKey = file_get_contents(__DIR__ . '/.enrollment_key.txt');
-        $enrollmentKey = str_replace(array("\n", "\r"), '', $enrollmentKey);
+        $enrollmentKey = str_replace(["\n", "\r"], '', $enrollmentKey);
 
         if (!$enrollmentKey) {
             throw new Exception('Error while trying to get content of .enrollment_key.txt file');
