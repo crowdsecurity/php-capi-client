@@ -339,7 +339,7 @@ $configs = [
 This `scenarios` setting is required.
 
 You have to pass an array of CrowdSec scenarios that will be used to log in your watcher. 
-You should find a list of available scenarios on the [CrowdSec hub collections page](https://app.crowdsec.net/hub/).
+You should find a list of available scenarios on the [CrowdSec hub collections page](https://app.crowdsec.net/hub).
 
 
 Each scenario must match the regular expression `#^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,64}$#`.
