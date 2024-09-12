@@ -83,7 +83,7 @@ class Watcher extends AbstractClient
     /**
      * Helper to create well formatted signal array.
      *
-     * @param array   $properties
+     * @param array $properties
      *                            Array containing signal properties
      *                            $properties = [
      *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
@@ -92,7 +92,7 @@ class Watcher extends AbstractClient
      *                            'start_at' => (DateTimeInterface) First event date for alert
      *                            'stop_at' => (DateTimeInterface) Last event date for alert
      *                            ];
-     * @param array   $source
+     * @param array $source
      *                            Array containing source data
      *                            $source = [
      *                            'scope' => (string) ip, range, country or any known scope
@@ -135,6 +135,7 @@ class Watcher extends AbstractClient
         $scenarioVersion = $properties['scenario_version'] ?? '';
         $message = $properties['message'] ?? '';
         $uuid = $properties['uuid'] ?? Uuid::v4()->toRfc4122();
+        $context = $properties['context'] ?? [];
 
         $properties = [
             'scenario' => $scenario,
@@ -147,6 +148,7 @@ class Watcher extends AbstractClient
             'start_at' => $startAt,
             'stop_at' => $stopAt,
             'uuid' => $uuid,
+            'context' => $context,
         ];
 
         $sourceScope = $source['scope'] ?? Constants::SCOPE_IP;
@@ -414,9 +416,9 @@ class Watcher extends AbstractClient
         $prefix = !empty($configs['machine_id_prefix']) ? $configs['machine_id_prefix'] : '';
 
         return $prefix . $this->generateRandomString(
-            Constants::MACHINE_ID_LENGTH - strlen($prefix),
-            self::LOWERS . self::DIGITS
-        );
+                Constants::MACHINE_ID_LENGTH - strlen($prefix),
+                self::LOWERS . self::DIGITS
+            );
     }
 
     /**
@@ -518,7 +520,7 @@ class Watcher extends AbstractClient
                 [
                     'password' => $this->password,
                     'machine_id' => $this->machineId,
-                    'scenarios' => $this->getConfig('scenarios'), ],
+                    'scenarios' => $this->getConfig('scenarios'),],
                 $this->headers
             );
         } catch (CommonClientException $e) {
@@ -671,7 +673,7 @@ class Watcher extends AbstractClient
                     Constants::REGISTER_ENDPOINT,
                     [
                         'password' => $this->password,
-                        'machine_id' => $this->machineId, ],
+                        'machine_id' => $this->machineId,],
                     $this->headers
                 );
             } catch (CommonClientException $e) {
