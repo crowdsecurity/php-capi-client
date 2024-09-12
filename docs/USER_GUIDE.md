@@ -280,7 +280,7 @@ This setting is not required.
 When you make your first call with a watcher, a `machine_id` will be generated and stored through your storage 
 implementation. This `machine_id` is a string of length 48 composed of characters matching the regular expression `#^[a-z0-9]+$#`.
 
-The `machine_id_prefix` setting allows to set a custom prefix to this `machine_id`. It must be a string matching the regular expression `#^[a-z0-9]{0,16}$#`. 
+The `machine_id_prefix` setting allows to set a custom prefix to this `machine_id`. It must be a string matching the regular expression `#^[a-z0-9]{0,48}$#`. 
 
 The final generated `machine_id` will still have a length of 48.
 
@@ -339,7 +339,7 @@ $configs = [
 This `scenarios` setting is required.
 
 You have to pass an array of CrowdSec scenarios that will be used to log in your watcher. 
-You should find a list of available scenarios on the [CrowdSec hub collections page](https://hub.crowdsec.net/browse/).
+You should find a list of available scenarios on the [CrowdSec hub collections page](https://app.crowdsec.net/hub/).
 
 
 Each scenario must match the regular expression `#^[A-Za-z0-9]{0,16}\/[A-Za-z0-9_-]{0,64}$#`.
