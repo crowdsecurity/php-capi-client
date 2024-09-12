@@ -392,9 +392,9 @@ final class WatcherTest extends AbstractClient
         $client = new Watcher(array_merge($this->configs,
             [
                 'metrics' => [
-                        'bouncer' => ['custom_name' => 'test'],
-                        'machine' => ['version' => 'v0.0.0'],
-                    ],
+                    'bouncer' => ['custom_name' => 'test'],
+                    'machine' => ['version' => 'v0.0.0'],
+                ],
             ]),
             new FileStorage()
         );
@@ -410,8 +410,8 @@ final class WatcherTest extends AbstractClient
             new Watcher(array_merge($this->configs,
                 [
                     'metrics' => [
-                            'bouncer' => ['last_pull' => '2021-06-03'],
-                        ],
+                        'bouncer' => ['last_pull' => '2021-06-03'],
+                    ],
                 ]), new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -427,8 +427,8 @@ final class WatcherTest extends AbstractClient
             new Watcher(array_merge($this->configs,
                 [
                     'metrics' => [
-                            'bouncer' => ['custom_name' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
-                        ],
+                        'bouncer' => ['custom_name' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
+                    ],
                 ]), new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -444,8 +444,8 @@ final class WatcherTest extends AbstractClient
             new Watcher(array_merge($this->configs,
                 [
                     'metrics' => [
-                            'bouncer' => ['version' => 'test'],
-                        ],
+                        'bouncer' => ['version' => 'test'],
+                    ],
                 ]), new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -461,8 +461,8 @@ final class WatcherTest extends AbstractClient
             new Watcher(array_merge($this->configs,
                 [
                     'metrics' => [
-                            'machine' => ['version' => 'test'],
-                        ],
+                        'machine' => ['version' => 'test'],
+                    ],
                 ]), new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -478,8 +478,8 @@ final class WatcherTest extends AbstractClient
             new Watcher(array_merge($this->configs,
                 [
                     'metrics' => [
-                            'machine' => ['last_update' => 'test'],
-                        ],
+                        'machine' => ['last_update' => 'test'],
+                    ],
                 ]), new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -495,8 +495,8 @@ final class WatcherTest extends AbstractClient
             new Watcher(array_merge($this->configs,
                 [
                     'metrics' => [
-                            'machine' => ['last_push' => 'test'],
-                        ],
+                        'machine' => ['last_push' => 'test'],
+                    ],
                 ]), new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -512,8 +512,8 @@ final class WatcherTest extends AbstractClient
             new Watcher(array_merge($this->configs,
                 [
                     'metrics' => [
-                            'machine' => ['name' => 'test**'],
-                        ],
+                        'machine' => ['name' => 'test**'],
+                    ],
                 ]), new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -529,8 +529,8 @@ final class WatcherTest extends AbstractClient
             new Watcher(array_merge($this->configs,
                 [
                     'metrics' => [
-                            'machine' => ['name' => ''],
-                        ],
+                        'machine' => ['name' => ''],
+                    ],
                 ]), new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
@@ -636,16 +636,16 @@ final class WatcherTest extends AbstractClient
 
         $error = '';
         try {
-            new Watcher(['machine_id_prefix' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa'], new FileStorage());
+            new Watcher(['machine_id_prefix' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'], new FileStorage());
         } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/Length must be <= 16/',
+            '/Length must be <= 48/',
             $error,
-            'machine_id_prefix length should be <16'
+            'machine_id_prefix length should be <48'
         );
 
         $error = '';
@@ -946,23 +946,35 @@ final class WatcherTest extends AbstractClient
             'Machine id should begin with machine id prefix'
         );
 
+        // Test full length machine id prefix
+        $result = PHPUnitUtil::callMethod(
+            $client,
+            'generateMachineId',
+            [['machine_id_prefix' => 'thismaybeatestwithalengthof48charactersbelieveme']]
+        );
+        $this->assertEquals(
+            Constants::MACHINE_ID_LENGTH,
+            strlen($result),
+            'Machine id should have right length'
+        );
+        $this->assertEquals(
+            'thismaybeatestwithalengthof48charactersbelieveme',
+            $result,
+            'Machine id should be exactly the machine id prefix'
+        );
+
         // Test  generateRandomString
         $error = '';
-        try {
-            PHPUnitUtil::callMethod(
-                $client,
-                'generateRandomString',
-                [0, 'ab']
-            );
-        } catch (ClientException $e) {
-            $error = $e->getMessage();
-        }
-
-        PHPUnitUtil::assertRegExp(
-            $this,
-            '/Length must be greater than zero/',
-            $error,
-            'Random string must have a length greater than 0'
+        $expectedResult = '';
+        $result = PHPUnitUtil::callMethod(
+            $client,
+            'generateRandomString',
+            [0, 'ab']
+        );
+        $this->assertEquals(
+            $expectedResult,
+            $result,
+            'Random string with length 0 is an empty string'
         );
 
         $error = '';
@@ -1246,18 +1258,18 @@ final class WatcherTest extends AbstractClient
         $client = new Watcher(array_merge($this->configs,
             [
                 'metrics' => [
-                        'bouncer' => [
-                            'last_pull' => '2023-02-20T00:00:01Z',
-                            'version' => 'v0.0.0',
-                            'custom_name' => 'testBouncer',
-                            ],
-                        'machine' => [
-                            'last_push' => '2023-02-20T00:00:01Z',
-                            'last_update' => '2023-02-20T00:00:01Z',
-                            'name' => 'testMachine',
-                            'version' => 'v0.0.0',
-                        ],
+                    'bouncer' => [
+                        'last_pull' => '2023-02-20T00:00:01Z',
+                        'version' => 'v0.0.0',
+                        'custom_name' => 'testBouncer',
                     ],
+                    'machine' => [
+                        'last_push' => '2023-02-20T00:00:01Z',
+                        'last_update' => '2023-02-20T00:00:01Z',
+                        'name' => 'testMachine',
+                        'version' => 'v0.0.0',
+                    ],
+                ],
             ]), $storage);
 
         $metrics = PHPUnitUtil::callMethod(
@@ -1496,6 +1508,7 @@ final class WatcherTest extends AbstractClient
             'message' => 'This is a test message',
             'start_at' => new \DateTime('2023-01-12T23:48:45.123456Z'),
             'stop_at' => new \DateTime('2022-01-13T01:34:55.432150Z'),
+            'context' => [['key' => 'key1', 'value' => 'value1']],
         ];
 
         $sourceScope = Constants::SCOPE_IP;
@@ -1522,7 +1535,7 @@ final class WatcherTest extends AbstractClient
         // Do not test uuid value
         $signal['uuid'] = 'XXX';
         $signal['decisions'][0]['uuid'] = 'XXX';
-        $expected = json_decode('{"scenario":"test\/scenario","scenario_hash":"azertyuiop","scenario_version":"v1.2.0","scenario_trust":"certified","created_at":"2023-01-13T01:34:56.778054Z","machine_id":"capiclienttesttest-machine-idtest1","message":"This is a test message","start_at":"2023-01-12T23:48:45.123456Z","stop_at":"2022-01-13T01:34:55.432150Z","uuid":"XXX","context":[],"decisions":[{"id":1979,"uuid":"XXX","duration":"1h0m0s","scenario":"test\/scenario","origin":"crowdsec-unit-test","scope":"ip","value":"' . TestConstants::IP . '","type":"custom","simulated":true}],"source":{"scope":"ip","value":"' . TestConstants::IP . '"}}', true);
+        $expected = json_decode('{"scenario":"test\/scenario","scenario_hash":"azertyuiop","scenario_version":"v1.2.0","scenario_trust":"certified","created_at":"2023-01-13T01:34:56.778054Z","machine_id":"capiclienttesttest-machine-idtest1","message":"This is a test message","start_at":"2023-01-12T23:48:45.123456Z","stop_at":"2022-01-13T01:34:55.432150Z","uuid":"XXX","context":[{"key":"key1","value":"value1"}],"decisions":[{"id":1979,"uuid":"XXX","duration":"1h0m0s","scenario":"test\/scenario","origin":"crowdsec-unit-test","scope":"ip","value":"' . TestConstants::IP . '","type":"custom","simulated":true}],"source":{"scope":"ip","value":"' . TestConstants::IP . '"}}', true);
 
         $this->assertEquals(
             $expected, $signal,

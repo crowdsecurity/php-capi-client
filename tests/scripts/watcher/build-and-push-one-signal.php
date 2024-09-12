@@ -27,7 +27,7 @@ $configs = [
     'machine_id_prefix' => 'capiclienttest',
     'user_agent_suffix' => 'CapiClientTest',
     'scenarios' => $scenarios,
-    'env' => 'prod',
+    'env' => 'dev',
 ];
 $client = new Watcher(
     $configs,
@@ -39,11 +39,11 @@ echo 'Watcher instantiated' . \PHP_EOL;
 
 $properties = $signal;
 unset($properties['source'], $properties['decisions']);
-$source = $signal['source']??[];
-$decisions = $signal['decisions']??[];
+$source = $signal['source'] ?? [];
+$decisions = $signal['decisions'] ?? [];
 
 echo 'Creating signal ...' . \PHP_EOL;
-$response = $client->buildSignal($properties, $source, $decisions );
+$response = $client->buildSignal($properties, $source, $decisions);
 echo 'Build signal is:' . json_encode($response, \JSON_UNESCAPED_SLASHES) . \PHP_EOL;
 $signals = [$response];
 
@@ -54,6 +54,3 @@ echo 'Signals list: ' . \PHP_EOL;
 print_r($signals);
 $response = $client->pushSignals($signals);
 echo 'Push signals response is:' . json_encode($response) . \PHP_EOL;
-
-
-

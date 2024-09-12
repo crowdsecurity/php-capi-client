@@ -69,8 +69,8 @@ class Watcher extends AbstractClient
     public function __construct(
         array $configs,
         StorageInterface $storage,
-        CapiHandlerInterface $capiHandler = null,
-        LoggerInterface $logger = null
+        ?CapiHandlerInterface $capiHandler = null,
+        ?LoggerInterface $logger = null
     ) {
         $this->configure($configs);
         $this->headers = ['User-Agent' => $this->formatUserAgent($this->configs)];
@@ -83,7 +83,7 @@ class Watcher extends AbstractClient
     /**
      * Helper to create well formatted signal array.
      *
-     * @param array $properties
+     * @param array   $properties
      *                            Array containing signal properties
      *                            $properties = [
      *                            'scenario' => (string) Scenario name : <yourProductShortName>/<ScenarioName>
@@ -92,7 +92,7 @@ class Watcher extends AbstractClient
      *                            'start_at' => (DateTimeInterface) First event date for alert
      *                            'stop_at' => (DateTimeInterface) Last event date for alert
      *                            ];
-     * @param array $source
+     * @param array   $source
      *                            Array containing source data
      *                            $source = [
      *                            'scope' => (string) ip, range, country or any known scope
@@ -409,22 +409,22 @@ class Watcher extends AbstractClient
     /**
      * Generate a random machine_id.
      *
-     * @throws ClientException
+     * @throws ClientException|\Exception
      */
     private function generateMachineId(array $configs = []): string
     {
         $prefix = !empty($configs['machine_id_prefix']) ? $configs['machine_id_prefix'] : '';
 
         return $prefix . $this->generateRandomString(
-                Constants::MACHINE_ID_LENGTH - strlen($prefix),
-                self::LOWERS . self::DIGITS
-            );
+            Constants::MACHINE_ID_LENGTH - strlen($prefix),
+            self::LOWERS . self::DIGITS
+        );
     }
 
     /**
      * Generate a random password.
      *
-     * @throws ClientException
+     * @throws ClientException|\Exception
      */
     private function generatePassword(): string
     {
@@ -439,14 +439,14 @@ class Watcher extends AbstractClient
      */
     private function generateRandomString(int $length, string $chars): string
     {
+        $res = '';
         if ($length < 1) {
-            throw new ClientException('Length must be greater than zero.');
+            return $res;
         }
         $chLen = strlen($chars);
         if ($chLen < 1) {
             throw new ClientException('There must be at least one allowed character.');
         }
-        $res = '';
         for ($i = 0; $i < $length; ++$i) {
             $res .= $chars[random_int(0, $chLen - 1)];
         }
@@ -520,7 +520,7 @@ class Watcher extends AbstractClient
                 [
                     'password' => $this->password,
                     'machine_id' => $this->machineId,
-                    'scenarios' => $this->getConfig('scenarios'),],
+                    'scenarios' => $this->getConfig('scenarios'), ],
                 $this->headers
             );
         } catch (CommonClientException $e) {
@@ -640,7 +640,7 @@ class Watcher extends AbstractClient
     /**
      * Generate and store new machine_id/password pair.
      *
-     * @throws ClientException
+     * @throws ClientException|\Exception
      */
     private function refreshCredentials(): void
     {
@@ -655,7 +655,7 @@ class Watcher extends AbstractClient
      *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_watchers
      *
-     * @throws ClientException
+     * @throws ClientException|\Exception
      */
     private function register(): void
     {
@@ -673,7 +673,7 @@ class Watcher extends AbstractClient
                     Constants::REGISTER_ENDPOINT,
                     [
                         'password' => $this->password,
-                        'machine_id' => $this->machineId,],
+                        'machine_id' => $this->machineId, ],
                     $this->headers
                 );
             } catch (CommonClientException $e) {

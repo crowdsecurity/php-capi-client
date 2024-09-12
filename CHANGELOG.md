@@ -17,9 +17,13 @@ As far as possible, we try to adhere to [Symfony guidelines](https://symfony.com
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v3.1.0...v3.2.0)
 
 
+### Changed
+
+- Allow `machine_id_prefix` to have a length of 48 characters (full length of a machine ID)
+
 ### Added
 
-- Add `context` support for Signals
+- Add `context` support for Signals builder helper
 
 ---
 

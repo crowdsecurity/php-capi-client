@@ -36,7 +36,7 @@ class Signal extends AbstractConfiguration
         'start_at',
         'stop_at',
         'uuid',
-        'context'
+        'context',
     ];
 
     /**

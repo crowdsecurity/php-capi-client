@@ -11,7 +11,7 @@ use CrowdSec\Common\Logger\ConsoleLog;
 $scenarios = isset($argv[1]) ? json_decode($argv[1], true) : false;
 $scenario = $argv[2] ?? false;
 $ip = $argv[3] ?? false;
-$createdAt = isset($argv[4]) ? new \DateTime($argv[4]) : null;
+$createdAt = isset($argv[4]) ? new DateTime($argv[4]) : null;
 $message = $argv[5] ?? '';
 $duration = $argv[6] ?? Constants::DURATION;
 if (is_null($scenarios)) {

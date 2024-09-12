@@ -30,7 +30,7 @@ $configs = [
     'machine_id_prefix' => 'capiclienttest',
     'user_agent_suffix' => 'CapiClientTest',
     'scenarios' => $scenarios,
-    'env' => 'prod',
+    'env' => 'dev',
 ];
 $client = new Watcher(
     $configs,

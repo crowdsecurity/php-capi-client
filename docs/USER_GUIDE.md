@@ -195,7 +195,10 @@ You have to pass 3 arrays as parameters for this method:
   - `message`: A human-readable message to add context for the alert. This is not required. Default to an empty message.
   - `start_at`: First event date for alert. This is not required. Default to `created_at` value.
   - `stop_at`: Last event date for alert. This is not required. Default to `created_at` value.
-  - `context`: An array of context key-value pairs. This is not required. Default to an empty array.
+  - `context`: An array of context key-value pairs. 
+    Each context array must have a `key` and `value` indexes: `[["key"=>"key1","value"=>"value1"],..., ["key"=>"keyN","value"=>"valueN"]]`.
+    
+    This is not required. Default to an empty array.
 
 
 - An array `$source` with the following available keys:
