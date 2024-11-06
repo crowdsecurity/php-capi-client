@@ -280,7 +280,7 @@ User-Agent: ' . TestConstants::USER_AGENT_SUFFIX . '
         }
 
         $this->assertEquals(
-            'User agent is required',
+            'Header "User-Agent" is required',
             $error,
             'Should failed and throw if no user agent'
         );
