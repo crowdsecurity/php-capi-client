@@ -21,7 +21,6 @@ on:
         type: string
         description: The PHP common json to use
         required: true
-        default: '["main"]'
     secrets:
       TEST_MACHINE_ID:
         description: "Test machine ID"
@@ -128,7 +127,7 @@ jobs:
       - name: Modify dependencies to use development aliases
         run: |
           # CAPI client
-          composer require crowdsec/common:"dev-${{ steps.set-common-data.outputs.branch }} as 999.999.0" --no-update --working-dir ./${{env.EXTENSION_PATH}}
+          ddev exec -raw composer require crowdsec/common:"dev-${{ steps.set-common-data.outputs.branch }}" --no-update --working-dir ./${{env.EXTENSION_PATH}}
 
       - name: Validate composer.json
         run: |
