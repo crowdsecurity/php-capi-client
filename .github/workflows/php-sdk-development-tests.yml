@@ -127,7 +127,7 @@ jobs:
       - name: Modify dependencies to use development aliases
         run: |
           # CAPI client
-          ddev exec -raw composer require crowdsec/common:"dev-${{ steps.set-common-data.outputs.branch }}" --no-update --working-dir ./${{env.EXTENSION_PATH}}
+          ddev exec --raw composer require crowdsec/common:"dev-${{ steps.set-common-data.outputs.branch }}" --no-update --working-dir ./${{env.EXTENSION_PATH}}
 
       - name: Validate composer.json
         run: |
