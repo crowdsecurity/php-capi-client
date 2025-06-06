@@ -13,6 +13,16 @@ As far as possible, we try to adhere to [Symfony guidelines](https://symfony.com
 
 ---
 
+## [3.5.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v3.5.0) - 2025-06-13
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v3.4.0...v3.5.0)
+
+
+### Changed
+
+- Fallback to machine id for metrics machine name instead of first part of user agent
+
+---
+
 ## [3.4.0](https://github.com/crowdsecurity/php-capi-client/releases/tag/v3.4.0) - 2025-01-31
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v3.3.0...v3.4.0)
 

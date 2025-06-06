@@ -33,7 +33,7 @@ $client = new Watcher(
     $configs,
     new FileStorage(__DIR__ . '/../../../src/Storage', $configs['env']),
     null,
-    new ConsoleLog(['level' => 'critical'])
+    new ConsoleLog(['level' => 'debug'])
 );
 echo 'Watcher instantiated' . \PHP_EOL;
 
