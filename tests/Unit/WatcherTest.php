@@ -521,7 +521,7 @@ final class WatcherTest extends AbstractClient
 
         PHPUnitUtil::assertRegExp(
             $this,
-            '/Invalid machine name. Length must be <= 32. Allowed chars are A-Za-z0-9/',
+            '/Invalid machine name. Length must be <= 64. Allowed chars are A-Za-z0-9/',
             $error
         );
         $error = '';

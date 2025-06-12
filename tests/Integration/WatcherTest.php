@@ -143,7 +143,7 @@ final class WatcherTest extends TestCase
         $this->assertArrayHasKey('blocklists', $response['links'], 'Response links should have a "blocklists" key');
         PHPUnitUtil::assertRegExp(
             $this,
-            '/.*100.*"type":"WATCHER_CLIENT_PUSH_METRICS_RESULT.*metrics updated successfully"/',
+            '/.*100.*"type":"WATCHER_CLIENT_PUSH_METRICS_RESULT.*(metrics updated successfully|metrics already updated)"/',
             file_get_contents($this->root->url() . '/' . $this->debugFile),
             'Debug log content should be correct'
         );

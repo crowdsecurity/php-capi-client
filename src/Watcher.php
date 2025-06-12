@@ -279,7 +279,7 @@ class Watcher extends AbstractClient
             'machines' => [
                 [
                     'last_update' => $metrics['machine']['last_update'] ?? $this->formatDate(null),
-                    'name' => $metrics['machine']['name'] ?? $userAgentPart[0],
+                    'name' => $metrics['machine']['name'] ?? $this->storage->retrieveMachineId(),
                     'last_push' => $metrics['machine']['last_push'] ?? $this->formatDate(null),
                     'version' => $metrics['machine']['version'] ?? $userAgentPart[1],
                 ],

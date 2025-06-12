@@ -177,9 +177,9 @@ class Watcher extends AbstractConfiguration
                             ->scalarNode('name')->cannotBeEmpty()
                                 ->validate()
                                 ->ifTrue(function (string $value) {
-                                    return 1 !== preg_match('#^[A-Za-z0-9]{1,32}$#', $value);
+                                    return 1 !== preg_match('#^[A-Za-z0-9]{1,64}$#', $value);
                                 })
-                                ->thenInvalid('Invalid machine name. Length must be <= 32. Allowed chars are A-Za-z0-9')
+                                ->thenInvalid('Invalid machine name. Length must be <= 64. Allowed chars are A-Za-z0-9')
                                 ->end()
                             ->end()
                             ->scalarNode('last_push')
