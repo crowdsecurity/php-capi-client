@@ -20,6 +20,7 @@ As far as possible, we try to adhere to [Symfony guidelines](https://symfony.com
 ### Changed
 
 - Fallback to machine id for metrics machine name instead of first part of user agent
+- Allow metrics machine name to have a length of 64 characters
 
 ---
 
