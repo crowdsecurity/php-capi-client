@@ -406,7 +406,7 @@ You can pass a `metrics` array as configuration to customize those metrics.
 
 #### Machine metrics
 
-- `metrics[machine][name]`: Agent name. Default to the first part of User Agent. Must match with `#^[A-Za-z0-9]{1,32}$#` regular expression.
+- `metrics[machine][name]`: Agent name. Default to the current machine id. Must match with `#^[A-Za-z0-9]{1,64}$#` regular expression.
 - `metrics[machine][version]`: Agent version. Default to the User Agent version. Must match with `#^v\d{1,4}(\.\d{1,4}
   ){2}$#` regular expression.
 - `metrics[machine][last_update]` : Last agent update date. Current date if not set. Must respect ISO8601 format `Y-m-dTH:i:sZ`.
