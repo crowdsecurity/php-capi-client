@@ -51,7 +51,6 @@ jobs:
 
     name: Unit and integration test
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.head_commit.message, 'chore(') }}
     env:
       EXTENSION_PATH: "my-code/php-capi-client"
       PHP_COMMON_PATH: "my-code/php-common"
@@ -100,20 +99,20 @@ jobs:
 
       - name: Clone Capi Client files
         if: inputs.is_call != true
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: ${{env.EXTENSION_PATH}}
 
       - name: Clone Capi Client files
         if: inputs.is_call == true
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ env.CAPI_CLIENT_REPO }}
           path: ${{env.EXTENSION_PATH}}
           ref: "main"
 
       - name: Clone PHP common files
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ steps.set-common-data.outputs.repo}}
           ref: ${{ steps.set-common-data.outputs.branch  }}

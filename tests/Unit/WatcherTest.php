@@ -202,6 +202,59 @@ final class WatcherTest extends AbstractClient
         $mockClient->pushSignals($signals);
     }
 
+    public function testPushSignalsWithNonSequentialKeys()
+    {
+        $mockFileStorage = $this->getFileStorageMock();
+        $mockFileStorage->method('retrievePassword')->willReturn(
+            TestConstants::PASSWORD
+        );
+        $mockFileStorage->method('retrieveMachineId')->willReturn(
+            TestConstants::MACHINE_ID_PREFIX . TestConstants::MACHINE_ID
+        );
+        $mockFileStorage->method('retrieveToken')->willReturn(
+            TestConstants::TOKEN
+        );
+        $mockFileStorage->method('retrieveScenarios')->willReturn(
+            TestConstants::SCENARIOS
+        );
+
+        $mockClient = $this->getMockBuilder('CrowdSec\CapiClient\Watcher')
+            ->enableOriginalConstructor()
+            ->setConstructorArgs(['configs' => $this->configs, 'storage' => $mockFileStorage])
+            ->onlyMethods(['request'])
+            ->getMock();
+
+        // Simulate array with non-sequential keys (like what array_filter might produce)
+        $signalsWithNonSequentialKeys = [
+            1 => ['signal' => 'data1'],
+            3 => ['signal' => 'data2'],
+            5 => ['signal' => 'data3'],
+        ];
+
+        // Expected reindexed array with sequential keys
+        $expectedReindexedSignals = [
+            0 => ['signal' => 'data1'],
+            1 => ['signal' => 'data2'],
+            2 => ['signal' => 'data3'],
+        ];
+
+        $mockClient->expects($this->exactly(1))->method('request')
+            ->withConsecutive(
+                [
+                    'POST',
+                    Constants::SIGNALS_ENDPOINT,
+                    $expectedReindexedSignals, // Should receive reindexed array
+                    [
+                        'User-Agent' => Constants::USER_AGENT_PREFIX . '_' . TestConstants::USER_AGENT_SUFFIX
+                                        . '/' . TestConstants::USER_AGENT_VERSION,
+                        'Authorization' => 'Bearer ' . TestConstants::TOKEN,
+                    ],
+                ]
+            );
+
+        $mockClient->pushSignals($signalsWithNonSequentialKeys);
+    }
+
     public function testDecisionsStreamParams()
     {
         $mockFileStorage = $this->getFileStorageMock();
