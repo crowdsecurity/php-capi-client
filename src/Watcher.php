@@ -236,13 +236,19 @@ class Watcher extends AbstractClient
     /**
      * Process a signals call to CAPI.
      *
+     *  Ensures the signals array is reindexed with sequential numeric keys,
+     *  since json_encode will encode arrays with string or non-sequential
+     *  keys as JSON objects instead of arrays, and CAPI expects a JSON array.
+     *
      * @see https://crowdsecurity.github.io/api_doc/index.html?urls.primaryName=CAPI#/watchers/post_signals
      *
      * @throws ClientException
      */
     public function pushSignals(array $signals): array
     {
-        return $this->manageRequest('POST', Constants::SIGNALS_ENDPOINT, $signals);
+        $indexedSignals = array_values($signals);
+
+        return $this->manageRequest('POST', Constants::SIGNALS_ENDPOINT, $indexedSignals);
     }
 
     /**

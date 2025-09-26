@@ -27,7 +27,7 @@ $configs = [
     'machine_id_prefix' => 'capiclienttest',
     'user_agent_suffix' => 'CapiClientTest',
     'scenarios' => $scenarios,
-    'env' => 'dev',
+    'env' => getenv('WATCHER_ENV') ?? 'dev',
 ];
 $client = new Watcher(
     $configs,

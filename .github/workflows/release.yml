@@ -1,5 +1,5 @@
 name: Create Release
-# example: gh workflow run release.yml -f tag_name=v1.1.4 -f draft=true
+# example: gh workflow run release.yml -f tag_name=v1.1.4
 on:
   workflow_dispatch:
     branches:
@@ -31,7 +31,7 @@ jobs:
           echo "VERSION_NUMBER=$(echo ${{ github.event.inputs.tag_name }} | sed 's/v//g' )" >> $GITHUB_ENV
 
       - name: Clone sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check version ${{ env.VERSION_NUMBER }} consistency in files
         # Check src/Constants.php and CHANGELOG.md
@@ -73,7 +73,7 @@ jobs:
           fi
 
       - name: Create Tag ${{ github.event.inputs.tag_name }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           github-token: ${{ github.token }}
           script: |

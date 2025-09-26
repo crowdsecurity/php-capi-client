@@ -10,7 +10,13 @@
 
 - [Local development](#local-development)
   - [DDEV setup](#ddev-setup)
+    - [DDEV installation](#ddev-installation)
+    - [Prepare DDEV PHP environment](#prepare-ddev-php-environment)
   - [DDEV Usage](#ddev-usage)
+    - [Use composer to update or install the lib](#use-composer-to-update-or-install-the-lib)
+    - [Unit test](#unit-test)
+    - [Integration test](#integration-test)
+    - [Coding standards](#coding-standards)
 - [Commit message](#commit-message)
   - [Allowed message `type` values](#allowed-message-type-values)
 - [Update documentation table of contents](#update-documentation-table-of-contents)
@@ -24,7 +30,7 @@
 
 There are many ways to install this library on a local PHP environment.
 
-We are using [DDEV](https://ddev.readthedocs.io/en/stable/) because it is quite simple to use and customize.
+We are using [DDEV](https://docs.ddev.com/en/stable/) because it is quite simple to use and customize.
 
 Of course, you may use your own local stack, but we provide here some useful tools that depends on DDEV.
 
@@ -36,13 +42,7 @@ For a quick start, follow the below steps.
 
 #### DDEV installation
 
-This project is fully compatible with DDEV 1.21.3, and it is recommended to use this specific version.
-For the DDEV installation, please follow the [official instructions](https://ddev.readthedocs.io/en/stable/users/install/ddev-installation/).
-
-
-#### DDEV installation
-
-For the DDEV installation, please follow the [official instructions](https://ddev.readthedocs.io/en/stable/users/install/ddev-installation/).
+For the DDEV installation, please follow the [official instructions](https://docs.ddev.com/en/stable/users/install/ddev-installation/.
 
 
 #### Prepare DDEV PHP environment
@@ -225,14 +225,6 @@ Example:
 
     feat(watcher): Add a new endpoint for watcher
 
-
-You can use the `commit-msg` git hook that you will find in the `.githooks` folder : 
-
-```
-cp .githooks/commit-msg .git/hooks/commit-msg
-chmod +x .git/hooks/commit-msg
-```
-
 ### Allowed message `type` values
 
 - chore (automatic tasks; no production code change)
@@ -259,7 +251,7 @@ npm install -g doctoc
 Then, run it in the documentation folder:
 
 ```bash
-doctoc docs/* --maxlevel 3  
+doctoc docs/* --maxlevel 4  
 ```
 
 
