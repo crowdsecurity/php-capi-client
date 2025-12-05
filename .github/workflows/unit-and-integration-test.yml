@@ -5,6 +5,11 @@ on:
       - main
     paths-ignore:
       - '**.md'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
     inputs:
       unit_tests:
@@ -79,20 +84,23 @@ jobs:
       - name: Run Unit tests
         if: |
           github.event.inputs.unit_tests == 'true' ||
-          github.event_name == 'push'
+          github.event_name == 'push' ||
+          github.event_name == 'pull_request'
         run:  ddev php ./${{env.EXTENSION_PATH}}/vendor/bin/phpunit --debug ./${{env.EXTENSION_PATH}}/tests/Unit --testdox
 
       - name: Prepare integration tests
         if: |
           github.event.inputs.integration_tests == 'true' ||
-          github.event_name == 'push'
+          github.event_name == 'push' ||
+          github.event_name == 'pull_request'
         run: | 
           echo -n ${{ secrets.ENROLLMENT_KEY }} > ${{env.EXTENSION_PATH}}/tests/Integration/.enrollment_key.txt
-          echo -n "{\"machine_id\":\"${{ secrets.TEST_MACHINE_ID }}\"}" > ${{env.EXTENSION_PATH}}/src/Storage/prod-machine-id.json
-          echo -n "{\"password\":\"${{ secrets.TEST_MACHINE_PWD }}\"}" > ${{env.EXTENSION_PATH}}/src/Storage/prod-password.json
+          echo -n "{\"machine_id\":\"${{ secrets.TEST_MACHINE_ID }}\"}" > ${{env.EXTENSION_PATH}}/tests/Integration/prod-machine-id.json
+          echo -n "{\"password\":\"${{ secrets.TEST_MACHINE_PWD }}\"}" > ${{env.EXTENSION_PATH}}/tests/Integration/prod-password.json
 
       - name: Run Integration tests
         if: |
           github.event.inputs.integration_tests == 'true' ||
-          github.event_name == 'push'
+          github.event_name == 'push' ||
+          github.event_name == 'pull_request'
         run: ddev php  ./${{env.EXTENSION_PATH}}/vendor/bin/phpunit  ./${{env.EXTENSION_PATH}}/tests/Integration --testdox
