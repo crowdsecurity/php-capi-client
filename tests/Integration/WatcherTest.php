@@ -85,6 +85,7 @@ final class WatcherTest extends TestCase
         'machine_id_prefix' => TestConstants::MACHINE_ID_PREFIX,
         'user_agent_suffix' => TestConstants::USER_AGENT_SUFFIX,
         'scenarios' => ['crowdsecurity/http-backdoors-attempts', 'crowdsecurity/http-bad-user-agent'],
+        'env' => 'prod',
     ];
 
     /**
@@ -129,11 +130,12 @@ final class WatcherTest extends TestCase
      */
     public function testDecisionsStream($requestHandler)
     {
-        if (file_exists(__DIR__ . '/../../src/Storage/dev-token.json')) {
+        $env = $this->configs['env'] ?? 'dev';
+        if (file_exists(__DIR__ . "/$env-token.json")) {
             // Remove token to force login flow
-            file_put_contents(__DIR__ . '/../../src/Storage/dev-token.json', '');
+            file_put_contents(__DIR__ . "/$env-token.json", '');
         }
-        $client = new Watcher($this->configs, new FileStorage(), $requestHandler, $this->logger);
+        $client = new Watcher($this->configs, new FileStorage(__DIR__, $this->configs['env']??'dev'), $requestHandler, $this->logger);
         $this->checkRequestHandler($client, $requestHandler);
         $response = $client->getStreamDecisions();
 
@@ -154,7 +156,7 @@ final class WatcherTest extends TestCase
      */
     public function testPushSignals($requestHandler)
     {
-        $client = new Watcher($this->configs, new FileStorage(), $requestHandler);
+        $client = new Watcher($this->configs, new FileStorage(__DIR__, $this->configs['env']??'dev'), $requestHandler);
         $this->checkRequestHandler($client, $requestHandler);
         $signals = $this->getSignals();
         $response = $client->pushSignals($signals);
@@ -250,7 +252,7 @@ final class WatcherTest extends TestCase
         if (!$enrollmentKey) {
             throw new Exception('Error while trying to get content of .enrollment_key.txt file');
         }
-        $client = new Watcher($this->configs, new FileStorage(), $requestHandler);
+        $client = new Watcher($this->configs, new FileStorage(__DIR__, $this->configs['env']??'dev'), $requestHandler);
         $this->checkRequestHandler($client, $requestHandler);
         $response = $client->enroll('CAPI CLIENT INTEGRATION TEST', false, $enrollmentKey, ['test-tag']);
 

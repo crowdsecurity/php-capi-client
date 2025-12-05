@@ -14,3 +14,4 @@ src/Storage/*.json
 
 # Integration test
 .enrollment_key.txt
+tests/**/*.json
