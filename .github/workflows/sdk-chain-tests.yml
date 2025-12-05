@@ -4,6 +4,11 @@ on:
   push:
     paths-ignore:
       - "**.md"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
 
 permissions:
   contents: read
@@ -19,7 +24,7 @@ jobs:
     with:
       php_common_json: '["main"]'
       lapi_client_json: '["main"]'
-      capi_client_json: '["${{ github.ref_name }}"]'
+      capi_client_json: '["${{ github.head_ref || github.ref_name }}"]'
       remediation_engine_json: '["main"]'
       bouncer_lib_json: '["main"]'
 
@@ -29,7 +34,7 @@ jobs:
     with:
       php_common_json: '["main"]'
       lapi_client_json: '["main"]'
-      capi_client_json: '["${{ github.ref_name }}"]'
+      capi_client_json: '["${{ github.head_ref || github.ref_name }}"]'
       remediation_engine_json: '["main"]'
 
   test-remediation-engine:
@@ -38,7 +43,7 @@ jobs:
     with:
       php_common_json: '["main"]'
       lapi_client_json: '["main"]'
-      capi_client_json: '["${{ github.ref_name }}"]'
+      capi_client_json: '["${{ github.head_ref || github.ref_name }}"]'
     secrets:
       TEST_MACHINE_ID: ${{ secrets.TEST_MACHINE_ID }}
       TEST_MACHINE_PWD: ${{ secrets.TEST_MACHINE_PWD }}
@@ -49,7 +54,7 @@ jobs:
     with:
       php_common_json: '["main"]'
       lapi_client_json: '["main"]'
-      capi_client_json: '["${{ github.ref_name }}"]'
+      capi_client_json: '["${{ github.head_ref || github.ref_name }}"]'
       remediation_engine_json: '["main"]'
       bouncer_lib_json: '["main"]'
     secrets:
