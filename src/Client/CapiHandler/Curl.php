@@ -16,9 +16,12 @@ use CrowdSec\Common\Constants;
  *
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
+ *
+ * @psalm-api
  */
 class Curl extends CommonCurl implements CapiHandlerInterface
 {
+    #[\Override]
     public function getListDecisions(string $url, array $headers = []): string
     {
         $handle = curl_init();
@@ -30,7 +33,9 @@ class Curl extends CommonCurl implements CapiHandlerInterface
 
         $statusCode = $this->getResponseHttpCode($handle);
 
-        curl_close($handle);
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($handle);
+        }
 
         return 200 === $statusCode ? (string) $response : '';
     }

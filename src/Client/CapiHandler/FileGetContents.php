@@ -16,9 +16,13 @@ use CrowdSec\Common\Constants;
  *
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
+ *
+ * @psalm-api
+ *
  */
 class FileGetContents extends CommonFileGetContents implements CapiHandlerInterface
 {
+    #[\Override]
     public function getListDecisions(string $url, array $headers = []): string
     {
         $config = $this->createListContextConfig($headers);

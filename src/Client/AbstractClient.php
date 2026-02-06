@@ -36,6 +36,9 @@ abstract class AbstractClient extends CommonAbstractClient
         parent::__construct($configs, $this->capiHandler, $logger);
     }
 
+    /**
+     * @psalm-api
+     */
     public function getCapiHandler(): CapiHandlerInterface
     {
         return $this->capiHandler;

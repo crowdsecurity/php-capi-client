@@ -20,6 +20,8 @@ use Symfony\Component\Uid\Uuid;
  *
  * @see      https://crowdsec.net CrowdSec Official Website
  *
+ * @psalm-api
+ *
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
  */

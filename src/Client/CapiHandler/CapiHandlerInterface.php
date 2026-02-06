@@ -20,6 +20,7 @@ interface CapiHandlerInterface extends RequestHandlerInterface
 {
     /**
      * Retrieve decisions list from a blocklist url.
+     * @psalm-api
      */
     public function getListDecisions(string $url, array $headers = []): string;
 }

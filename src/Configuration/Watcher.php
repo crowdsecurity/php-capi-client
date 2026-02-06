@@ -40,6 +40,7 @@ class Watcher extends AbstractConfiguration
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
+    #[\Override]
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('watcherConfig');
