@@ -2,6 +2,7 @@
 <psalm
     errorLevel="5"
     resolveFromConfigFile="true"
+    findUnusedIssueHandlerSuppression="false"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
@@ -14,6 +15,7 @@
         </ignoreFiles>
     </projectFiles>
     <issueHandlers>
+        <UnusedMethodCall errorLevel="info"/>
         <UndefinedInterfaceMethod>
             <errorLevel type="suppress">
                 <referencedMethod name="Symfony\Component\Config\Definition\Builder\NodeParentInterface::integerNode"/>

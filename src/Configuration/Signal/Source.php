@@ -33,6 +33,7 @@ class Source extends AbstractConfiguration
         'as_number',
     ];
 
+    #[\Override]
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('signalSourceConfig');

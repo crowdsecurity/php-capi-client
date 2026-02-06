@@ -15,6 +15,8 @@ use CrowdSec\CapiClient\Constants;
  *
  * @copyright Copyright (c) 2022+ CrowdSec
  * @license   MIT License
+ *
+ * @psalm-api
  */
 class FileStorage implements StorageInterface
 {
@@ -38,6 +40,7 @@ class FileStorage implements StorageInterface
         $this->env = $env;
     }
 
+    #[\Override]
     public function retrieveMachineId(): ?string
     {
         $storageContent = $this->readFile($this->getBasePath() . self::MACHINE_ID_FILE);
@@ -45,6 +48,7 @@ class FileStorage implements StorageInterface
         return !empty($storageContent['machine_id']) ? $storageContent['machine_id'] : null;
     }
 
+    #[\Override]
     public function retrievePassword(): ?string
     {
         $storageContent = $this->readFile($this->getBasePath() . self::PASSWORD_FILE);
@@ -52,6 +56,7 @@ class FileStorage implements StorageInterface
         return !empty($storageContent['password']) ? $storageContent['password'] : null;
     }
 
+    #[\Override]
     public function retrieveScenarios(): ?array
     {
         $storageContent = $this->readFile($this->getBasePath() . self::SCENARIOS_FILE);
@@ -59,6 +64,7 @@ class FileStorage implements StorageInterface
         return !empty($storageContent['scenarios']) ? $storageContent['scenarios'] : null;
     }
 
+    #[\Override]
     public function retrieveToken(): ?string
     {
         $storageContent = $this->readFile($this->getBasePath() . self::TOKEN_FILE);
@@ -66,6 +72,7 @@ class FileStorage implements StorageInterface
         return !empty($storageContent['token']) ? $storageContent['token'] : null;
     }
 
+    #[\Override]
     public function storeMachineId(string $machineId): bool
     {
         try {
@@ -78,6 +85,7 @@ class FileStorage implements StorageInterface
         return true;
     }
 
+    #[\Override]
     public function storePassword(string $password): bool
     {
         try {
@@ -90,6 +98,7 @@ class FileStorage implements StorageInterface
         return true;
     }
 
+    #[\Override]
     public function storeScenarios(array $scenarios): bool
     {
         try {
@@ -102,6 +111,7 @@ class FileStorage implements StorageInterface
         return true;
     }
 
+    #[\Override]
     public function storeToken(string $token): bool
     {
         try {

@@ -43,6 +43,7 @@ class Signal extends AbstractConfiguration
      * @throws \RuntimeException
      * @throws \InvalidArgumentException
      */
+    #[\Override]
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('signalConfig');

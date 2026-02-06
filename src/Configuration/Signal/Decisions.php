@@ -40,6 +40,7 @@ class Decisions extends AbstractConfiguration
      * Keep only necessary configs
      * Override because $configs is an array of array (decision) and we want to clean each decision.
      */
+    #[\Override]
     public function cleanConfigs(array $configs): array
     {
         $result = [];
@@ -54,6 +55,7 @@ class Decisions extends AbstractConfiguration
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
+    #[\Override]
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('signalDecisionsConfig');
