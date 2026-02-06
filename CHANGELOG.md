@@ -13,6 +13,16 @@ As far as possible, we try to adhere to [Symfony guidelines](https://symfony.com
 
 ---
 
+## [3.5.2](https://github.com/crowdsecurity/php-capi-client/releases/tag/v3.5.2) - 2026-02-06
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v3.5.1...v3.5.2)
+
+
+### Fixed
+
+- Fix `curl_close` deprecation warning in PHP 8.5
+
+---
+
 ## [3.5.1](https://github.com/crowdsecurity/php-capi-client/releases/tag/v3.5.1) - 2025-09-26
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v3.5.0...v3.5.1)
 
