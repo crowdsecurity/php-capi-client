@@ -247,10 +247,16 @@ class Watcher extends AbstractClient
      * @throws ClientException
      */
     public function pushSignals(array $signals): array
-    {
+    {      
+        $batchSize = 50;
         $indexedSignals = array_values($signals);
+        $chunks = array_chunk($indexedSignals, $batchSize);
+        $result = [];
+        foreach ($chunks as $chunk) {
+            $result = $this->manageRequest('POST', Constants::SIGNALS_ENDPOINT, $chunk);
+        }
 
-        return $this->manageRequest('POST', Constants::SIGNALS_ENDPOINT, $indexedSignals);
+        return $result;
     }
 
     /**
