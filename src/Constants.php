@@ -63,6 +63,10 @@ class Constants extends CommonConstants
      */
     public const REGISTER_RETRY = 1;
     /**
+     * @var int The default maximum number of signals per push request
+     */
+    public const SIGNALS_BATCH_SIZE = 50;
+    /**
      * @var string The signals push endpoint
      */
     public const SIGNALS_ENDPOINT = '/signals';

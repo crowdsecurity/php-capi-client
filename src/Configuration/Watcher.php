@@ -33,6 +33,7 @@ class Watcher extends AbstractConfiguration
         'scenarios',
         'api_timeout',
         'api_connect_timeout',
+        'signals_batch_size',
         'metrics',
     ];
 
@@ -108,6 +109,15 @@ class Watcher extends AbstractConfiguration
             ->end()
             ->integerNode('api_timeout')->defaultValue(Constants::API_TIMEOUT)->end()
             ->integerNode('api_connect_timeout')->defaultValue(Constants::API_CONNECT_TIMEOUT)->end()
+            ->integerNode('signals_batch_size')
+                ->defaultValue(Constants::SIGNALS_BATCH_SIZE)
+                ->validate()
+                ->ifTrue(function (int $value) {
+                    return $value < 1;
+                })
+                ->thenInvalid('Invalid signals batch size. Must be greater than 0')
+                ->end()
+            ->end()
         ->end()
         ;
         $this->addMetricsNodes($rootNode);
