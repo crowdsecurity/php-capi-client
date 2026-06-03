@@ -13,6 +13,16 @@ As far as possible, we try to adhere to [Symfony guidelines](https://symfony.com
 
 ---
 
+## [3.5.3](https://github.com/crowdsecurity/php-capi-client/releases/tag/v3.5.3) - 2026-06-02
+[_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v3.5.2...v3.5.3)
+
+
+### Changed
+
+- Push signals in batches of 50 to avoid issues with large payloads
+
+---
+
 ## [3.5.2](https://github.com/crowdsecurity/php-capi-client/releases/tag/v3.5.2) - 2026-02-06
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v3.5.1...v3.5.2)
 
