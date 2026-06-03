@@ -13,7 +13,7 @@ As far as possible, we try to adhere to [Symfony guidelines](https://symfony.com
 
 ---
 
-## [3.5.3](https://github.com/crowdsecurity/php-capi-client/releases/tag/v3.5.3) - 2026-06-02
+## [3.5.3](https://github.com/crowdsecurity/php-capi-client/releases/tag/v3.5.3) - 2026-06-03
 [_Compare with previous release_](https://github.com/crowdsecurity/php-capi-client/compare/v3.5.2...v3.5.3)
 
 
